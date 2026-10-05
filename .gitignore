@@ -1,0 +1,35 @@
+# --- secrets: never commit ---
+*.pem
+.env
+
+# --- environments ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# --- data (too large for GitHub) ---
+data/*
+!data/README.md
+*.json.gz
+*.json
+*.parquet
+cache/
+
+# --- outputs ---
+results/*
+!results/.gitkeep
+models/*
+!models/.gitkeep
+# to commit the final model, use:  git add -f models/final_model.joblib
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+desktop.ini
+
+# --- re-include the small committed test set (must stay last) ---
+!data/sample/
+!data/sample/*
