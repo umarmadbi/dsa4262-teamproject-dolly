@@ -1,0 +1,7 @@
+0 stack PR 0.544 ROC 0.936 | read-mean PR 0.454  (118s)
+1 stack PR 0.536 ROC 0.936 | read-mean PR 0.432  (230s)
+2 stack PR 0.494 ROC 0.931 | read-mean PR 0.388  (342s)
+3 stack PR 0.478 ROC 0.919 | read-mean PR 0.377  (451s)
+4 stack PR 0.515 ROC 0.923 | read-mean PR 0.425  (564s)
+CV stack: ROC 0.929 PR 0.514±0.028 | read-pool only: ROC 0.887 PR 0.415
+d1-unseen stack: ROC 0.842 PR 0.377 | read-pool only: ROC 0.795 PR 0.289

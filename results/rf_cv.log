@@ -1,0 +1,2 @@
+train sites 97,480 (4.498% pos), test sites 24,358 (4.475% pos), genes test 775
+random_forest   ROC 0.916±0.007  PR 0.486±0.036  (635s)

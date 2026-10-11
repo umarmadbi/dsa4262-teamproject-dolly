@@ -30,11 +30,18 @@ We build a machine learning model that predicts, for each candidate site in a tr
 │   └── 01_EDA.ipynb          <- exploratory data analysis
 ├── src/m6a/                  <- shared code (import this, don't copy-paste it)
 │   ├── io.py                 <- streaming json parser + label loading
-│   └── evaluation.py         <- gene-grouped splits and ROC/PR AUC scoring
+│   ├── features.py           <- read-distribution features, k-mer centring, neighbour context
+│   ├── models.py             <- baselines, candidate models, final ReadStackModel
+│   ├── pipeline.py           <- loading helpers shared by train.py / predict.py
+│   └── evaluation.py         <- gene-grouped splits, ROC/PR AUC, gene-level bootstrap CIs
 ├── scripts/
-│   └── parse_to_parquet.py   <- turn a data.json.gz into a site-level table
-├── models/                   <- trained models (only the final one is committed)
-└── results/                  <- predictions, metrics, figures from experiments
+│   ├── train.py              <- TASK 1: train a model from data.json + labels
+│   ├── predict.py            <- TASK 1: score a data.json -> transcript_id,transcript_position,score
+│   ├── build_features.py     <- cache a dataset's features for experiments
+│   └── parse_to_parquet.py   <- turn a data.json.gz into a simple site-level table (EDA)
+├── experiments/              <- 01-06: model comparison and final evaluation (see docs/model_development.md)
+├── models/m6a_model.joblib   <- the trained final model (2.5 MB)
+└── results/                  <- metrics (csv), logs, predictions from experiments
 ```
 
 ---
@@ -85,6 +92,45 @@ Open `notebooks/01_EDA.ipynb` and run all cells. The first run parses the json f
 
 ---
 
+## Train and predict (Task 1)
+
+```bash
+source .venv/bin/activate
+
+# predict with the trained model shipped in models/ (small test set included)
+python scripts/predict.py --json data/sample/sample.json.gz --out results/sample_predictions.csv
+
+# retrain from scratch (~10 min on 2 cores, ~2 GB RAM)
+python scripts/train.py --data data/data0/dataset0.json.gz data/data0/data.info.labelled \
+                        --out models/m6a_model.joblib
+```
+
+`predict.py` writes `transcript_id,transcript_position,score` (score = probability of m6A, 0-1) for
+every site in the json. Give it one sequencing run per call: neighbouring sites in the same transcript
+are used as context. `--jobs N` sets the CPU cores. `train.py` accepts `--data JSON LABELS` several
+times to train on more than one run.
+
+### The model in one paragraph
+A read-level LightGBM scores individual reads (the multiple-instance idea behind m6Anet); the read scores
+are pooled per site (quantiles, max, share of high-scoring reads, using at most 20 reads so depth does not
+matter). A final LightGBM combines these with read-distribution summaries of the signal (quantiles of
+current, SD and dwell time at -1/0/+1, centred on each 5-mer's typical level), the 7-mer sequence and the
+scores of neighbouring candidate sites within 25/100 nt (m6A sites cluster). Details and every comparison:
+**[docs/model_development.md](docs/model_development.md)**.
+
+### Results (held-out data, never used for model choices)
+
+| Model | dataset0 held-out genes ROC / PR | dataset1 unseen transcripts ROC / PR |
+|---|---|---|
+| Random | 0.52 / 0.048 | 0.50 / 0.083 |
+| 5-mer prior (simple baseline) | 0.80 / 0.14 | 0.72 / 0.16 |
+| LightGBM on site features | 0.92 / 0.48 | 0.83 / 0.36 |
+| **Final model** | **0.93 / 0.52** | **0.86 / 0.40** |
+
+![evaluation](docs/figures/model_evaluation.png)
+
+---
+
 ## How we work together (Git)
 
 1. **Always start with** `git checkout main && git pull`.
@@ -119,7 +165,7 @@ See **[docs/eda_findings.md](docs/eda_findings.md)**. Short version:
 | Partial modification blurs averages | Use read-distribution features (quantiles, fraction of low-current reads) |
 | Outlier reads | Medians/quantiles or clipping |
 
-Baseline to beat (gene split, data0): **5-mer only: ROC 0.81 / PR 0.15**; site summary features + gradient boosting: **ROC 0.90 / PR 0.41**.
+Baseline to beat (gene split, data0): **5-mer only: ROC 0.81 / PR 0.15**. The final model reaches **ROC 0.93 / PR 0.52** on held-out genes (see above).
 
 ---
 
@@ -132,9 +178,11 @@ Baseline to beat (gene split, data0): **5-mer only: ROC 0.81 / PR 0.15**; site s
 | Individual teamwork summary | 29 Oct, 23:59 |
 
 To do before submission:
-- [ ] `train.py`: train a model from `data.json` + `data.info`
-- [ ] `predict.py`: output `transcript_id,transcript_position,score` for new `data.json`
-- [ ] Benchmark vs simple baseline and m6Anet (ROC + PR curves)
+- [x] `train.py`: train a model from `data.json` + `data.info`
+- [x] `predict.py`: output `transcript_id,transcript_position,score` for new `data.json`
+- [x] Benchmark vs random and simple baseline (ROC + PR curves, bootstrap CIs)
+- [ ] Benchmark vs m6Anet (run in the Python 3.8 env on AWS)
+- [ ] Intermediate leaderboard: run `predict.py` on the released json (due 7 Oct, 23:59)
 - [ ] Task 2: predictions on all SG-NEx samples + comparison across cell lines
 - [ ] Interactive visualisation
 - [ ] Make the repo **public** and test the README instructions on a fresh Ubuntu machine

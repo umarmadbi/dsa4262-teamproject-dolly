@@ -1,0 +1,31 @@
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+0 stage1 PR 0.526 -> with neighbours PR 0.553 (ROC 0.945)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+1 stage1 PR 0.520 -> with neighbours PR 0.567 (ROC 0.954)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+2 stage1 PR 0.494 -> with neighbours PR 0.516 (ROC 0.939)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+3 stage1 PR 0.473 -> with neighbours PR 0.489 (ROC 0.931)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+4 stage1 PR 0.506 -> with neighbours PR 0.545 (ROC 0.940)
+CV mean: stage1 PR 0.504, neighbours PR 0.534, ROC 0.942
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+/home/claude/repo/src/m6a/features.py:260: RuntimeWarning: Mean of empty slice
+  out[idx, col + 1] = np.where(n > 0, np.nanmean(sm, 1), 0)
+d1-unseen: stage1 PR 0.364 -> neighbours PR 0.395 ROC 0.857
