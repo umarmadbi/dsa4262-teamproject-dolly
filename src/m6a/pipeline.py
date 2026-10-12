@@ -43,12 +43,16 @@ def combine(parts):
 
 
 def fill_gene_ids(sites: pd.DataFrame) -> pd.DataFrame:
-    """Use gene_id where known (also borrowed across inputs via transcript_id);
-    otherwise the transcript is its own group."""
+    """Use gene_id where known (also borrowed across inputs via transcript_id),
+    then the Ensembl annotation; otherwise the transcript is its own group."""
+    from .annotation import DEFAULT_TABLE, load_transcript_table
     if "gene_id" not in sites:
         sites["gene_id"] = np.nan
     known = sites.dropna(subset=["gene_id"]).drop_duplicates("transcript_id")
     tx2gene = known.set_index("transcript_id")["gene_id"]
-    sites["gene_id"] = (sites["gene_id"].fillna(sites["transcript_id"].map(tx2gene))
-                        .fillna(sites["transcript_id"]))
+    sites["gene_id"] = sites["gene_id"].fillna(sites["transcript_id"].map(tx2gene))
+    if DEFAULT_TABLE.exists():
+        ens = load_transcript_table().set_index("transcript_id")["gene_id"]
+        sites["gene_id"] = sites["gene_id"].fillna(sites["transcript_id"].map(ens))
+    sites["gene_id"] = sites["gene_id"].fillna(sites["transcript_id"])
     return sites

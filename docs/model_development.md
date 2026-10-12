@@ -98,14 +98,108 @@ The submitted model (`models/m6a_model.joblib`) is retrained on **all** of datas
 Run through `scripts/predict.py` on the raw dataset1 file it gives ROC 0.861 / PR 0.405 on the unseen
 transcripts (same as above), scoring 90,810 sites in 42 s.
 
+## m6Anet benchmark (12 Oct 2026, `07_m6anet_*`, `08_m6anet_compare.py`)
+
+Pretrained m6Anet 2.1.0 (default model `HCT116_RNA002`, Python 3.8 env from `environment_m6anet.yml`) scored on
+the same sites. Our json files already are m6Anet `dataprep` output; `07_m6anet_prepare.py` only decompresses them and
+writes the byte-offset index (`data.info`) that `m6anet inference` needs. Every test site was scored.
+
+| Test set | m6Anet ROC / PR | Final model ROC / PR | Final − m6Anet PR (95% CI) |
+|---|---|---|---|
+| dataset0 held-out genes | 0.932 / 0.485 | 0.932 / 0.520 | +0.034 (0.006 to 0.061) |
+| dataset1 unseen transcripts | 0.834 / 0.348 | 0.860 / 0.403 | +0.055 (0.039 to 0.070) |
+
+m6Anet's pretrained model was trained on SG-NEx HCT116 with m6ACE-seq labels, possibly overlapping dataset0, which
+would favour m6Anet on dataset0; dataset1 is the cleaner comparison. On dataset2 m6Anet tracks the modification
+fraction better within a 5-mer (median Spearman 0.69 vs 0.64) and keeps rising up to 100%, while our model separates
+unmodified sites better (median score 0.01 vs 0.15 at 0%). See `docs/figures/m6anet_comparison.png`.
+
+## v2: transcript-structure features (12 Oct 2026, `09`–`11`)
+
+**Idea.** m6A sits preferentially near the stop codon and in 3' UTRs, in the last exon and long internal exons,
+and is depleted within ~200 nt of exon–exon junctions (exon junction complex). The signal and the 7-mer cannot see
+this, so v1 could not use it.
+
+**Annotation** (`src/m6a/annotation.py`, `scripts/build_annotation.py`). Ensembl 91 GTF including haplotypes and
+patches (~2% of our transcripts lie on alternate haplotypes, e.g. the MHC region) turned into one row per transcript
+(`resources/ensembl91_transcripts.csv.gz`, 4.9 MB, committed). Release check (`09_annotation_check.py`): the 7-mer
+of 20,000 sampled sites per run matches the Ensembl 91 cDNA/ncRNA sequence at `transcript_position` with offset 0
+in **100%** of cases, and every transcript is annotated. 16 features per site: region (5' UTR / CDS / 3' UTR) and
+relative position within it, signed distance to start and stop codon, distance to the nearest exon junction,
+last-exon flag, exon length and relative position, transcript / UTR / CDS lengths, number of exons. They are
+label-free, so they are available at prediction time and cannot leak.
+
+Positive rate in the training genes: 0.5% within 50 nt of a junction vs 12% at 100–500 nt; 7.5% in the last exon
+vs 1.4% elsewhere; 11.6% in the first 200 nt after the stop codon (overall 4.5%).
+
+**Candidate improvements, 5-fold gene-grouped CV on the training 80%** (`10_improvements_cv.py`, same folds for
+every variant):
+
+| Variant | CV PR | Δ PR vs v1 (SD over folds) | folds better | CV ROC |
+|---|---|---|---|---|
+| v1 (final model above) | 0.535 | – | – | 0.944 |
+| **+ annotation features** | **0.590** | **+0.055 (0.015)** | **5/5** | **0.956** |
+| + read re-labelling (one EM-style MIL round) | 0.536 | +0.000 (0.011) | 2/5 | 0.945 |
+| + richer neighbours (10/25/50/100 nt, neighbours' read scores, nearest-site distance) | 0.544 | +0.009 (0.010) | 3/5 | 0.945 |
+| annotation + richer neighbours | 0.590 | +0.055 (0.015) | 5/5 | 0.955 |
+| all three | 0.589 | +0.054 (0.013) | 5/5 | 0.956 |
+
+Only the annotation features help. Re-labelling (weight the reads of positive sites by their round-1 probability
+and refit) gives nothing and doubles training time; the richer neighbour context's small gain disappears once the
+annotation is there. **v2 = v1 + annotation features, averaged over three seeds** (`SeedEnsemble`, `V2_CONFIG`).
+
+Transcripts missing from Ensembl (e.g. the synthetic dataset2) get NaN annotation features. Every training
+transcript is annotated, so LightGBM had never seen NaN and read it as 0 ("on an exon junction"): on dataset2 the
+first v2 scored every site near 0 (ranking intact, levels collapsed). Hiding the annotation of 10% of training
+transcripts did not fix this, so v2 also fits one model without annotation (= v1) and uses it for unannotated
+transcripts. All dataset0/dataset1 sites are annotated, so their scores come from the annotated ensemble only.
+
+**Final test results** (`11_final_eval_v2.py`, trained once on the training 80%; differences are paired gene-bootstrap
+vs v1). `d1 strict` drops the 2,339 "unseen" dataset1 sites (15%) whose transcript is an isoform of a *training gene*
+(gene ids now come from Ensembl, dataset1 has none of its own), so it is the cleaner cross-run test.
+
+| Model | d0 test ROC / PR | d1 unseen ROC / PR | d1 strict ROC / PR |
+|---|---|---|---|
+| 5-mer prior | 0.798 / 0.142 | 0.717 / 0.158 | 0.715 / 0.147 |
+| m6Anet (pretrained) | 0.932 / 0.485 | 0.834 / 0.348 | 0.839 / 0.334 |
+| v1 (final model) | 0.932 / 0.520 | 0.860 / 0.403 | 0.865 / 0.392 |
+| v2, single seed | 0.951 / 0.554 | 0.876 / 0.431 | 0.880 / 0.420 |
+| **v2** | **0.952 / 0.561** | **0.877 / 0.434** | **0.881 / 0.421** |
+| v2 trained on two runs | 0.948 / 0.552 | – | 0.882 / 0.435 |
+
+* v2 − v1, PR: **+0.042 (0.013 to 0.071)** on dataset0, +0.032 (0.015 to 0.049) on d1 unseen,
+  +0.028 (0.013 to 0.045) on d1 strict; ROC +0.020 / +0.017 / +0.016, all CIs above 0.
+* Seed averaging adds a little over a single seed (+0.007 PR on dataset0, ~+0.002 on dataset1).
+* dataset2: its synthetic transcripts are not in Ensembl, so v2 scores them with the fallback (= v1): Spearman 0.41,
+  within-5-mer 0.64, the same as v1. The transcript-structure gain only applies to annotated transcripts.
+* Most important new features (gain): exon length, distance to the nearest junction, distance to the stop codon,
+  right after the pooled read scores and the neighbour context.
+
+**Two runs.** Training on dataset0-train + the dataset1 sites of training genes (159,983 sites) gives d1 strict PR
+0.435 vs 0.421 for v2, and dataset0 PR 0.552 vs 0.561. It only helps on the run it was partly trained on, and the
+model learns that run's batch effects, so the dataset1 gain overstates what a new, unseen run would get. With only
+two labelled runs this cannot be tested cleanly, so the submitted v2 is trained on dataset0 only, as v1 was.
+
+**Model file.** `models/m6a_model_v2.joblib` (`python scripts/train.py --v2 --data data/data0/dataset0.json.gz
+data/data0/data.info.labelled --out models/m6a_model_v2.joblib`). `models/m6a_model.joblib` (v1) and the default
+of `train.py` are unchanged until the team agrees to switch.
+Run through `scripts/predict.py` on the raw dataset1 file it gives ROC 0.878 / PR 0.434 on the unseen transcripts
+(same as above), scoring 90,810 sites in 168 s. The file is 16 MB (three seed models + fallback + annotation table).
+
+**Caveat.** A small smoke test of the code during development was scored on the dataset0 test genes (a model
+trained on 800 training genes, used only to check the code ran). No choice was based on it; all choices above come
+from cross-validation.
+
 ## Limitations / open items
 
-* Cross-run gap: PR drops from ~0.52 to ~0.40 on dataset1. Part of this is the labels themselves
-  (the 5-mer prior also falls from ROC 0.80 to 0.72), part is batch shift.
+* Cross-run gap: PR drops from ~0.56 to ~0.43 on dataset1 (v1: ~0.52 to ~0.40). Part of this is the labels
+  themselves (the 5-mer prior also falls from ROC 0.80 to 0.72), part is batch shift.
 * Neighbour features assume the scored file contains whole transcripts (true for m6Anet output). If only isolated
   sites were scored, those features would be 0 and the model falls back on its other features.
-* dataset1 transcripts not in dataset0 have no gene_id; a few could be isoforms of dataset0 genes.
-* Still to do: m6Anet benchmark (needs its Python 3.8 env on AWS), read-depth subsampling check, seed stability.
+* v2 needs Ensembl 91 transcript ids (as in the course data and SG-NEx); other transcripts are scored by the
+  v1-style fallback model, without the transcript-structure gain.
+* The v1 results above count 2,339 dataset1 "unseen" sites that are isoforms of training genes (see d1 strict).
+* Still to do: read-depth subsampling check.
 
 ## Reproduce
 
@@ -120,5 +214,12 @@ python 03_read_level.py       # read-level model, ~12 min
 python 04_neighbours.py       # neighbour context, ~6 min
 python 05_final_eval.py       # one-shot test evaluation, ~15 min
 python 06_figures.py
+# m6Anet benchmark (needs the m6anet env; M6ANET = path to its m6anet binary if not on PATH)
+M6ANET=m6anet ./07_m6anet_run.sh   # ~15 min
+python 08_m6anet_compare.py   # ~6 min
+# v2 (Ensembl 91 GTF + cDNA/ncRNA fasta in cache/annotation/, see scripts/build_annotation.py)
+python 09_annotation_check.py # release check + positive rate by region, ~2 min
+python 10_improvements_cv.py  # candidate improvements, ~2.5 h
+python 11_final_eval_v2.py    # one-shot test evaluation of v2, ~1 h
 ```
 Times are for 2 CPU cores.

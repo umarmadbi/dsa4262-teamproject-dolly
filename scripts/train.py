@@ -7,8 +7,13 @@ Usage (from the repo root):
 --data takes a json file and its labels file; repeat it to train on several
 runs. The labels file needs transcript_id, transcript_position and label
 (0/1); gene_id is used to keep the inner cross-validation folds gene-disjoint
-(if missing, genes are borrowed from the other inputs or the transcript is
-its own group).
+(if missing, genes are borrowed from the other inputs, then from the Ensembl
+annotation in resources/, else the transcript is its own group).
+
+--v2 trains the v2 model (docs/model_development.md): ReadStackModel with
+transcript-structure features, averaged over three seeds, plus a fallback model
+for transcripts missing from Ensembl (~4x the v1 training time). Without it,
+the original v1 model is trained.
 """
 import argparse
 import sys
@@ -18,7 +23,7 @@ from pathlib import Path
 import joblib
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from m6a.models import ReadStackModel  # noqa: E402
+from m6a.models import V2_CONFIG, ReadStackModel, SeedEnsemble  # noqa: E402
 from m6a.pipeline import combine, fill_gene_ids, load_sites  # noqa: E402
 
 
@@ -28,9 +33,13 @@ def main():
     ap.add_argument("--out", default="models/m6a_model.joblib")
     ap.add_argument("--jobs", type=int, default=2, help="CPU cores to use")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--v2", action="store_true", help="train the v2 model (transcript-structure features)")
     a = ap.parse_args()
 
-    model = ReadStackModel(seed=a.seed, n_jobs=a.jobs)
+    if a.v2:
+        model = SeedEnsemble(seeds=(a.seed, a.seed + 1, a.seed + 2), n_jobs=a.jobs, **V2_CONFIG)
+    else:
+        model = ReadStackModel(seed=a.seed, n_jobs=a.jobs)
     parts = []
     for json_path, info_path in a.data:
         t = time.time()

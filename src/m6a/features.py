@@ -264,3 +264,44 @@ def neighbour_features(sites: pd.DataFrame, score: np.ndarray) -> pd.DataFrame:
             out[idx, col + 2] = n
             col += 3
     return pd.DataFrame(out, columns=NEIGH_COLS, index=sites.index)
+
+
+RICH_WINDOWS = (10, 25, 50, 100)
+
+
+def rich_neighbour_features(sites: pd.DataFrame, scores: dict) -> pd.DataFrame:
+    """Richer neighbour context (ReadStackModel(rich_neighbours=True)).
+
+    For every score in `scores` (name -> array, e.g. first-stage site score and
+    pooled read score) and every window w in RICH_WINDOWS: max and mean of the
+    *other* candidate sites within +-w nt of the same transcript, plus the
+    number of such sites; also the distance to the nearest other candidate site
+    and the number of candidate sites in the transcript. Label-free.
+    """
+    names = list(scores)
+    cols = ([f"rnb{w}_{n}_{s}" for w in RICH_WINDOWS for n in names for s in ("max", "mean")]
+            + [f"rnb{w}_n" for w in RICH_WINDOWS] + ["rnb_log_nearest", "rnb_tx_sites"])
+    out = np.zeros((len(sites), len(cols)), np.float32)
+    S = np.column_stack([np.asarray(scores[n], float) for n in names])
+    df = pd.DataFrame({"tx": sites["transcript_id"].to_numpy(),
+                       "pos": sites["transcript_position"].to_numpy()})
+    nw, ns = len(RICH_WINDOWS), len(names)
+    for _, g in df.groupby("tx", sort=False):
+        idx = g.index.to_numpy()
+        p = g["pos"].to_numpy()
+        dist = np.abs(p[:, None] - p[None, :]).astype(float)
+        np.fill_diagonal(dist, np.inf)
+        s = S[idx]                                          # sites in tx x scores
+        for wi, w in enumerate(RICH_WINDOWS):
+            m = dist <= w
+            n = m.sum(1)
+            for si in range(ns):
+                v = s[:, si][None, :]
+                c = (wi * ns + si) * 2
+                out[idx, c] = np.where(m, v, 0).max(1)            # scores are >= 0
+                out[idx, c + 1] = np.where(n > 0, np.where(m, v, 0).sum(1) / np.maximum(n, 1), 0)
+            out[idx, 2 * nw * ns + wi] = n
+        nearest = dist.min(1) if len(idx) > 1 else np.array([np.inf])
+        out[idx, -2] = np.log10(np.minimum(nearest, 1e5) + 1)
+        out[idx, -1] = len(idx)
+    return pd.DataFrame(out, columns=cols, index=sites.index)

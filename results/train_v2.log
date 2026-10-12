@@ -1,0 +1,2 @@
+data/data0/dataset0.json.gz: 121,838 labelled sites, 4.49% positive (78s)
+trained on 121,838 sites in 1387s -> models/m6a_model_v2.joblib

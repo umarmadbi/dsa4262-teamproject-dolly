@@ -1,0 +1,43 @@
+fold 0 base        PR 0.560 ROC 0.949 (226s, total 227s)
+fold 0 annotation  PR 0.596 ROC 0.957 (237s, total 464s)
+fold 0 relabel     PR 0.565 ROC 0.949 (422s, total 886s)
+fold 0 rich_nb     PR 0.559 ROC 0.949 (225s, total 1111s)
+fold 0 all         PR 0.596 ROC 0.957 (435s, total 1546s)
+fold 1 base        PR 0.581 ROC 0.956 (223s, total 1769s)
+fold 1 annotation  PR 0.623 ROC 0.963 (238s, total 2007s)
+fold 1 relabel     PR 0.571 ROC 0.955 (464s, total 2471s)
+fold 1 rich_nb     PR 0.581 ROC 0.956 (228s, total 2699s)
+fold 1 all         PR 0.626 ROC 0.964 (438s, total 3137s)
+fold 2 base        PR 0.509 ROC 0.943 (226s, total 3363s)
+fold 2 annotation  PR 0.572 ROC 0.956 (243s, total 3605s)
+fold 2 relabel     PR 0.509 ROC 0.944 (429s, total 4034s)
+fold 2 rich_nb     PR 0.516 ROC 0.944 (233s, total 4267s)
+fold 2 all         PR 0.573 ROC 0.956 (462s, total 4729s)
+fold 3 base        PR 0.500 ROC 0.931 (239s, total 4968s)
+fold 3 annotation  PR 0.573 ROC 0.946 (252s, total 5220s)
+fold 3 relabel     PR 0.491 ROC 0.932 (440s, total 5660s)
+fold 3 rich_nb     PR 0.513 ROC 0.932 (243s, total 5903s)
+fold 3 all         PR 0.566 ROC 0.946 (470s, total 6373s)
+fold 4 base        PR 0.526 ROC 0.941 (278s, total 6651s)
+fold 4 annotation  PR 0.586 ROC 0.954 (257s, total 6908s)
+fold 4 relabel     PR 0.542 ROC 0.944 (477s, total 7385s)
+fold 4 rich_nb     PR 0.550 ROC 0.943 (271s, total 7656s)
+fold 4 all         PR 0.586 ROC 0.954 (499s, total 8155s)
+   variant  cv_pr  cv_pr_sd  cv_roc  dpr_vs_base  dpr_sd  folds_better  droc_vs_base
+       all 0.5894    0.0234  0.9555       0.0542  0.0132             5        0.0118
+annotation 0.5900    0.0211  0.9555       0.0549  0.0153             5        0.0117
+      base 0.5352    0.0344  0.9438       0.0000  0.0000             0        0.0000
+   relabel 0.5355    0.0349  0.9447       0.0003  0.0105             2        0.0009
+   rich_nb 0.5438    0.0289  0.9449       0.0086  0.0101             3        0.0011
+fold 0 annot_nb    PR 0.598 ROC 0.956 (264s, total 265s)
+fold 1 annot_nb    PR 0.621 ROC 0.961 (267s, total 533s)
+fold 2 annot_nb    PR 0.570 ROC 0.956 (267s, total 800s)
+fold 3 annot_nb    PR 0.571 ROC 0.946 (267s, total 1068s)
+fold 4 annot_nb    PR 0.589 ROC 0.954 (254s, total 1321s)
+   variant  cv_pr  cv_pr_sd  cv_roc  dpr_vs_base  dpr_sd  folds_better  droc_vs_base
+       all 0.5894    0.0234  0.9555       0.0542  0.0132             5        0.0118
+  annot_nb 0.5898    0.0211  0.9547       0.0546  0.0148             5        0.0110
+annotation 0.5900    0.0211  0.9555       0.0549  0.0153             5        0.0117
+      base 0.5352    0.0344  0.9438       0.0000  0.0000             0        0.0000
+   relabel 0.5355    0.0349  0.9447       0.0003  0.0105             2        0.0009
+   rich_nb 0.5438    0.0289  0.9449       0.0086  0.0101             3        0.0011

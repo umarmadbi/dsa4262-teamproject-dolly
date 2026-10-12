@@ -31,6 +31,7 @@ We build a machine learning model that predicts, for each candidate site in a tr
 ├── src/m6a/                  <- shared code (import this, don't copy-paste it)
 │   ├── io.py                 <- streaming json parser + label loading
 │   ├── features.py           <- read-distribution features, k-mer centring, neighbour context
+│   ├── annotation.py         <- transcript-structure features from Ensembl 91 (v2 model)
 │   ├── models.py             <- baselines, candidate models, final ReadStackModel
 │   ├── pipeline.py           <- loading helpers shared by train.py / predict.py
 │   └── evaluation.py         <- gene-grouped splits, ROC/PR AUC, gene-level bootstrap CIs
@@ -38,9 +39,13 @@ We build a machine learning model that predicts, for each candidate site in a tr
 │   ├── train.py              <- TASK 1: train a model from data.json + labels
 │   ├── predict.py            <- TASK 1: score a data.json -> transcript_id,transcript_position,score
 │   ├── build_features.py     <- cache a dataset's features for experiments
+│   ├── build_annotation.py   <- Ensembl GTF -> resources/ensembl91_transcripts.csv.gz
 │   └── parse_to_parquet.py   <- turn a data.json.gz into a simple site-level table (EDA)
-├── experiments/              <- 01-06: model comparison and final evaluation (see docs/model_development.md)
-├── models/m6a_model.joblib   <- the trained final model (2.5 MB)
+├── experiments/              <- 01-06: model comparison and final evaluation; 07-08: m6Anet benchmark;
+│                                09-11: v2 improvements (see docs/model_development.md)
+├── resources/                <- per-transcript Ensembl 91 annotation used by the v2 model (committed)
+├── models/m6a_model.joblib   <- the trained final model, v1 (2.5 MB)
+├── models/m6a_model_v2.joblib <- v2: + transcript-structure features (see below)
 └── results/                  <- metrics (csv), logs, predictions from experiments
 ```
 
@@ -104,6 +109,11 @@ python scripts/predict.py --json data/sample/sample.json.gz --out results/sample
 python scripts/train.py --data data/data0/dataset0.json.gz data/data0/data.info.labelled \
                         --out models/m6a_model.joblib
 ```
+
+**v2 model** (Hamzah, 12 Oct; not yet the team default): adds Ensembl transcript-structure features (distance to
+the stop codon and exon junctions, region, exon length, ...) and averages three seeds. Held-out PR AUC 0.56 vs 0.52
+(dataset0) and 0.43 vs 0.40 (dataset1). Predict with `--model models/m6a_model_v2.joblib`; train it with `train.py --v2 ... --out models/m6a_model_v2.joblib`
+(~40 min). Details: [docs/model_development.md](docs/model_development.md).
 
 `predict.py` writes `transcript_id,transcript_position,score` (score = probability of m6A, 0-1) for
 every site in the json. Give it one sequencing run per call: neighbouring sites in the same transcript
@@ -181,7 +191,7 @@ To do before submission:
 - [x] `train.py`: train a model from `data.json` + `data.info`
 - [x] `predict.py`: output `transcript_id,transcript_position,score` for new `data.json`
 - [x] Benchmark vs random and simple baseline (ROC + PR curves, bootstrap CIs)
-- [ ] Benchmark vs m6Anet (run in the Python 3.8 env on AWS)
+- [x] Benchmark vs m6Anet (run in the Python 3.8 env on AWS): final model beats pretrained m6Anet on both test sets
 - [ ] Intermediate leaderboard: run `predict.py` on the released json (due 7 Oct, 23:59)
 - [ ] Task 2: predictions on all SG-NEx samples + comparison across cell lines
 - [ ] Interactive visualisation

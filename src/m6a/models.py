@@ -68,11 +68,12 @@ class SiteModel(BaseEstimator, ClassifierMixin):
     """
 
     def __init__(self, estimator=None, centering: str = "self",
-                 use_signal: bool = True, use_seq: bool = True):
+                 use_signal: bool = True, use_seq: bool = True, extra_cols: tuple = ()):
         self.estimator = estimator
         self.centering = centering
         self.use_signal = use_signal
         self.use_seq = use_seq
+        self.extra_cols = extra_cols   # further columns of X used as-is (e.g. annotation features)
 
     def _design(self, X: pd.DataFrame, fitting: bool) -> np.ndarray:
         parts = []
@@ -83,6 +84,9 @@ class SiteModel(BaseEstimator, ClassifierMixin):
             parts.append(Z[SIGNAL_COLS].to_numpy(np.float32))
         if self.use_seq:
             parts.append(kmer_onehot(X["kmer"])[SEQ_COLS].to_numpy(np.float32))
+        extra = list(getattr(self, "extra_cols", ()))
+        if extra:
+            parts.append(X[extra].to_numpy(np.float32))
         return np.hstack(parts)
 
     def fit(self, X, y, **fit_kw):
@@ -104,7 +108,7 @@ class SiteModel(BaseEstimator, ClassifierMixin):
             names += SIGNAL_COLS
         if self.use_seq:
             names += SEQ_COLS
-        return names
+        return names + list(getattr(self, "extra_cols", ()))
 
 
 def _scale_pos_weight(y):
@@ -149,6 +153,10 @@ class ReadStackModel:
     1. Read model (multiple-instance idea from m6Anet): LightGBM scores single
        reads (11 read values centred per 5-mer + one-hot 7-mer). Each read
        inherits its site's label, which is noisy for partially modified sites.
+       relabel=True adds one EM-style round: reads of positive sites are
+       re-weighted by their round-1 probability (relative to the site's most
+       confident read) and the read model is refitted, so it learns from the
+       reads that look modified instead of from every read of a positive site.
     2. Read probabilities are pooled per site (mean, quantiles, max, share
        > 0.5, depth-normalised noisy-OR). At most `cap` reads per site are
        used, in training and prediction alike, so pooled scores do not drift
@@ -157,16 +165,34 @@ class ReadStackModel:
        scores every site; for each site the max/mean score of the other
        candidate sites within 25 and 100 nt of the same transcript become
        features. No labels are used, so this works at prediction time.
+       rich_neighbours=True uses 10/25/50/100 nt windows, also summarises the
+       neighbours' pooled read scores, and adds the distance to the nearest
+       candidate site and the number of candidate sites in the transcript.
     4. Final site model: LightGBM on k-mer-centred site features + one-hot
        7-mer + pooled read scores + neighbour features. Training sites get
        *out-of-fold* read and neighbour scores (gene-grouped inner folds), so
        the final model never sees scores from a model trained on that site.
+       annotation=True adds transcript-structure features (m6a.annotation:
+       region, distance to stop codon / exon junctions, ...) to the
+       first-stage and final site models. The annotation table is stored in
+       the fitted model, so predict.py needs no extra files. Transcripts
+       missing from Ensembl get NaN features, which LightGBM (never having
+       seen NaN in training) reads as 0, e.g. "on an exon junction", so it
+       scores them all near 0: use SeedEnsemble(fallback=True), which scores
+       such transcripts with a model without annotation. `ann_dropout` (hide
+       the annotation of a random share of training transcripts) was tried
+       for this and was not enough; it is off by default.
     """
 
     def __init__(self, cap: int = 20, inner_folds: int = 3, seed: int = 42, n_jobs: int = 2,
                  read_params: dict | None = None, site_params: dict | None = None,
-                 neighbours: bool = True):
+                 neighbours: bool = True, annotation: bool = False, relabel: bool = False,
+                 rich_neighbours: bool = False, ann_dropout: float = 0.0):
         self.neighbours = neighbours
+        self.ann_dropout = ann_dropout
+        self.annotation = annotation
+        self.relabel = relabel
+        self.rich_neighbours = rich_neighbours
         self.cap = cap
         self.inner_folds = inner_folds
         self.seed = seed
@@ -188,8 +214,15 @@ class ReadStackModel:
 
     def _fit_read(self, sites, reads, offsets):
         D, idx, ref = self._read_matrix(sites, reads, offsets)
+        y = sites["label"].to_numpy()[idx]
         m = make_lightgbm(seed=self.seed, n_jobs=self.n_jobs, **self.read_params)
-        m.fit(D, sites["label"].to_numpy()[idx])
+        m.fit(D, y)
+        if getattr(self, "relabel", False):
+            p = m.predict_proba(D)[:, 1]
+            site_max = pd.Series(p).groupby(idx).transform("max").to_numpy()
+            w = np.where(y == 1, p / np.maximum(site_max, 1e-6), 1.0)
+            m = make_lightgbm(seed=self.seed, n_jobs=self.n_jobs, **self.read_params)
+            m.fit(D, y, sample_weight=w)
         return m, ref
 
     def _pool(self, m, ref, sites, reads, offsets):
@@ -197,24 +230,53 @@ class ReadStackModel:
         D, idx, _ = self._read_matrix(sites, reads, offsets, ref)
         return pool_read_scores(m.predict_proba(D)[:, 1], idx, len(sites)).to_numpy()
 
+    def _annotate(self, sites):
+        if not getattr(self, "annotation", False):
+            return sites
+        from .annotation import ANNOT_COLS, annotation_features
+        return pd.concat([sites.drop(columns=ANNOT_COLS, errors="ignore"),
+                          annotation_features(sites, self.tx_table_)], axis=1)
+
+    def _neighbours(self, sites, s1, pooled):
+        from .features import POOL_COLS, neighbour_features, rich_neighbour_features
+        if getattr(self, "rich_neighbours", False):
+            return rich_neighbour_features(sites, {"s1": s1, "rp": pooled[:, POOL_COLS.index("rp_q90")]})
+        return neighbour_features(sites, s1)
+
     def _site_matrix(self, sites, pooled, nb=None):
         Z = self.center_.transform(sites)
         parts = [Z[SIGNAL_COLS].to_numpy(np.float32),
                  kmer_onehot(sites["kmer"])[SEQ_COLS].to_numpy(np.float32), pooled]
         if nb is not None:
-            parts.append(nb)
+            parts.append(nb.to_numpy(np.float32))
+        if getattr(self, "annotation", False):
+            from .annotation import ANNOT_COLS
+            parts.append(sites[ANNOT_COLS].to_numpy(np.float32))
         return np.hstack(parts)
 
     def _stage1(self):
+        extra = ()
+        if getattr(self, "annotation", False):
+            from .annotation import ANNOT_COLS
+            extra = tuple(ANNOT_COLS)
         return SiteModel(make_lightgbm(n_estimators=400, learning_rate=0.05, seed=self.seed,
-                                       n_jobs=self.n_jobs), centering="train")
+                                       n_jobs=self.n_jobs), centering="train", extra_cols=extra)
 
     # -- API -------------------------------------------------------------
     def fit(self, sites: pd.DataFrame, reads, offsets, group_col: str = "gene_id"):
         """sites: site table with 'label', group_col and 'row' (index into offsets)."""
         from .evaluation import stratified_gene_folds
-        from .features import NEIGH_COLS, POOL_COLS, neighbour_features
-        sites = sites.reset_index(drop=True)
+        from .features import POOL_COLS
+        if self.annotation:
+            from .annotation import ANNOT_COLS, load_transcript_table
+            self.tx_table_ = load_transcript_table()
+        sites = self._annotate(sites.reset_index(drop=True))
+        if self.annotation and getattr(self, "ann_dropout", 0) > 0:
+            tx = sites["transcript_id"].unique()
+            hide = tx[np.random.default_rng(self.seed).random(len(tx)) < self.ann_dropout]
+            m = sites["transcript_id"].isin(hide).to_numpy()
+            sites.loc[m, ANNOT_COLS] = np.nan
+            sites.loc[m, "ann_known"] = 0.0
         y = sites["label"].to_numpy()
         oof = np.zeros((len(sites), len(POOL_COLS)))
         s1 = np.zeros(len(sites))
@@ -228,19 +290,71 @@ class ReadStackModel:
         nb = None
         if self.neighbours:
             self.stage1_ = self._stage1().fit(sites, y)
-            nb = neighbour_features(sites, s1).to_numpy()
+            nb = self._neighbours(sites, s1, oof)
         self.center_ = KmerCentering(reference="train").fit(sites)
         self.site_model_ = make_lightgbm(seed=self.seed, n_jobs=self.n_jobs, **self.site_params)
         self.site_model_.fit(self._site_matrix(sites, oof, nb), y)
-        self.feature_names_ = SIGNAL_COLS + SEQ_COLS + POOL_COLS + (NEIGH_COLS if self.neighbours else [])
+        self.feature_names_ = (SIGNAL_COLS + SEQ_COLS + POOL_COLS + (list(nb.columns) if nb is not None else [])
+                               + (ANNOT_COLS if self.annotation else []))
         return self
 
     def predict_proba(self, sites: pd.DataFrame, reads, offsets) -> np.ndarray:
         """Probability of m6A for each site (1-D array)."""
-        from .features import neighbour_features
-        sites = sites.reset_index(drop=True)
+        sites = self._annotate(sites.reset_index(drop=True))
         pooled = self._pool(self.read_model_, self.read_ref_, sites, reads, offsets)
         nb = None
         if self.neighbours:
-            nb = neighbour_features(sites, self.stage1_.predict_proba(sites)[:, 1]).to_numpy()
+            nb = self._neighbours(sites, self.stage1_.predict_proba(sites)[:, 1], pooled)
         return self.site_model_.predict_proba(self._site_matrix(sites, pooled, nb))[:, 1]
+
+
+# Components of the v2 model, chosen by 5-fold gene-grouped CV (experiments/10_improvements_cv.py)
+V2_CONFIG = dict(annotation=True)
+
+
+class SeedEnsemble:
+    """Average of ReadStackModels that differ only in their random seed
+    (read sampling, inner folds, LightGBM bagging). Same interface as ReadStackModel.
+
+    fallback=True (with annotation=True): also fits one model without annotation
+    features and uses it for sites whose transcript is not in the Ensembl table.
+    Annotated sites are scored by the ensemble alone.
+    """
+
+    def __init__(self, seeds=(42, 43, 44), fallback: bool = True, **kw):
+        self.seeds = tuple(seeds)
+        self.fallback = fallback
+        self.kw = kw
+        self.seed = self.seeds[0]
+
+    @property
+    def cap(self):
+        return self.kw.get("cap", 20)
+
+    @property
+    def n_jobs(self):
+        return self.kw.get("n_jobs", 2)
+
+    @n_jobs.setter
+    def n_jobs(self, v):
+        self.kw["n_jobs"] = v
+        for m in getattr(self, "models_", []) + [getattr(self, "fallback_", None)]:
+            if m is not None:
+                m.n_jobs = v
+
+    def fit(self, sites, reads, offsets, group_col: str = "gene_id"):
+        self.models_ = [ReadStackModel(seed=s, **self.kw).fit(sites, reads, offsets, group_col)
+                        for s in self.seeds]
+        self.fallback_ = None
+        if self.fallback and self.kw.get("annotation", False):
+            kw = {**self.kw, "annotation": False}
+            self.fallback_ = ReadStackModel(seed=self.seeds[0], **kw).fit(sites, reads, offsets, group_col)
+        return self
+
+    def predict_proba(self, sites, reads, offsets) -> np.ndarray:
+        p = np.mean([m.predict_proba(sites, reads, offsets) for m in self.models_], axis=0)
+        if getattr(self, "fallback_", None) is not None:
+            known = sites["transcript_id"].isin(self.models_[0].tx_table_["transcript_id"]).to_numpy()
+            if not known.all():
+                p = np.where(known, p, self.fallback_.predict_proba(sites, reads, offsets))
+        return p
