@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {parseCSV,validateCoverage,attachPredictions,decodeDataset,filterRows,summarize,coverageHistogram,compareSamples,toCSV} from '../site/core.js';
+import {parseCSV,validateCoverage,attachPredictions,decodeDataset,decodeCellLines,filterRows,summarize,coverageHistogram,compareSamples,toCSV,sampleStats,combineStats,aboveCutoff} from '../site/core.js';
 
 const read=n=>JSON.parse(fs.readFileSync(new URL(`../site/data/dataset${n}.json`,import.meta.url)));
 const a=decodeDataset(read(0),'dataset0'),b=decodeDataset(read(1),'dataset1'),c=decodeDataset(read(2),'dataset2');
@@ -28,10 +28,30 @@ assert.equal(scored.matched,1);assert.equal(scored.rows[0].score,.8);assert.equa
 assert.equal(filterRows(scored.rows,{scoredOnly:true,minScore:.7}).length,1);
 console.log('PASS: all real site counts, shared-site joins, fractional labels, coverage summaries, CSV parsing/export, import validation, and score attachment.');
 const manifest=JSON.parse(fs.readFileSync(new URL('../site/data/manifest.json',import.meta.url)));
-for(const d of manifest.datasets.filter(d=>d.group==='sgnex')){
-  const rows=decodeDataset(JSON.parse(fs.readFileSync(new URL(`../site/${d.dataFile}`,import.meta.url))),d.id);
-  assert.equal(rows.length,d.rows,`${d.id} row count`);assert.ok(d.model,`${d.id} model label`);
+const load=f=>JSON.parse(fs.readFileSync(new URL(`../site/${f}`,import.meta.url)));
+// Precomputed stats (Python) must equal what the browser would compute from the rows (JS).
+for(const d of manifest.datasets.filter(d=>d.group!=='cellline')){
+  const rows=decodeDataset(load(d.dataFile),d.id);
+  assert.equal(rows.length,d.rows,`${d.id} row count`);
+  assert.deepEqual(sampleStats(rows),JSON.parse(JSON.stringify(d.stats)),`${d.id} stats`);
+  if(d.group!=='sgnex')continue;
+  assert.ok(d.model,`${d.id} model label`);
   assert.ok(rows.every(r=>r.score!==null&&r.score>=0&&r.score<=1&&r.n_reads>=d.minReads&&r.label===null),`${d.id} scores and coverage`);
   assert.ok(manifest.catalog.some(c=>c.id===d.id&&c.loaded),`${d.id} in catalogue`);
 }
-console.log(`PASS: ${manifest.datasets.filter(d=>d.group==='sgnex').length} preloaded SG-NEx run(s) decode with scores in [0,1] and match the manifest.`);
+const lineSets=manifest.datasets.filter(d=>d.group==='cellline');
+if(lineSets.length){
+  const byLine=decodeCellLines(load(lineSets[0].dataFile));
+  for(const d of lineSets){
+    const rows=byLine.get(d.cellLine);
+    assert.equal(rows.length,d.rows,`${d.id} row count`);
+    assert.deepEqual(sampleStats(rows),JSON.parse(JSON.stringify(d.stats)),`${d.id} stats`);
+    assert.ok(rows.every(r=>r.runs>=1&&r.runs<=d.runs&&r.sample_id===d.id),`${d.id} run counts`);
+  }
+  const best=new Map();for(const rows of byLine.values())for(const r of rows){const k=`${r.transcript_id}:${r.transcript_position}`;best.set(k,Math.max(best.get(k)??0,r.score));}
+  assert.ok([...best.values()].every(v=>v>=manifest.cellLineMinScore-1e-5),'every summary site reaches the threshold in some cell line');
+}
+const all=combineStats(manifest.datasets.filter(d=>d.group==='sgnex').map(d=>d.stats),20);
+assert.equal(all.sites,manifest.datasets.filter(d=>d.group==='sgnex').reduce((n,d)=>n+d.rows,0));
+assert.equal(aboveCutoff([1,1,1,1,1,1,1,1,1,1],.5),5);
+console.log(`PASS: ${manifest.datasets.length} datasets (${lineSets.length} cell-line summaries) match their precomputed stats; SG-NEx scores in [0,1].`);

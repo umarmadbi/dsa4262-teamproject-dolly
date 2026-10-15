@@ -109,6 +109,7 @@ export function summarize(rows, cutoff = .5) {
     aboveCutoff: scores.filter(r => r.score >= cutoff).length };
 }
 
+// coverageBins and readThresholds must match scripts/build_viz_data.py.
 export const coverageBins = [20, 40, 80, 160, 320, 640, 1280, Infinity];
 export function coverageHistogram(rows) {
   const counts = Array(coverageBins.length).fill(0);
@@ -130,4 +131,48 @@ export function compareSamples(left, right, metric = 'n_reads') {
 export function toCSV(rows, columns) {
   const encode = v => { const s = v === null || v === undefined ? '' : String(v); return /[",\r\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s; };
   return [columns.join(','), ...rows.map(r => columns.map(c => encode(r[c])).join(','))].join('\r\n');
+}
+
+export const readThresholds = [20, 40, 80, 160];
+
+// Summary per minimum-read threshold; preloaded datasets carry the same object, precomputed by
+// scripts/build_viz_data.py, so the overview never needs their site rows.
+export function sampleStats(rows) {
+  const byMinReads = {};
+  for (const t of readThresholds) {
+    const kept = rows.filter(r => r.n_reads >= t), scoreHist = Array(10).fill(0);
+    for (const r of kept) if (r.score !== null) scoreHist[Math.min(9, Math.floor(r.score * 10))]++;
+    byMinReads[t] = { sites: kept.length, transcripts: new Set(kept.map(r => r.transcript_id)).size,
+      genes: new Set(kept.map(r => r.gene_id).filter(Boolean)).size, medianReads: median(kept.map(r => r.n_reads)),
+      scored: scoreHist.reduce((a, b) => a + b, 0), scoreHist, coverageHist: coverageHistogram(kept) };
+  }
+  return { thresholds: readThresholds, byMinReads };
+}
+
+// Adds several samples' stats at one threshold. Medians cannot be added, so medianReads is the median of sample medians.
+export function combineStats(list, threshold) {
+  const parts = list.map(s => s.byMinReads[threshold]);
+  const sum = key => parts.reduce((n, p) => n + p[key], 0);
+  const add = key => parts.reduce((acc, p) => acc.map((n, i) => n + p[key][i]), Array(parts[0]?.[key].length ?? 0).fill(0));
+  return { sites: sum('sites'), scored: sum('scored'), scoreHist: add('scoreHist'), coverageHist: add('coverageHist'),
+    medianReads: median(parts.map(p => p.medianReads).filter(v => v !== null)),
+    transcripts: parts.length === 1 ? parts[0].transcripts : null, genes: parts.length === 1 ? parts[0].genes : null };
+}
+
+export function aboveCutoff(scoreHist, cutoff) {
+  return scoreHist.reduce((n, c, i) => n + (i / 10 >= cutoff - 1e-9 ? c : 0), 0);
+}
+
+// cell_lines.json -> Map of cell line -> rows (one per site measured in that cell line).
+export function decodeCellLines(data, idFor = c => `cellline_${c}`) {
+  const out = new Map(data.cellLines.map(c => [c, []]));
+  for (const [tx, pos, seq, lines] of data.sites) {
+    const gene = data.transcriptGenes[tx] < 0 ? '' : data.genes[data.transcriptGenes[tx]];
+    for (const [line, score, reads, runs] of lines) {
+      const c = data.cellLines[line];
+      out.get(c).push({ sample_id: idFor(c), transcript_id: data.transcripts[tx], transcript_position: pos, n_reads: reads,
+        sequence: data.sequences[seq], gene_id: gene, gene_name: '', label: null, score, runs });
+    }
+  }
+  return out;
 }

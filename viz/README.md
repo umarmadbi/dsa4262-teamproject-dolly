@@ -15,7 +15,7 @@ Every push to `main` that touches `viz/` runs the tests and publishes `viz/site`
    python scripts/build_viz_data.py --predictions results/sgnex_v2 --sgnex data/sgnex --model models/m6a_model_v2.joblib
    ```
 
-   This keeps sites with at least 20 reads (`--min-reads`), excludes SIRV/ERCC spike-ins, adds Ensembl 91 gene IDs from `resources/ensembl91_transcripts.csv.gz`, and rewrites `site/data/manifest.json`. The model label includes a hash of the model file so scores from different models are never silently mixed.
+   This keeps sites with at least 20 reads (`--min-reads`), excludes SIRV/ERCC spike-ins, adds Ensembl 91 gene IDs from `resources/ensembl91_transcripts.csv.gz`, writes the cell-line summary `site/data/cell_lines.json`, and rewrites `site/data/manifest.json` with precomputed statistics for every dataset. The model label includes a hash of the model file so scores from different models are never silently mixed.
 3. Commit `viz/site/data/` and open a pull request to `main`.
 
 ## Change the site
@@ -28,10 +28,16 @@ python3 -m http.server 8000 --directory viz/site
 
 Open http://localhost:8000 (serve over HTTP; ES modules do not load from `file://`). Run the tests with `node viz/tests/core.test.mjs`.
 
+## How data loads
+
+The page fetches only `manifest.json` at startup. The overview (metrics, histograms, per-run bars, cell-line panel) is drawn from statistics precomputed per dataset at minimum-read thresholds of 20, 40, 80 and 160, so it needs no site data. A run's site file is fetched when it is opened in Site explorer or Compare samples and is then kept for the session.
+
+`cell_lines.json` holds every site whose mean score across a cell line's runs reaches 0.5 (`--cell-line-min-score`) in at least one cell line, with the mean score, mean reads and number of runs in every cell line where it was measured. Each cell line appears as a "Cell-line summary" sample, so Site explorer can look up a gene across cell lines and Compare samples can compare cell lines directly. Sites below the threshold everywhere are not in the summary; open individual runs to see them.
+
 ## Contents
 
-- `site/` — the published page (`index.html`, `app.js`, `core.js`, `style.css`), `export_coverage.py` helper, and `data/` (manifest plus one compact JSON file per dataset).
-- `tests/core.test.mjs` — data, parsing, import and join checks, including every SG-NEx run listed in the manifest.
+- `site/` — the published page (`index.html`, `app.js`, `core.js`, `style.css`), `export_coverage.py` helper, and `data/` (manifest with precomputed statistics, one compact JSON file per dataset, and `cell_lines.json`).
+- `tests/core.test.mjs` — data, parsing, import and join checks; also checks that every dataset's precomputed statistics equal what the browser computes from its rows.
 
 The development datasets (dataset0-2) carry coverage only. SG-NEx runs carry site-level model scores. Browser imports (Data & imports) are kept in the browser only and are cleared on refresh; to add data permanently, use the build script above.
 
