@@ -31,8 +31,10 @@ We build a machine learning model that predicts, for each candidate site in a tr
 ├── src/m6a/                  <- shared code (import this, don't copy-paste it)
 │   ├── io.py                 <- streaming json parser + label loading
 │   └── evaluation.py         <- gene-grouped splits and ROC/PR AUC scoring
+├── viz/                      <- TASK 2: interactive visualisation (published to GitHub Pages, see viz/README.md)
 ├── scripts/
-│   └── parse_to_parquet.py   <- turn a data.json.gz into a site-level table
+│   ├── parse_to_parquet.py   <- turn a data.json.gz into a site-level table
+│   └── build_viz_data.py     <- TASK 2: SG-NEx predictions -> viz/site/data
 ├── models/                   <- trained models (only the final one is committed)
 └── results/                  <- predictions, metrics, figures from experiments
 ```

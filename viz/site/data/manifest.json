@@ -1,0 +1,247 @@
+{
+  "datasets": [
+    {
+      "id": "dataset0",
+      "name": "Training dataset 0",
+      "cellLine": "Hct116",
+      "replicate": null,
+      "run": null,
+      "group": "development",
+      "rows": 121838,
+      "transcripts": 5333,
+      "genes": 3852,
+      "medianReads": 47.0,
+      "minReads": 20,
+      "maxReads": 991,
+      "source": "dataset0.json.gz",
+      "dataFile": "data/dataset0.json",
+      "model": null,
+      "description": "User-supplied development data. No model predictions are loaded.",
+      "annotationNote": "Gene IDs from supplied training metadata."
+    },
+    {
+      "id": "dataset1",
+      "name": "Development dataset 1",
+      "cellLine": "Unspecified",
+      "replicate": null,
+      "run": null,
+      "group": "development",
+      "rows": 90810,
+      "transcripts": 4451,
+      "genes": 2508,
+      "medianReads": 40.0,
+      "minReads": 20,
+      "maxReads": 994,
+      "source": "dataset1.json.gz",
+      "dataFile": "data/dataset1.json",
+      "model": null,
+      "description": "User-supplied development data. No model predictions are loaded.",
+      "annotationNote": "Gene IDs matched by transcript ID to dataset 0 metadata; gene names are not available."
+    },
+    {
+      "id": "dataset2",
+      "name": "Anonymised dataset 2",
+      "cellLine": "Unspecified",
+      "replicate": null,
+      "run": null,
+      "group": "development",
+      "rows": 1323,
+      "transcripts": 7,
+      "genes": 0,
+      "medianReads": 814,
+      "minReads": 26,
+      "maxReads": 3438,
+      "source": "dataset2.json.gz",
+      "dataFile": "data/dataset2.json",
+      "model": null,
+      "description": "User-supplied development data. No model predictions are loaded.",
+      "annotationNote": "Transcript IDs are anonymised. Cell line and gene identity are not supplied."
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run2",
+      "name": "H9 \u00b7 rep 4 \u00b7 run 2",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 34134,
+      "transcripts": 1489,
+      "genes": 1183,
+      "medianReads": 33,
+      "minReads": 20,
+      "maxReads": 989,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate4_run2)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate4_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (849,948 of 886,969 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift."
+    }
+  ],
+  "catalog": [
+    {
+      "id": "SGNex_A549_directRNA_replicate5_run1",
+      "cellLine": "A549",
+      "replicate": "5",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_A549_directRNA_replicate6_run1",
+      "cellLine": "A549",
+      "replicate": "6",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate2_run1",
+      "cellLine": "H9",
+      "replicate": "2",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate2_run2",
+      "cellLine": "H9",
+      "replicate": "2",
+      "run": "2",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate3_run1",
+      "cellLine": "H9",
+      "replicate": "3",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate3_run2",
+      "cellLine": "H9",
+      "replicate": "3",
+      "run": "2",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run1",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run2",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate1_run1",
+      "cellLine": "HEYA8",
+      "replicate": "1",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate1_run2",
+      "cellLine": "HEYA8",
+      "replicate": "1",
+      "run": "2",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate2_run1",
+      "cellLine": "HEYA8",
+      "replicate": "2",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate2_run2",
+      "cellLine": "HEYA8",
+      "replicate": "2",
+      "run": "2",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate3_run1",
+      "cellLine": "HEYA8",
+      "replicate": "3",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate3_run1",
+      "cellLine": "Hct116",
+      "replicate": "3",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate3_run4",
+      "cellLine": "Hct116",
+      "replicate": "3",
+      "run": "4",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate4_run3",
+      "cellLine": "Hct116",
+      "replicate": "4",
+      "run": "3",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_HepG2_directRNA_replicate5_run2",
+      "cellLine": "HepG2",
+      "replicate": "5",
+      "run": "2",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_HepG2_directRNA_replicate6_run1",
+      "cellLine": "HepG2",
+      "replicate": "6",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate4_run1",
+      "cellLine": "K562",
+      "replicate": "4",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate5_run1",
+      "cellLine": "K562",
+      "replicate": "5",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate6_run1",
+      "cellLine": "K562",
+      "replicate": "6",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_MCF7_directRNA_replicate3_run1",
+      "cellLine": "MCF7",
+      "replicate": "3",
+      "run": "1",
+      "loaded": false
+    },
+    {
+      "id": "SGNex_MCF7_directRNA_replicate4_run1",
+      "cellLine": "MCF7",
+      "replicate": "4",
+      "run": "1",
+      "loaded": false
+    }
+  ],
+  "catalogAsOf": "2026-10-12",
+  "catalogSource": "AWS folder listing supplied by the user",
+  "dataMode": "coverage_with_predictions",
+  "notes": "Development datasets are not SG-NEx runs. 1 SG-NEx run(s) carry Dolly v2 predictions."
+}
