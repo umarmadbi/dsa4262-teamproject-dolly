@@ -100,7 +100,7 @@ function renderCellLines(threshold) {
   const runs = state.samples.filter(s => s.group === 'sgnex').map(s => {
     const st = s.stats.byMinReads[threshold];
     return { s, sites: st.sites, pct: st.scored ? aboveCutoff(st.scoreHist, state.cutoff) / st.scored * 100 : 0 };
-  });
+  }).filter(q => q.s.stats.byMinReads[threshold].scored > 0);
   $('cellline-panel').hidden = !runs.length;
   if (!runs.length) return;
   const lines = [...new Set(runs.map(r => r.s.cellLine))].sort();
@@ -115,9 +115,9 @@ function renderCellLines(threshold) {
     svg += mine.map(q => `<circle cx="${x(q.pct).toFixed(1)}" cy="${y}" r="5" fill="#178c70" opacity=".55"><title>${esc(q.s.name)} · ${q.pct.toFixed(2)}% of ${fmt(q.sites)} sites</title></circle>`).join('');
     svg += `<text x="${w - r + 8}" y="${y + 4}">${mean.toFixed(2)}%</text>`;
   });
-  $('cellline-chart').innerHTML = `<svg class="scatter-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
+  $('cellline-chart').innerHTML = `<svg class="scatter-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
   const rho = runs.length > 2 ? pearson(runs.map(q => Math.log10(q.sites)), runs.map(q => q.pct)) : null;
-  $('cellline-note').textContent = `Each dot is one run; the bar marks the cell-line mean. ${rho === null ? '' : `Across runs, the correlation between log site count (a depth proxy) and the share at or above ${state.cutoff} is r = ${rho.toFixed(2)}. `}Deeper runs score more sites highly, so compare cell lines at shared sites (Compare samples → cell-line summaries) before reading these as biological differences.`;
+  $('cellline-note').textContent = `Each dot represents one SG-NEx run; the vertical mark and right-hand percentage show the unweighted mean across runs for that cell line. All SG-NEx runs with scores are shown, using the selected minimum coverage. ${rho === null || !Number.isFinite(rho) ? '' : `Across runs, log candidate-site count and the percentage scoring at least ${state.cutoff} have Pearson r = ${rho.toFixed(2)}. `}Site count is an imperfect proxy for sequencing depth; this association does not establish a cause. Compare shared sites and check replicate consistency before interpreting cell-line differences. Cell-line summaries include only sites averaging at least 0.5 in one or more cell lines.`;
 }
 
 function renderOverview() {
@@ -128,17 +128,17 @@ function renderOverview() {
   $('overview-metrics').innerHTML = metric('Site observations', fmt(s.sites), one ? `${fmt(s.transcripts)} transcripts` : `Across ${samples.length} samples; shared sites count once per sample`)
     + metric('Median read coverage', s.medianReads === null ? '—' : fmt(s.medianReads), one ? 'Reads at a candidate site' : 'Median of per-sample medians')
     + metric('Mapped gene IDs', one ? fmt(s.genes) : '—', one ? 'Gene names can be imported' : 'Select one sample to count genes')
-    + metric('Prediction scores', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
+    + metric('Observations with predictions', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
   $('filter-caption').textContent = `${fmt(s.sites)} observations · ${samples.length} ${one ? 'sample' : 'samples'}`;
   $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites })));
   $('coverage-histogram').innerHTML = histogram(s.coverageHist, ['<20','20–39','40–79','80–159','160–319','320–639','640–1279','1280+']);
-  $('prediction-heading').textContent = s.scored ? 'Explore your model’s scores' : 'Ready for your predictions';
-  $('prediction-copy').textContent = s.scored ? 'Scores are joined to coverage by transcript and position. The cutoff below is an exploration setting, not a confirmed modification call.' : 'Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.';
+  $('prediction-heading').textContent = s.scored ? 'Distribution of predicted m6A scores' : 'Ready for your predictions';
+  $('prediction-copy').textContent = s.scored ? 'Each bar counts site observations in a score range. Higher scores indicate stronger model evidence for m6A, not the fraction of modified reads. The cutoff highlights predictions; it does not confirm modification.' : 'Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.';
   $('overview-predictions').textContent = s.scored ? 'Add more scores' : 'Add predictions';
   $('score-distribution').hidden = !s.scored;
   if (s.scored) {
     const options = Array.from({ length: 9 }, (_, i) => (i + 1) / 10).map(v => `<option value="${v}"${v === state.cutoff ? ' selected' : ''}>${v.toFixed(1)}</option>`).join('');
-    $('score-distribution').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff">${options}</select><strong>${fmt(above)} / ${fmt(s.scored)} scored sites at or above cutoff</strong></div>` + histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true);
+    $('score-distribution').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff">${options}</select><strong>${fmt(above)} / ${fmt(s.scored)} scored observations at or above cutoff</strong></div>` + histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true);
     $('score-cutoff').addEventListener('change', e => { state.cutoff = Number(e.target.value); renderOverview(); });
   }
   renderCellLines(threshold);
