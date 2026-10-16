@@ -58,7 +58,7 @@ paired differences against that model.
 
 | File | Written by | Contents |
 |---|---|---|
-| `sklearn_comparison/dolly_dataset0.csv`, `dolly_dataset1.csv`, `dolly_dataset2.csv` | Committed by Nitish on 9 Oct (see [alternatives/sklearn_comparison](../alternatives/sklearn_comparison/)) | Predictions (`transcript_id,transcript_position,score`) for every site of dataset0/1/2. Which model produced them is not recorded in the repo. |
+| `sklearn_comparison/dolly_dataset0.csv`, `dolly_dataset1.csv`, `dolly_dataset2.csv` | Committed by Nitish on 9 Oct (see [alternatives/sklearn_comparison](../alternatives/sklearn_comparison/)) | Predictions (`transcript_id,transcript_position,score`) for every site of dataset0/1/2, believed to be from Nitish's first XGBoost model (not recorded in the repo; confirm with Nitish). Moved here from `results/` on 16 Oct. |
 
 ## Not committed (on the AWS machine only)
 

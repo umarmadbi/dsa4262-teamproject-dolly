@@ -11,7 +11,7 @@ baselines and the published tool **m6Anet**.
 |---|---|---|---|
 | **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (v1 submitted model; v2 improved model available) |
 | **Task 2** | Predict m6A on all SG-NEx direct RNA-Seq runs, compare cell lines | `experiments/12_sgnex_m6anet_compare.py`, [docs/sgnex_task2.md](docs/sgnex_task2.md) | Done (23 runs, 7 cell lines) |
-| **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Built; GitHub Pages hosting still needs to be enabled by the repo owner |
+| **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; run it locally on your laptop ([section 7](#7-the-interactive-visualisation)), not hosted online |
 
 ---
 
@@ -261,17 +261,59 @@ A plain HTML/JS dashboard in `viz/site/` (no build step, no frontend dependencie
 distributions, call rates and read depth; a **Site explorer** to look up a gene or transcript; and **Compare samples**
 for shared sites between two runs or two cell lines. Full documentation: [viz/README.md](viz/README.md).
 
-### View it on your own computer
-```bash
-git pull
-python3 -m http.server 8000 --directory viz/site
-```
-Open http://localhost:8000. It must be served over HTTP; opening `index.html` directly does not work. Only Python
-is needed.
+The dashboard is **not hosted online** (see "Publishing" below). Everyone runs it on their own laptop: it is a folder
+of static files plus a tiny local web server, so it works offline once downloaded and needs nothing but Python.
 
-### View it on the AWS machine from your laptop
-On the server, start it once (e.g. inside `tmux`), using a free port:
+### View it on your own laptop (recommended)
+
+**What you need:** Python 3.7 or newer and a web browser. Check with `python3 --version` (macOS / Linux) or
+`py --version` (Windows). If it is missing, install it from https://www.python.org/downloads/ (on Windows, tick
+"Add python.exe to PATH" in the installer).
+
+**Step 1: get the repo onto your laptop** (one of these; the download is ~100 MB because of the dashboard data).
+
+- *With git* (you need to be a collaborator on the repo, as it is private):
+  ```bash
+  git clone https://github.com/umarmadbi/dsa4262-teamproject-dolly.git
+  cd dsa4262-teamproject-dolly
+  ```
+  When git asks for a password, use a GitHub personal access token, not your GitHub password (GitHub -> Settings ->
+  Developer settings -> Personal access tokens). On Windows, Git for Windows usually opens a browser login instead.
+  GitHub Desktop (https://desktop.github.com) also works: File -> Clone repository.
+- *Without git:* on the repo page on GitHub click **Code -> Download ZIP**, unzip it and open a terminal in the
+  unzipped folder (`dsa4262-teamproject-dolly-main`).
+
+**Step 2: start the local server** from the repo folder (the one that contains `viz/`):
+
+| Your laptop | Command |
+|---|---|
+| macOS / Linux | `python3 -m http.server 8000 --directory viz/site` |
+| Windows (PowerShell or Command Prompt) | `py -m http.server 8000 --directory viz/site` (or `python -m ...`) |
+
+You should see `Serving HTTP on ... port 8000`. Leave this terminal open.
+
+**Step 3: open http://localhost:8000** in your browser. The first view loads only a small summary; a run's data
+downloads when you open it in Site explorer or Compare samples.
+
+**Step 4: stop it** with `Ctrl+C` in the terminal.
+
+**To get the latest version later:** `git pull` (or download the ZIP again), then repeat steps 2-3.
+
+Troubleshooting:
+
+| Problem | Fix |
+|---|---|
+| Blank page or "Failed to load" when opening `index.html` by double-clicking | It must be served over HTTP: use step 2 and open http://localhost:8000, not the file |
+| `Address already in use` / port 8000 busy | Use another port, e.g. `... http.server 8001 ...` and open http://localhost:8001 |
+| `No such file or directory: viz/site` | You are in the wrong folder: `cd` into the repo folder first |
+| `python3` / `py` not found | Install Python (see "What you need"); on Windows try `python` instead of `py` |
+| Page shows old data after `git pull` | Hard-refresh the browser (`Ctrl+Shift+R`, or `Cmd+Shift+R` on macOS) |
+
+### View it on the AWS machine from your laptop (alternative)
+Use this only if you cannot install Python locally. On the server, start it once (e.g. inside `tmux`), using a port
+no one else is using:
 ```bash
+cd ~/<yourname>/dsa4262-teamproject-dolly && git pull
 python3 -m http.server 8000 --directory viz/site
 ```
 On your laptop, forward the port and open http://localhost:8000:
@@ -280,11 +322,12 @@ ssh -i <key.pem> -L 8000:localhost:8000 ubuntu@dsa4262-2610-teamproject-dolly.nu
 ```
 The machine must be running, which costs budget: stop it in Ronin afterwards.
 
-### Publishing (GitHub Pages)
-`.github/workflows/pages.yml` runs the tests and publishes `viz/site` on every push to `main` that touches `viz/`.
-The first deployment failed, most likely because Pages is not enabled yet. **The repo owner** (only they can change
-repo settings) must go to Settings -> Pages -> Source: "GitHub Actions" and re-run the workflow from the Actions tab. Alternatives that need no repo settings: deploy the `viz/site`
-folder with the Vercel CLI (`cd viz/site && vercel deploy --prod`) or Netlify Drop.
+### Publishing (not available for now)
+`.github/workflows/pages.yml` runs the tests and tries to publish `viz/site` to GitHub Pages on every push to `main`
+that touches `viz/`. Pages is not enabled for this repo and we do not have access to the repo settings, so the
+**deploy job fails; this is expected and harmless** (the test job still checks the dashboard). If the repo owner
+enables Pages later (Settings -> Pages -> Source: "GitHub Actions"), re-running the workflow will publish it. Other
+hosts that need no repo settings: the Vercel CLI (`cd viz/site && vercel deploy --prod`) or Netlify Drop.
 
 ### Tests
 `node viz/tests/core.test.mjs` (needs Node.js; not installed on the server, but GitHub Actions runs it).
@@ -375,7 +418,7 @@ shared files. Use separate ports when serving the dashboard.
 - [x] Task 2: predictions on all 23 SG-NEx runs + comparison with m6Anet and across cell lines
 - [x] Interactive visualisation (`viz/`)
 - [ ] Decide: v1 or v2 as the submitted model
-- [ ] Publish the visualisation (enable GitHub Pages, see [Section 7](#publishing-github-pages))
+- [ ] Optional: host the visualisation online (see [Section 7](#publishing-not-available-for-now))
 - [ ] Final leaderboard predictions
 - [ ] Report (use [docs/ai_use_log.md](docs/ai_use_log.md) for the AI-use section)
 - [ ] Make the repo **public** and test this README on a fresh Ubuntu machine

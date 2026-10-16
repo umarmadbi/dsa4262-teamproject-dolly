@@ -2,8 +2,17 @@
 
 A self-contained, independent pipeline written by Nitish (committed 9 Oct 2026). It is **not** the team's
 submitted model (that is `scripts/train.py` / `scripts/predict.py`, see the main README), but a second, simpler
-approach that is useful as a cross-check. It was moved here from `models/` on 16 Oct so that `models/` holds only
-trained model files; the code itself is unchanged.
+approach that is useful as a cross-check.
+
+**Moved on 16 Oct 2026** (commit "Reorganise repo"), code unchanged:
+
+| Old path | New path |
+|---|---|
+| `models/compare_project_models.py` | `alternatives/sklearn_comparison/compare_project_models.py` |
+| `models/evaluate_project_datasets.py` | `alternatives/sklearn_comparison/evaluate_project_datasets.py` |
+| `results/dolly_dataset{0,1,2}.csv` | `results/sklearn_comparison/dolly_dataset{0,1,2}.csv` |
+
+`git log --follow <new path>` shows the full history from before the move.
 
 It does not use `src/m6a/`. It needs Python >= 3.9, numpy, pandas, scipy, scikit-learn >= 1.3, joblib and,
 optionally, xgboost.
@@ -16,7 +25,7 @@ optionally, xgboost.
 | `evaluate_project_datasets.py` | Applies dataset0-trained models to other datasets. `predict` scores a json file; `compare` trains the four models on dataset0 and evaluates them on dataset1/dataset2. Imports `compare_project_models.py`, so keep both files in the same folder. |
 
 Predictions it produced: [`results/sklearn_comparison/dolly_dataset{0,1,2}.csv`](../../results/sklearn_comparison/)
-(which model and settings were used is not recorded; ask Nitish).
+(believed to be from his first XGBoost model; the exact settings are not recorded, ask Nitish).
 
 ## Usage
 

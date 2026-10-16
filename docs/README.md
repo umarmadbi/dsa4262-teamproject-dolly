@@ -9,7 +9,6 @@ Write-ups and figures. Start with the main [README](../README.md); these go into
 | [sgnex_task2.md](sgnex_task2.md) | Task 2: v2 vs m6Anet on 23 SG-NEx runs, region / motif enrichment, depth dependence, reproducibility across runs and cell lines | Writing the Task 2 part of the report |
 | [connect_to_server.md](connect_to_server.md) | Logging in to the team AWS machine (key, VS Code Remote-SSH, uploading data, sharing rules) | First day, or a new laptop |
 | [ai_use_log.md](ai_use_log.md) | Running log of AI tool use, required for the report | Every time you use an AI tool: add a row |
-| [branch_guide.md](branch_guide.md) | Snapshot (16 Oct) of what was on the `hamzah-workinprogress` and `viz-github-pages` branches before they were merged | Historical; its content is now in the main README |
 
 ## figures/
 
