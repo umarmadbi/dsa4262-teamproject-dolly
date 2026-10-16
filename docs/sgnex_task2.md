@@ -1,6 +1,6 @@
 # Task 2: Dolly v2 vs m6Anet on SG-NEx direct RNA-seq (16 Oct 2026)
 
-Script: `experiments/12_sgnex_m6anet_compare.py`. Covers 23 SG-NEx direct RNA-seq runs from 6 cell lines
+Script: `experiments/12_sgnex_m6anet_compare.py`. Covers 23 SG-NEx direct RNA-seq runs from 7 cell lines
 (A549, H9, HEYA8, Hct116, HepG2, K562, MCF7), 2,973,155 site observations scored by both methods.
 
 **There is no ground truth for SG-NEx**, so this measures how much the two methods agree and whether their calls look
@@ -69,5 +69,5 @@ noise, and runs are technical, not independent biological replicates.
 
 ## Feeding the dashboard
 
-The dashboard uses Dolly v2 scores only, not the m6Anet comparison. `scripts/build_viz_data.py` (branch
-`viz-github-pages`) converts `results/sgnex_v2/*.csv` into `viz/site/data/`. See [branch_guide.md](branch_guide.md).
+The dashboard uses Dolly v2 scores only, not the m6Anet comparison. `scripts/build_viz_data.py` converts
+`results/sgnex_v2/*.csv` into `viz/site/data/`. See [viz/README.md](../viz/README.md) and section 7 of the main README.
