@@ -9,7 +9,7 @@ baselines and the published tool **m6Anet**.
 
 | Task | What it asks for | Where it is | Status |
 |---|---|---|---|
-| **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (v1 submitted model; v2 improved model available) |
+| **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (v1 and v2 models; intermediate leaderboard was submitted with Nitish's model, see [section 5](#alternative-pipeline)) |
 | **Task 2** | Predict m6A on all SG-NEx direct RNA-Seq runs, compare cell lines | `experiments/12_sgnex_m6anet_compare.py`, [docs/sgnex_task2.md](docs/sgnex_task2.md) | Done (23 runs, 7 cell lines) |
 | **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; run it locally on your laptop ([section 7](#7-the-interactive-visualisation)), not hosted online |
 
@@ -203,7 +203,7 @@ python scripts/train.py --v2 --data data/data0/dataset0.json.gz data/data0/data.
 - `train.py` accepts `--data JSON LABELS` several times to train on more than one run.
 
 ### v1 vs v2: which model to use?
-**v1** is the default of both scripts and the model the team agreed on. **v2** adds 16 transcript-structure features
+**v1** is the default of both scripts. **v2** adds 16 transcript-structure features
 from Ensembl 91 (distance to the stop codon and exon junctions, region, exon length, ...) and averages three seeds.
 It is better on every test set (table above) but is not yet the team default. Transcripts that are not in Ensembl 91
 (e.g. the synthetic dataset2) are scored by a v1-style fallback model inside the same file. v2 is ~4x slower to
@@ -219,7 +219,8 @@ within 25/100 nt (m6A sites cluster). v2 adds the transcript-structure features.
 
 ### Alternative pipeline
 `alternatives/sklearn_comparison/` holds Nitish's independent pipeline (logistic regression, random forest,
-histogram gradient boosting, XGBoost on simpler features). It uses a different test split, so its numbers are not
+histogram gradient boosting, XGBoost on simpler features). **Our intermediate leaderboard submission used Nitish's
+model.** It uses a different test split, so its numbers are not
 directly comparable with the table above. See [its README](alternatives/sklearn_comparison/README.md).
 
 ---
@@ -417,7 +418,8 @@ shared files. Use separate ports when serving the dashboard.
 - [x] v2 model with transcript-structure features
 - [x] Task 2: predictions on all 23 SG-NEx runs + comparison with m6Anet and across cell lines
 - [x] Interactive visualisation (`viz/`)
-- [ ] Decide: v1 or v2 as the submitted model
+- [x] Intermediate leaderboard: submitted with Nitish's model (`alternatives/sklearn_comparison/`)
+- [ ] Decide which model to submit for the final leaderboard: v1, v2 or Nitish's
 - [ ] Optional: host the visualisation online (see [Section 7](#publishing-not-available-for-now))
 - [ ] Final leaderboard predictions
 - [ ] Report (use [docs/ai_use_log.md](docs/ai_use_log.md) for the AI-use section)
@@ -435,6 +437,6 @@ From the git history; please correct or add to it.
 | Area | Who |
 |---|---|
 | Repo setup, EDA, setup docs, shared helpers, v1 model (read-stack), train/predict scripts | Umar |
-| Alternative scikit-learn/XGBoost pipeline (`alternatives/sklearn_comparison/`) | Nitish |
+| Alternative scikit-learn/XGBoost pipeline (`alternatives/sklearn_comparison/`), model used for the intermediate leaderboard | Nitish |
 | m6Anet benchmark, v2 model, SG-NEx analysis (Task 2), visualisation and its hosting | Hamzah |
 | ... | Joshua: please add |

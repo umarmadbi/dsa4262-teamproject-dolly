@@ -92,9 +92,9 @@ barely moves its score with the fraction; the final model's median score climbs 
 ~0.45 (75%), then levels off. See `docs/figures/model_evaluation.png`.
 
 **Training on two runs** (dataset0-train + matching dataset1 transcripts): dataset0 test PR 0.510 vs 0.520
-for dataset0 alone, a difference within noise, so the submitted model is trained on all of dataset0.
+for dataset0 alone, a difference within noise, so the shipped model is trained on all of dataset0.
 
-The submitted model (`models/m6a_model.joblib`) is retrained on **all** of dataset0 with `scripts/train.py`.
+The shipped model (`models/m6a_model.joblib`) is retrained on **all** of dataset0 with `scripts/train.py`.
 Run through `scripts/predict.py` on the raw dataset1 file it gives ROC 0.861 / PR 0.405 on the unseen
 transcripts (same as above), scoring 90,810 sites in 42 s.
 
@@ -178,7 +178,7 @@ vs v1). `d1 strict` drops the 2,339 "unseen" dataset1 sites (15%) whose transcri
 **Two runs.** Training on dataset0-train + the dataset1 sites of training genes (159,983 sites) gives d1 strict PR
 0.435 vs 0.421 for v2, and dataset0 PR 0.552 vs 0.561. It only helps on the run it was partly trained on, and the
 model learns that run's batch effects, so the dataset1 gain overstates what a new, unseen run would get. With only
-two labelled runs this cannot be tested cleanly, so the submitted v2 is trained on dataset0 only, as v1 was.
+two labelled runs this cannot be tested cleanly, so the shipped v2 is trained on dataset0 only, as v1 was.
 
 **Model file.** `models/m6a_model_v2.joblib` (`python scripts/train.py --v2 --data data/data0/dataset0.json.gz
 data/data0/data.info.labelled --out models/m6a_model_v2.joblib`). `models/m6a_model.joblib` (v1) and the default
