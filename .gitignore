@@ -20,6 +20,7 @@ cache/
 # --- outputs ---
 results/*
 !results/.gitkeep
+!results/README.md
 models/*
 !models/.gitkeep
 # to commit the final model, use:  git add -f models/final_model.joblib

@@ -2,9 +2,22 @@
 
 Interactive dashboard for m6A prediction scores, read coverage and shared-site comparisons across SG-NEx direct RNA-seq runs. Plain HTML/JS with no build step and no external frontend dependencies; the deployed site is exactly the contents of `site/`.
 
+## View it
+
+The dashboard is not hosted online for now: run it on your own laptop. From the repo folder:
+
+```bash
+python3 -m http.server 8000 --directory viz/site     # Windows: py -m http.server 8000 --directory viz/site
+```
+
+and open http://localhost:8000. Step-by-step instructions for Windows and macOS, downloading the repo without git, and
+troubleshooting are in section 7 of the [main README](../README.md#7-the-interactive-visualisation).
+
 ## How updates are published
 
-Every push to `main` that touches `viz/` runs the tests and publishes `viz/site` to GitHub Pages (`.github/workflows/pages.yml`). Pull requests run the tests only. Nobody deploys by hand.
+Every push to `main` that touches `viz/` runs the tests (`.github/workflows/pages.yml`). The workflow also tries to
+publish `viz/site` to GitHub Pages, but Pages is not enabled for this repo, so that deploy job fails; this is expected.
+Pull requests run the tests only.
 
 ## Add or refresh SG-NEx predictions
 
