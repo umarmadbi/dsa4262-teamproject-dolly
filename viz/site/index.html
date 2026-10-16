@@ -38,6 +38,24 @@
       <section class="page" id="page-explorer" aria-labelledby="explorer-title">
         <div class="page-heading"><div><div class="eyebrow">TRANSCRIPT-LEVEL EXPLORATION</div><h1 id="explorer-title">Follow a site.</h1><p class="intro">Search genes or transcripts and inspect the measurements behind each candidate.</p></div><button class="button" id="export-sites">↓ Export filtered CSV</button></div>
         <div class="explorer-filters"><label class="search-label"><span class="sr-only">Search gene, transcript or sequence</span><input id="site-search" type="search" placeholder="Search a gene ID, gene name, transcript or sequence…"></label><label>Sample<select id="site-sample"></select></label><label>Minimum reads<input id="site-reads" type="number" min="1" value="20" step="1"></label><label>Minimum score<input id="site-score" type="number" min="0" max="1" step="0.05" placeholder="Any" disabled></label></div>
+
+        <article class="panel transcript-panel" aria-labelledby="transcript-panel-title">
+          <div class="panel-heading"><div><span class="eyebrow">TRANSCRIPT SPOTLIGHT</span><h2 id="transcript-panel-title">One transcript. Multiple perspectives.</h2></div></div>
+          <div class="transcript-picker"><label for="transcript-choice">Exact transcript ID<select id="transcript-choice"><option value="">Choose a transcript…</option></select></label><p class="fine-print" id="transcript-choice-note"></p></div>
+          <div id="transcript-empty" class="transcript-empty">Search for a transcript above, or choose one here to compare its sites.</div>
+          <div id="transcript-visuals" hidden>
+            <p class="transcript-meta" id="transcript-meta"></p>
+            <div class="transcript-chart-heading"><h3>Scores across sites</h3><div class="heatmap-key"><span>0</span><i></i><span>1</span><span class="heatmap-missing">— Missing / no score</span></div></div>
+            <div id="transcript-heatmap" class="heatmap-scroll"></div>
+            <p class="fine-print">Click a column’s cell to inspect that position below. Grey means absent, excluded by coverage, or without a prediction—not a score of zero.</p>
+            <h3 class="transcript-track-heading">Where are these sites?</h3><div id="transcript-track" class="transcript-track"></div>
+            <p class="fine-print">Positions are spaced by transcript coordinate across the observed span. This is not the full transcript length or an exon diagram. Closely spaced points can be selected using the position menu.</p>
+            <div class="transcript-site-toolbar"><label for="transcript-position">Inspect position<select id="transcript-position"></select></label><p id="transcript-site-context"></p></div>
+            <div class="transcript-run-panel"><h3 id="transcript-run-heading">Individual runs</h3><p class="fine-print" id="transcript-run-status" aria-live="polite"></p><div id="transcript-run-chart"></div></div>
+            <p class="transcript-scope-note" id="transcript-scope-note"></p>
+          </div>
+        </article>
+        <div class="section-heading"><h2>Exact measurements</h2></div>
         <div class="table-meta"><span id="site-result-count">Loading sites…</span><label class="check-label"><input id="scored-only" type="checkbox" disabled> Scored sites only</label><span class="muted" id="score-filter-note">Import predictions to enable score filters.</span></div>
         <div class="panel table-panel"><div class="table-scroll"><table class="site-table"><thead><tr><th>Sample</th><th><button data-sort="transcript_id">Transcript ↕</button></th><th><button data-sort="transcript_position">Position ↕</button></th><th>Gene</th><th>Sequence</th><th><button data-sort="n_reads">Reads ↕</button></th><th><button data-sort="score">Score ↕</button></th><th><span class="sr-only">Details</span></th></tr></thead><tbody id="site-table-body"></tbody></table></div><div class="table-pagination"><span id="page-info"></span><div><button class="button small" id="page-prev">← Previous</button><button class="button small" id="page-next">Next →</button></div></div></div>
         <p class="fine-print">Positions use transcript coordinates. The same gene can have multiple transcripts; identical positions in different transcripts are different keys.</p>
