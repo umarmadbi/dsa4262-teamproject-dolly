@@ -36,3 +36,27 @@
   .hist-bin:is(:hover,:focus-visible) :is(.hist-fill,.hist-count,.hist-label),
   .bar-row:is(:hover,:focus-visible) :is(.bar-fill,.bar-count,.bar-name){transform:none}
 }
+
+/* Group samples by biological context, rather than one uninterrupted card grid. */
+#sample-cards{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.sample-group{border:1px solid var(--line);border-left:4px solid var(--group-colour);border-radius:10px;padding:22px;background:#ffffff80;min-width:0}
+.sample-group-heading{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:17px}
+.sample-group-heading h3{color:var(--group-colour);font-size:18px;margin-bottom:4px}
+.sample-group-heading p{font-size:12px;line-height:1.7}
+.sample-group-heading a{font-size:10px;white-space:nowrap;margin-left:6px}
+.sample-group-count{white-space:nowrap;font-size:11px;border:1px solid var(--line);border-radius:20px;padding:4px 10px;color:var(--muted)}
+.sample-group-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.sample-group .sample-card{min-width:0;box-shadow:none}
+.sample-group .sample-card h3{overflow-wrap:anywhere}
+.sample-group .card-bottom{flex-wrap:wrap;gap:8px}
+#cellline-controls{background:#f3f7f1;border:1px solid #e0e9de;border-radius:8px;padding:14px 18px;margin:18px 0}
+#cellline-controls .score-controls{margin:0;flex-wrap:wrap}
+#cellline-controls .score-controls strong{max-width:100%}
+#cellline-control-note{margin:8px 0 0}
+#score-distribution{margin-top:30px}
+.brand-goat{width:31px;height:30px;flex:none;color:#b5ddc5;overflow:visible}
+@media(max-width:600px){
+  .sample-group{padding:16px}
+  .sample-group-heading{flex-wrap:wrap;gap:8px}
+  #cellline-controls .score-controls strong{flex-basis:100%;margin-left:0}
+}
