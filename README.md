@@ -38,14 +38,17 @@ SG-NEx analysis ([docs/sgnex_task2.md](docs/sgnex_task2.md)) and the visualisati
 │   ├── models.py             <- baselines, candidate models, final ReadStackModel
 │   ├── pipeline.py           <- loading helpers shared by train.py / predict.py
 │   └── evaluation.py         <- gene-grouped splits, ROC/PR AUC, gene-level bootstrap CIs
+├── viz/                      <- TASK 2: interactive visualisation (published to GitHub Pages, see viz/README.md)
 ├── scripts/
 │   ├── train.py              <- TASK 1: train a model from data.json + labels
 │   ├── predict.py            <- TASK 1: score a data.json -> transcript_id,transcript_position,score
 │   ├── build_features.py     <- cache a dataset's features for experiments
+│   ├── build_viz_data.py     <- TASK 2: SG-NEx predictions -> viz/site/data
 │   ├── build_annotation.py   <- Ensembl GTF -> resources/ensembl91_transcripts.csv.gz
 │   └── parse_to_parquet.py   <- turn a data.json.gz into a simple site-level table (EDA)
 ├── experiments/              <- 01-06: model comparison and final evaluation; 07-08: m6Anet benchmark;
-│                                09-11: v2 improvements (see docs/model_development.md)
+│                                09-11: v2 improvements (see docs/model_development.md);
+│                                12: SG-NEx comparison with m6Anet (see docs/sgnex_task2.md)
 ├── resources/                <- per-transcript Ensembl 91 annotation used by the v2 model (committed)
 ├── models/m6a_model.joblib   <- the trained final model, v1 (2.5 MB)
 ├── models/m6a_model_v2.joblib <- v2: + transcript-structure features (see below)

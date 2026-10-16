@@ -1,15 +1,15 @@
 # Guide to Hamzah's work: model, m6Anet benchmark, SG-NEx analysis, visualisation
 
 This page explains what lives on two branches, how they fit together, and how to run or reproduce each part.
-Last updated 16 Oct 2026.
+Last updated 16 Oct 2026. The visualisation branch has since been merged into `main` (PR #1); `hamzah-workinprogress` has `main` merged in.
 
 | Branch | What it holds | Status |
 |---|---|---|
 | `hamzah-workinprogress` | Task 1 model (v1 and v2), all experiments, the m6Anet benchmark, the SG-NEx comparison | Pushed, not yet merged into `main` |
-| `viz-github-pages` | Task 2 interactive dashboard (`viz/`), GitHub Pages workflow, `build_viz_data.py` | One commit ahead of its remote, not merged into `main` |
+| `viz-github-pages` | Task 2 interactive dashboard (`viz/`), GitHub Pages workflow, `build_viz_data.py` | Merged into `main` (PR #1, 16 Oct) |
 
 `viz-github-pages` is checked out as a separate git worktree (`~/hamzah/dolly-viz`) so both branches can be open
-at once. Nothing on either branch is on `main` yet, so merging them is the next step (see "Merge order" at the end).
+at once. The model and experiments are not on `main` yet, so merging `hamzah-workinprogress` is the next step (see "Merge order" at the end).
 
 ---
 
@@ -74,7 +74,7 @@ Full description: **[sgnex_task2.md](sgnex_task2.md)**. In short:
 Plain HTML/JS dashboard, no build step. Its own README: [`viz/README.md`](../viz/README.md) on that branch.
 
 ```bash
-git checkout viz-github-pages            # or use the worktree at ~/hamzah/dolly-viz
+git checkout main                        # the viz is on main since PR #1; or use the worktree at ~/hamzah/dolly-viz
 python3 -m http.server 8000 --directory viz/site
 ```
 
@@ -87,7 +87,7 @@ The 23 SG-NEx runs, three development datasets and `cell_lines.json` are loaded 
 
 **Publishing.** `.github/workflows/pages.yml` runs the tests and deploys `viz/site` to GitHub Pages on every push to
 `main` that touches `viz/`; pull requests run the tests only. Pages must be enabled once under Settings -> Pages ->
-Source: "GitHub Actions". Until the branch is merged, nothing is published.
+Source: "GitHub Actions". Check the Actions tab for the latest deployment and Settings -> Pages for the URL.
 
 **Refreshing the data** after re-scoring runs: see "Add or refresh SG-NEx predictions" in `viz/README.md`.
 
@@ -118,9 +118,9 @@ To regenerate them you need the SG-NEx m6Anet `dataprep` output and a few hours 
 - Still to do from the README checklist: intermediate/final leaderboard predictions, report, making the repo public,
   and testing the README instructions on a fresh machine.
 
-## 6. Merge order (suggested)
+## 6. Merge order
 
-1. Open a PR `hamzah-workinprogress` -> `main` (model, experiments, docs). Review `models/` additions (16 MB v2 file).
-2. Then a PR `viz-github-pages` -> `main`. Merging it triggers the Pages deployment.
-3. After merging, rebuild the viz data if the default model changes: the manifest labels each dataset with a hash of
-   the model file so scores from different models are never silently mixed.
+1. Open a PR `hamzah-workinprogress` -> `main` (model, experiments, docs). `main` is already merged into the branch, so
+   it should merge cleanly. Review the `models/` additions (16 MB v2 file).
+2. If the default model changes, rebuild the viz data: the manifest labels each dataset with a hash of the model file
+   so scores from different models are never silently mixed.
