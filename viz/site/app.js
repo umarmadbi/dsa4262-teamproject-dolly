@@ -78,14 +78,14 @@ function refreshOptions() {
 }
 
 // Stable cell-line colours; run shades distinguish samples within each family.
-const cellHues = { A549: 160, H9: 213, HEYA8: 274, Hct116: 25, HepG2: 338, K562: 185, MCF7: 46 };
+const cellHues = { A549: 240, H9: 213, HEYA8: 274, Hct116: 25, HepG2: 338, K562: 185, MCF7: 46 };
 function cellColour(cell, lightness = 38) {
   return `hsl(${cellHues[cell] ?? 160} 52% ${lightness}%)`;
 }
 function hBars(entries) {
   const max = Math.max(1, ...entries.map(e => e.value));
   if (!entries.length) return '<div class="empty-chart">No sites match these filters.</div>';
-  return '<div class="hbars">' + entries.map(e => `<div class="bar-row" tabindex="0" aria-label="${esc(e.name)}: ${fmt(e.value)} candidate sites"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%;--sample-colour:${cellColour(e.cellLine)}"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
+  return '<div class="hbars">' + entries.map(e => `<div class="bar-row" tabindex="0" aria-label="${esc(e.name)}: ${fmt(e.value)} candidate sites"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%;--sample-colour:${e.group === 'development' ? '#21957e' : cellColour(e.cellLine)}"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
 }
 
 function histogram(counts, labels, scored = false) {
@@ -108,6 +108,15 @@ function renderCellLines(threshold) {
   }).filter(q => q.s.stats.byMinReads[threshold].scored > 0);
   $('cellline-panel').hidden = !runs.length;
   if (!runs.length) return;
+  const totalScored = runs.reduce((n, q) => n + q.s.stats.byMinReads[threshold].scored, 0);
+  const totalAbove = runs.reduce((n, q) => n + aboveCutoff(q.s.stats.byMinReads[threshold].scoreHist, state.cutoff), 0);
+  const options = Array.from({ length: 9 }, (_, i) => (i + 1) / 10).map(v => `<option value="${v}"${v === state.cutoff ? ' selected' : ''}>${v.toFixed(1)}</option>`).join('');
+  $('cellline-controls').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff" aria-describedby="cellline-control-note">${options}</select><strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} scored observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">Across all SG-NEx runs at the selected minimum coverage. This cutoff updates the dot chart; it does not filter the score-distribution histogram.</p>`;
+  $('score-cutoff').addEventListener('change', e => {
+    state.cutoff = Number(e.target.value);
+    renderOverview();
+    $('score-cutoff').focus();
+  });
   const lines = [...new Set(runs.map(r => r.s.cellLine))].sort();
   const max = Math.max(0.5, ...runs.map(r => r.pct)) * 1.1;
   const w = 600, l = 78, r = 70, rowH = 30, t = 10, h = t + lines.length * rowH + 30, x = v => l + v / max * (w - l - r);
@@ -115,7 +124,7 @@ function renderCellLines(threshold) {
   let svg = ticks.map(v => `<line x1="${x(v)}" y1="${t}" x2="${x(v)}" y2="${h - 26}" stroke="#edf1e8"/><text x="${x(v)}" y="${h - 10}" text-anchor="middle">${v.toFixed(1)}%</text>`).join('');
   lines.forEach((c, i) => {
     const y = t + i * rowH + rowH / 2, mine = runs.filter(q => q.s.cellLine === c), mean = mine.reduce((a, q) => a + q.pct, 0) / mine.length;
-    svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label">${esc(c)}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
+    svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label" style="fill:${cellColour(c)}">${esc(c)}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
     svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="${cellColour(c, 30)}" stroke-width="2"/>`;
     svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" r="5" fill="${cellColour(c, 34 + runIndex * 6)}" stroke="white" stroke-width=".7"><title>${esc(q.s.name)} · ${q.pct.toFixed(2)}% of ${fmt(q.sites)} sites</title></circle>`).join('');
     svg += `<text x="${w - r + 8}" y="${y + 4}">${mean.toFixed(2)}%</text>`;
@@ -135,21 +144,50 @@ function renderOverview() {
     + metric('Mapped gene IDs', one ? fmt(s.genes) : '—', one ? 'Gene names can be imported' : 'Select one sample to count genes')
     + metric('Observations with predictions', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
   $('filter-caption').textContent = `${fmt(s.sites)} observations · ${samples.length} ${one ? 'sample' : 'samples'}`;
-  $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites, cellLine: a.cellLine })));
+  $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites, cellLine: a.cellLine, group: a.group })));
   $('coverage-histogram').innerHTML = histogram(s.coverageHist, ['<20','20–39','40–79','80–159','160–319','320–639','640–1279','1280+']);
   $('prediction-heading').textContent = s.scored ? 'Distribution of predicted m6A scores' : 'Ready for your predictions';
-  $('prediction-copy').textContent = s.scored ? 'Each bar counts site observations in a score range. Higher scores indicate stronger model evidence for m6A, not the fraction of modified reads. The cutoff highlights predictions; it does not confirm modification.' : 'Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.';
+  $('prediction-copy').textContent = s.scored ? 'Each bar counts site observations in a score range. Higher scores indicate stronger model evidence for m6A, not the fraction of modified reads. The full distribution is shown; use the cutoff in the cell-line panel below to explore high-scoring predictions.' : 'Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.';
   $('overview-predictions').textContent = s.scored ? 'Add more scores' : 'Add predictions';
   $('score-distribution').hidden = !s.scored;
   if (s.scored) {
-    const options = Array.from({ length: 9 }, (_, i) => (i + 1) / 10).map(v => `<option value="${v}"${v === state.cutoff ? ' selected' : ''}>${v.toFixed(1)}</option>`).join('');
-    $('score-distribution').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff">${options}</select><strong>${fmt(above)} / ${fmt(s.scored)} scored observations at or above cutoff</strong></div>` + histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true);
-    $('score-cutoff').addEventListener('change', e => { state.cutoff = Number(e.target.value); renderOverview(); });
+    $('score-distribution').innerHTML = histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true);
   }
   renderCellLines(threshold);
-  $('sample-cards').innerHTML = samples.map(a => {
+  renderSampleGroups(samples, threshold);
+}
+
+
+const cellDescriptions = {
+  A549: ['Lung cancer cells (adenocarcinoma).', 'CVCL_0023'],
+  H9: ['Human embryonic stem cells (WA09); not a cancer-derived cell line.', 'CVCL_9773'],
+  HEYA8: ['Ovarian cancer cells.', 'CVCL_8878'],
+  Hct116: ['Colon cancer cells.', 'CVCL_0291'],
+  HepG2: ['Liver cancer cells derived from hepatoblastoma.', 'CVCL_0027'],
+  K562: ['Blood cancer cells derived from chronic myeloid leukaemia.', 'CVCL_0004'],
+  MCF7: ['Breast cancer cells.', 'CVCL_0031']
+};
+function renderSampleGroups(samples, threshold) {
+  const groups = new Map();
+  for (const s of samples) {
+    const key = s.group === 'development' ? 'Development datasets' : (s.cellLine || 'Other samples');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(s);
+  }
+  $('sample-cards').innerHTML = [...groups].map(([name, members]) => {
+    const development = name === 'Development datasets';
+    const description = development
+      ? 'Training and development datasets supplied for the project.'
+      : (cellDescriptions[name]?.[0] ?? 'User-supplied samples.');
+    const source = !development && cellDescriptions[name]?.[1];
+    const colour = development ? '#21957e' : cellColour(name);
+    return `<section class="sample-group" style="--group-colour:${colour}" aria-label="${esc(name)} samples">
+      <div class="sample-group-heading"><div><h3>${esc(name)}</h3><p>${esc(description)}${source ? ` <a href="https://www.cellosaurus.org/${source}" target="_blank" rel="noopener" aria-label="Cellosaurus information about ${esc(name)}">About this cell line ↗</a>` : ''}</p></div><span class="sample-group-count">${members.length} ${development ? 'datasets' : 'samples'}</span></div>
+      <div class="sample-group-grid">${members.map(a => {
     const st = a.stats.byMinReads[threshold];
     return `<article class="sample-card"><div class="tag">${esc(sourceTag(a))}</div><h3>${esc(a.name)}</h3><p>${esc(a.cellLine)} · ${fmt(st.sites)} candidate sites</p><div class="card-bottom"><span>Median ${st.medianReads === null ? '—' : fmt(st.medianReads)} reads</span><span class="pill ${st.scored ? 'ready' : 'pending'}">${st.scored ? 'Scores loaded' : 'Scores pending'}</span></div></article>`;
+
+      }).join('')}</div></section>`;
   }).join('');
 }
 
