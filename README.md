@@ -7,6 +7,9 @@ We build a machine learning model that predicts, for each candidate site in a tr
 - **Task 1:** a training script and a prediction script (output: `transcript_id, transcript_position, score`).
 - **Task 2:** predict m6A across all SG-NEx direct RNA-Seq samples, compare cell lines, and build an interactive visualisation.
 
+**New here?** Read [docs/branch_guide.md](docs/branch_guide.md) first: it maps the model, the m6Anet benchmark, the
+SG-NEx analysis ([docs/sgnex_task2.md](docs/sgnex_task2.md)) and the visualisation (branch `viz-github-pages`).
+
 ---
 
 ## Repository layout
