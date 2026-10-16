@@ -6,7 +6,7 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;',
 const fmt = n => Number(n).toLocaleString('en-US');
 const state = { samples: [], catalog: [], rows: [], page: 'overview', tablePage: 0,
   sort: 'n_reads', descending: true, filtered: [], comparison: null, cutoff: .5,
-  annotations: new Map(), tokens: { explorer: 0, compare: 0 } };
+  selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0 } };
 const loads = new Map();
 let toastTimer, searchTimer;
 
@@ -57,14 +57,14 @@ function sampleOptions(groups) {
 }
 function refreshOptions() {
   const all = ['cellline', 'sgnex', 'development', 'imported'], noSummaries = all.slice(1);
-  const lists = { 'global-sample': ['<option value="all">All runs and datasets</option>', noSummaries],
-    'site-sample': [cellLineIds().length ? '<option value="cellline_all">All cell lines · summary</option>' : '', all],
+  const lists = { 'site-sample': [cellLineIds().length ? '<option value="cellline_all">All cell lines · summary</option>' : '', all],
     'compare-a': ['', all], 'compare-b': ['', all], 'prediction-sample': ['', noSummaries] };
   for (const [id, [extra, groups]] of Object.entries(lists)) {
     const el = $(id), old = el.value;
     el.innerHTML = extra + sampleOptions(groups);
     if ([...el.options].some(o => o.value === old)) el.value = old;
   }
+  renderSamplePicker();
   const lines = cellLineIds();
   if (lines.length > 1 && !state.compareChosen) { $('compare-a').value = lines[0]; $('compare-b').value = lines[1]; }
   if ($('compare-a').value === $('compare-b').value && state.samples.length > 1) $('compare-b').value = [...$('compare-b').options].find(o => o.value !== $('compare-a').value)?.value;
@@ -82,6 +82,33 @@ const cellHues = { A549: 240, H9: 213, HEYA8: 274, Hct116: 25, HepG2: 338, K562:
 function cellColour(cell, lightness = 38) {
   return `hsl(${cellHues[cell] ?? 160} 52% ${lightness}%)`;
 }
+
+function overviewSamples() {
+  return state.samples.filter(s => s.group !== 'cellline' &&
+    (state.selectedSamples === null || state.selectedSamples.has(s.id)));
+}
+function renderSamplePicker() {
+  const groups = new Map();
+  for (const s of state.samples.filter(s => s.group !== 'cellline')) {
+    const key = s.group === 'development' ? 'Development datasets' : (s.cellLine || 'Other samples');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(s);
+  }
+  $('sample-checkboxes').innerHTML = [...groups].map(([name, samples]) =>
+    `<fieldset class="sample-choice-group"><legend>${esc(name)}</legend>${samples.map(s =>
+      `<label class="sample-choice"><input type="checkbox" data-sample-id="${esc(s.id)}"><span>${esc(s.name)}</span></label>`).join('')}</fieldset>`).join('');
+  syncSamplePicker();
+}
+function syncSamplePicker() {
+  const available = state.samples.filter(s => s.group !== 'cellline'), selected = overviewSamples();
+  $('sample-picker-label').textContent = selected.length === available.length && available.length
+    ? 'All runs and datasets' : selected.length === 1 ? selected[0].name : `${selected.length} samples selected`;
+  $('sample-selection-count').textContent = `${selected.length} of ${available.length} selected`;
+  $('sample-checkboxes').querySelectorAll('[data-sample-id]').forEach(input => {
+    input.checked = state.selectedSamples === null || state.selectedSamples.has(input.dataset.sampleId);
+  });
+}
+
 function hBars(entries) {
   const max = Math.max(1, ...entries.map(e => e.value));
   if (!entries.length) return '<div class="empty-chart">No sites match these filters.</div>';
@@ -101,17 +128,23 @@ function pearson(xs, ys) {
 }
 
 // One row per cell line; each dot is a run's share of scored sites at or above the cutoff.
-function renderCellLines(threshold) {
-  const runs = state.samples.filter(s => s.group === 'sgnex').map(s => {
+function renderCellLines(threshold, selectedSamples) {
+  hideDotTooltip();
+  const runs = selectedSamples.filter(s => s.group === 'sgnex').map(s => {
     const st = s.stats.byMinReads[threshold];
     return { s, sites: st.sites, pct: st.scored ? aboveCutoff(st.scoreHist, state.cutoff) / st.scored * 100 : 0 };
   }).filter(q => q.s.stats.byMinReads[threshold].scored > 0);
   $('cellline-panel').hidden = !runs.length;
-  if (!runs.length) return;
+  if (!runs.length) {
+    $('cellline-chart').innerHTML = '';
+    $('cellline-controls').innerHTML = '';
+    $('cellline-note').textContent = '';
+    return;
+  }
   const totalScored = runs.reduce((n, q) => n + q.s.stats.byMinReads[threshold].scored, 0);
   const totalAbove = runs.reduce((n, q) => n + aboveCutoff(q.s.stats.byMinReads[threshold].scoreHist, state.cutoff), 0);
   const options = Array.from({ length: 9 }, (_, i) => (i + 1) / 10).map(v => `<option value="${v}"${v === state.cutoff ? ' selected' : ''}>${v.toFixed(1)}</option>`).join('');
-  $('cellline-controls').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff" aria-describedby="cellline-control-note">${options}</select><strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} scored observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">Across all SG-NEx runs at the selected minimum coverage. This cutoff updates the dot chart; it does not filter the score-distribution histogram.</p>`;
+  $('cellline-controls').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff" aria-describedby="cellline-control-note">${options}</select><strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} scored observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">Across the selected SG-NEx runs at the selected minimum coverage. This cutoff updates the dot chart; it does not filter the score-distribution histogram.</p>`;
   $('score-cutoff').addEventListener('change', e => {
     state.cutoff = Number(e.target.value);
     renderOverview();
@@ -126,18 +159,34 @@ function renderCellLines(threshold) {
     const y = t + i * rowH + rowH / 2, mine = runs.filter(q => q.s.cellLine === c), mean = mine.reduce((a, q) => a + q.pct, 0) / mine.length;
     svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label" style="fill:${cellColour(c)}">${esc(c)}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
     svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="${cellColour(c, 30)}" stroke-width="2"/>`;
-    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" r="5" fill="${cellColour(c, 34 + runIndex * 6)}" stroke="white" stroke-width=".7"><title>${esc(q.s.name)} · ${q.pct.toFixed(2)}% of ${fmt(q.sites)} sites</title></circle>`).join('');
-    svg += `<text x="${w - r + 8}" y="${y + 4}">${mean.toFixed(2)}%</text>`;
+    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" data-run-id="${esc(q.s.id)}" r="5" fill="${cellColour(c, 34 + state.samples.filter(s => s.group === 'sgnex' && s.cellLine === c).sort((a,b) => a.id.localeCompare(b.id)).findIndex(s => s.id === q.s.id) * 6)}" stroke="white" stroke-width=".7"></circle>`).join('');
+    svg += `<text x="${w - r + 8}" y="${y + 4}" style="fill:${cellColour(c)};font-weight:600">${mean.toFixed(2)}%</text>`;
   });
-  $('cellline-chart').innerHTML = `<svg class="scatter-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
+  $('cellline-chart').innerHTML = `<svg class="scatter-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
   const rho = runs.length > 2 ? pearson(runs.map(q => Math.log10(q.sites)), runs.map(q => q.pct)) : null;
-  $('cellline-note').textContent = `Each colour family represents a cell line, with different shades for its runs. Each dot represents one SG-NEx run; the vertical mark and right-hand percentage show the unweighted mean across runs for that cell line. All SG-NEx runs with scores are shown, using the selected minimum coverage. ${rho === null || !Number.isFinite(rho) ? '' : `Across runs, log candidate-site count and the percentage scoring at least ${state.cutoff} have Pearson r = ${rho.toFixed(2)}. `}Site count is an imperfect proxy for sequencing depth; this association does not establish a cause. Compare shared sites and check replicate consistency before interpreting cell-line differences. Cell-line summaries include only sites averaging at least 0.5 in one or more cell lines.`;
+  $('cellline-note').textContent = `Each colour family represents a cell line, with different shades for its runs. Each dot represents one SG-NEx run; the vertical mark and right-hand percentage show the unweighted mean across the selected runs for that cell line. Only selected SG-NEx runs with scores are shown, using the selected minimum coverage. ${rho === null || !Number.isFinite(rho) ? '' : `Across runs, log candidate-site count and the percentage scoring at least ${state.cutoff} have Pearson r = ${rho.toFixed(2)}. `}Site count is an imperfect proxy for sequencing depth; this association does not establish a cause. Compare shared sites and check replicate consistency before interpreting cell-line differences. Cell-line summaries include only sites averaging at least 0.5 in one or more cell lines.`;
 }
 
 function renderOverview() {
-  const threshold = Number($('global-reads').value) || readThresholds[0], scope = $('global-sample').value;
-  const samples = state.samples.filter(a => a.group !== 'cellline' && (scope === 'all' || a.id === scope));
-  if (!samples.length) return;
+  const threshold = Number($('global-reads').value) || readThresholds[0];
+  const samples = overviewSamples();
+  syncSamplePicker();
+  if (!samples.length) {
+    $('overview-metrics').innerHTML = metric('Site observations', '0', 'No samples selected')
+      + metric('Median read coverage', '—', 'Select at least one sample')
+      + metric('Mapped gene IDs', '—', 'Select at least one sample')
+      + metric('Observations with predictions', '0', 'No samples selected');
+    $('filter-caption').textContent = '0 observations · 0 samples';
+    const empty = '<div class="empty-chart">Choose samples from the checkbox list above.</div>';
+    $('sample-bars').innerHTML = $('coverage-histogram').innerHTML = empty;
+    $('score-distribution').hidden = true;
+    $('score-distribution').innerHTML = '';
+    $('prediction-heading').textContent = 'No samples selected';
+    $('prediction-copy').textContent = 'Select samples above to view their prediction-score distribution.';
+    $('sample-cards').innerHTML = empty;
+    renderCellLines(threshold, []);
+    return;
+  }
   const s = combineStats(samples.map(a => a.stats), threshold), above = aboveCutoff(s.scoreHist, state.cutoff), one = samples.length === 1;
   $('overview-metrics').innerHTML = metric('Site observations', fmt(s.sites), one ? `${fmt(s.transcripts)} transcripts` : `Across ${samples.length} samples; shared sites count once per sample`)
     + metric('Median read coverage', s.medianReads === null ? '—' : fmt(s.medianReads), one ? 'Reads at a candidate site' : 'Median of per-sample medians')
@@ -153,7 +202,7 @@ function renderOverview() {
   if (s.scored) {
     $('score-distribution').innerHTML = histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true);
   }
-  renderCellLines(threshold);
+  renderCellLines(threshold, samples);
   renderSampleGroups(samples, threshold);
 }
 
@@ -356,6 +405,74 @@ async function doImport(event) {
   finally{button.disabled=false;button.textContent='Import data';}
 }
 
+
+let dotTooltipTimer, activeDot = null;
+function hideDotTooltip() {
+  clearTimeout(dotTooltipTimer);
+  if (activeDot) activeDot.removeAttribute('aria-describedby');
+  activeDot = null;
+  $('run-tooltip').hidden = true;
+}
+function scheduleHideDotTooltip() {
+  clearTimeout(dotTooltipTimer);
+  dotTooltipTimer = setTimeout(hideDotTooltip, 160);
+}
+function showDotTooltip(dot) {
+  clearTimeout(dotTooltipTimer);
+  if (activeDot && activeDot !== dot) activeDot.removeAttribute('aria-describedby');
+  activeDot = dot;
+  const s = sample(dot.dataset.runId);
+  const threshold = Number($('global-reads').value) || readThresholds[0];
+  const st = s.stats.byMinReads[threshold], high = aboveCutoff(st.scoreHist, state.cutoff);
+  const tip = $('run-tooltip');
+  tip.innerHTML = `<div class="run-tooltip-kicker">${esc(s.cellLine)} · SG-NEx run</div><strong class="run-tooltip-name">${esc(s.name)}</strong><div class="run-tooltip-value">${(high / st.scored * 100).toFixed(2)}%<span>score ≥ ${state.cutoff}</span></div><p>${fmt(high)} of ${fmt(st.scored)} scored observations</p><div class="run-tooltip-foot">Minimum coverage: ${threshold} reads · Model predictions</div>`;
+  tip.style.setProperty('--tooltip-colour', cellColour(s.cellLine, 60));
+  tip.hidden = false;
+  dot.setAttribute('aria-describedby', 'run-tooltip');
+  const rect = dot.getBoundingClientRect();
+  const width = tip.offsetWidth, height = tip.offsetHeight;
+  tip.style.left = `${Math.max(12, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 12))}px`;
+  const top = rect.top > height + 20 ? rect.top - height - 12 : rect.bottom + 12;
+  tip.style.top = `${Math.max(12, Math.min(top, window.innerHeight - height - 12))}px`;
+}
+function bindOverviewControls() {
+  $('global-reads').addEventListener('change', renderOverview);
+  $('sample-checkboxes').addEventListener('change', e => {
+    const input = e.target.closest('[data-sample-id]');
+    if (!input) return;
+    if (state.selectedSamples === null) state.selectedSamples = new Set(overviewSamples().map(s => s.id));
+    if (input.checked) state.selectedSamples.add(input.dataset.sampleId);
+    else state.selectedSamples.delete(input.dataset.sampleId);
+    renderOverview();
+  });
+  $('samples-all').addEventListener('click', () => { state.selectedSamples = null; renderOverview(); });
+  $('samples-clear').addEventListener('click', () => { state.selectedSamples = new Set(); renderOverview(); });
+  $('samples-done').addEventListener('click', () => {
+    $('sample-picker').open = false; $('sample-picker-summary').focus();
+  });
+  document.addEventListener('click', e => {
+    if (!$('sample-picker').contains(e.target)) $('sample-picker').open = false;
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      hideDotTooltip();
+      if ($('sample-picker').open) {
+        $('sample-picker').open = false; $('sample-picker-summary').focus();
+      }
+    }
+  });
+  const chart = $('cellline-chart'), tip = $('run-tooltip');
+  chart.addEventListener('pointerover', e => { const dot = e.target.closest('.run-dot'); if (dot) showDotTooltip(dot); });
+  chart.addEventListener('pointerout', e => { if (e.target.closest('.run-dot')) scheduleHideDotTooltip(); });
+  chart.addEventListener('focusin', e => { const dot = e.target.closest('.run-dot'); if (dot) showDotTooltip(dot); });
+  chart.addEventListener('focusout', scheduleHideDotTooltip);
+  chart.addEventListener('click', e => { const dot = e.target.closest('.run-dot'); if (dot) showDotTooltip(dot); });
+  tip.addEventListener('pointerenter', () => clearTimeout(dotTooltipTimer));
+  tip.addEventListener('pointerleave', scheduleHideDotTooltip);
+  window.addEventListener('scroll', hideDotTooltip, true);
+  window.addEventListener('resize', hideDotTooltip);
+}
+
 function bind() {
   document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
   document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
@@ -366,8 +483,8 @@ function bind() {
   $('data-annotations').addEventListener('click',()=>openImport('annotations'));
   $('show-helper').addEventListener('click',()=>$('helper-dialog').showModal());
   $('import-type').addEventListener('change',importTypeChanged);$('import-id').addEventListener('change',guessMetadata);$('import-form').addEventListener('submit',doImport);
-  for(const id of ['global-sample','global-reads'])$(id).addEventListener('change',renderOverview);
-  $('reset-filters').addEventListener('click',()=>{$('global-sample').value='all';$('global-reads').value='20';renderOverview();});
+  bindOverviewControls();
+  $('reset-filters').addEventListener('click',()=>{state.selectedSamples=null;$('global-reads').value='20';renderOverview();});
   $('site-search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>renderExplorer(),180);});
   for(const id of ['site-sample','site-reads','site-score','scored-only'])$(id).addEventListener('change',()=>renderExplorer());
   document.querySelectorAll('[data-sort]').forEach(b=>b.addEventListener('click',()=>{if(state.sort===b.dataset.sort)state.descending=!state.descending;else{state.sort=b.dataset.sort;state.descending=b.dataset.sort!=='transcript_id';}renderExplorer();}));
