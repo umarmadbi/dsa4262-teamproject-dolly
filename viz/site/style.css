@@ -13,3 +13,26 @@
 #cellline-panel .panel-heading{flex-wrap:wrap;gap:12px}
 #cellline-note{margin-top:20px;max-width:100%;overflow-wrap:anywhere}
 #sample-bars{scrollbar-gutter:stable}
+
+/* Direct chart feedback: labels stay visible, with no floating tooltip. */
+.hist-bin{outline-offset:5px}
+.hist-fill,.hist-count,.hist-label{transition:transform .18s ease,background-color .18s ease,color .18s ease,box-shadow .18s ease}
+.hist-bin:is(:hover,:focus-visible){z-index:2}
+.hist-bin:is(:hover,:focus-visible) .hist-fill{transform:translateY(-5px);background:#16765e;box-shadow:0 5px 12px #143b3420}
+.hist-bin:is(:hover,:focus-visible) .hist-count{transform:translate(-50%,-3px) scale(1.08);color:#143b34;font-weight:700}
+.hist-bin:is(:hover,:focus-visible) .hist-label{transform:translate(-50%,-2px) scale(1.08);color:#143b34;font-weight:700}
+#sample-bars .bar-row .bar-fill{background:var(--sample-colour,#21957e)}
+.bar-row{outline-offset:2px}
+.bar-fill,.bar-count,.bar-name{transition:transform .18s ease,filter .18s ease,color .18s ease}
+.bar-row:is(:hover,:focus-visible) .bar-fill{transform:translateY(-2px);filter:brightness(.82)}
+.bar-row:is(:hover,:focus-visible) :is(.bar-count,.bar-name){transform:translateY(-2px);color:var(--ink);font-weight:600}
+.run-dot{transition:filter .18s ease,stroke-width .18s ease}
+.run-dot:is(:hover,:focus-visible){filter:brightness(.8);stroke:#143b34;stroke-width:1.5;outline:none}
+.brand-name{display:flex;align-items:center;gap:7px}
+.brand-goat{font-size:23px;letter-spacing:0;line-height:1}
+.brand{padding-left:8px;padding-right:8px;gap:8px}
+@media(prefers-reduced-motion:reduce){
+  .hist-fill,.hist-count,.hist-label,.bar-fill,.bar-count,.bar-name,.run-dot{transition:none}
+  .hist-bin:is(:hover,:focus-visible) :is(.hist-fill,.hist-count,.hist-label),
+  .bar-row:is(:hover,:focus-visible) :is(.bar-fill,.bar-count,.bar-name){transform:none}
+}
