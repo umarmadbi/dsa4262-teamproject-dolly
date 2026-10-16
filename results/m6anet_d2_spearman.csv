@@ -1,0 +1,4 @@
+model,spearman,within_kmer_spearman_median
+m6anet,0.275124710904636,0.6861885730630984
+kmer_prior,0.0,
+final_model,0.4099687511925775,0.6437458538705402

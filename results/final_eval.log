@@ -1,0 +1,32 @@
+random done (0s)
+kmer_prior done (0s)
+logreg done (4s)
+lightgbm done (13s)
+read_stack done (157s)
+final_model done (170s)
+final_model_d0+d1 done (235s); training sites 157,644
+  dataset             model  roc_auc  roc_lo  roc_hi  pr_auc  pr_lo  pr_hi  dpr_vs_kmer_prior  dpr_lo  dpr_hi
+  d0_test            random    0.524   0.506   0.541   0.048  0.040  0.057             -0.093  -0.114  -0.076
+  d0_test        kmer_prior    0.798   0.772   0.820   0.142  0.121  0.165                NaN     NaN     NaN
+  d0_test            logreg    0.905   0.878   0.925   0.423  0.371  0.479              0.283   0.241   0.328
+  d0_test          lightgbm    0.916   0.892   0.936   0.482  0.424  0.539              0.341   0.296   0.387
+  d0_test        read_stack    0.919   0.897   0.938   0.483  0.425  0.538              0.342   0.298   0.388
+  d0_test       final_model    0.932   0.906   0.952   0.520  0.456  0.581              0.379   0.326   0.428
+  d0_test final_model_d0+d1    0.926   0.897   0.948   0.510  0.449  0.571              0.369   0.317   0.421
+d1_unseen            random    0.499   0.483   0.516   0.083  0.074  0.093             -0.075  -0.087  -0.064
+d1_unseen        kmer_prior    0.717   0.702   0.731   0.158  0.142  0.174                NaN     NaN     NaN
+d1_unseen            logreg    0.825   0.809   0.839   0.338  0.308  0.371              0.181   0.156   0.205
+d1_unseen          lightgbm    0.834   0.818   0.848   0.360  0.328  0.397              0.204   0.179   0.229
+d1_unseen        read_stack    0.841   0.824   0.855   0.375  0.345  0.411              0.219   0.193   0.244
+d1_unseen       final_model    0.860   0.844   0.874   0.403  0.370  0.440              0.246   0.218   0.274
+/home/claude/repo/experiments/05_final_eval.py:85: ConstantInputWarning: An input array is constant; the correlation coefficient is not defined.
+  lambda g: spearmanr(g.y, g.p).statistic if g.y.nunique() > 1 and len(g) > 5 else np.nan)
+/home/claude/repo/experiments/05_final_eval.py:86: RuntimeWarning: All-NaN slice encountered
+  d2rows.append({"model": name, "spearman": rho, "within_kmer_spearman_median": np.nanmedian(w)})
+      model  spearman  within_kmer_spearman_median
+     random     0.000                       -0.011
+ kmer_prior     0.000                          NaN
+     logreg     0.265                        0.404
+   lightgbm     0.354                        0.454
+ read_stack     0.270                        0.528
+final_model     0.410                        0.644

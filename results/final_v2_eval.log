@@ -1,0 +1,30 @@
+d1_unseen 15,137 sites; d1_strict 12,798 sites (2,339 unseen-transcript sites are isoforms of training genes)
+final_model done (327s)
+v2_single done (341s)
+v2 done (1308s)
+v2_two_runs done (1986s); training sites 159,983
+  dataset       model  roc_auc  roc_lo  roc_hi  pr_auc  pr_lo  pr_hi  droc_vs_final_model  droc_lo  droc_hi  dpr_vs_final_model  dpr_lo  dpr_hi
+  d0_test  kmer_prior    0.798   0.772   0.820   0.142  0.121  0.165               -0.134   -0.149   -0.121              -0.379  -0.428  -0.326
+  d0_test      m6anet    0.932   0.921   0.943   0.485  0.433  0.537                0.000   -0.012    0.018              -0.034  -0.061  -0.006
+  d0_test final_model    0.932   0.906   0.952   0.520  0.456  0.581                  NaN      NaN      NaN                 NaN     NaN     NaN
+  d0_test   v2_single    0.951   0.940   0.962   0.554  0.497  0.612                0.019    0.006    0.037               0.035   0.006   0.062
+  d0_test          v2    0.952   0.941   0.962   0.561  0.505  0.619                0.020    0.007    0.039               0.042   0.013   0.071
+  d0_test v2_two_runs    0.948   0.938   0.959   0.552  0.492  0.609                0.016    0.003    0.035               0.032   0.001   0.063
+d1_unseen  kmer_prior    0.717   0.699   0.734   0.158  0.138  0.178               -0.143   -0.161   -0.123              -0.245  -0.277  -0.212
+d1_unseen      m6anet    0.834   0.814   0.852   0.348  0.312  0.385               -0.026   -0.035   -0.016              -0.055  -0.072  -0.038
+d1_unseen final_model    0.860   0.837   0.877   0.403  0.362  0.443                  NaN      NaN      NaN                 NaN     NaN     NaN
+d1_unseen   v2_single    0.876   0.853   0.894   0.431  0.390  0.473                0.016    0.009    0.024               0.029   0.013   0.045
+d1_unseen          v2    0.877   0.854   0.895   0.434  0.393  0.475                0.017    0.009    0.024               0.032   0.015   0.049
+d1_strict  kmer_prior    0.715   0.697   0.733   0.147  0.127  0.170               -0.150   -0.170   -0.128              -0.246  -0.280  -0.210
+d1_strict      m6anet    0.839   0.815   0.859   0.334  0.299  0.372               -0.026   -0.036   -0.015              -0.058  -0.077  -0.041
+d1_strict final_model    0.865   0.841   0.886   0.392  0.353  0.436                  NaN      NaN      NaN                 NaN     NaN     NaN
+d1_strict   v2_single    0.880   0.854   0.902   0.420  0.375  0.465                0.015    0.008    0.021               0.027   0.010   0.044
+d1_strict          v2    0.881   0.855   0.903   0.421  0.377  0.467                0.016    0.009    0.022               0.028   0.013   0.045
+d1_strict v2_two_runs    0.882   0.858   0.903   0.435  0.390  0.483                0.017    0.010    0.026               0.043   0.022   0.062
+      model  spearman  within_kmer_spearman_median
+ kmer_prior     0.000                          NaN
+     m6anet     0.275                        0.686
+final_model     0.410                        0.644
+  v2_single     0.381                        0.571
+         v2     0.410                        0.644
+figure -> docs/figures/model_evaluation_v2.png
