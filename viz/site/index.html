@@ -9,7 +9,7 @@
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <a class="brand" href="#overview" aria-label="Dolly explorer home"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 3c0 9 16 17 16 26M24 3C24 12 8 20 8 29M9 7h14M12 12h8M12 20h8M9 25h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span>DOLLY<span class="brand-sub">RNA EXPLORER</span></span></a>
+    <a class="brand" href="#overview" aria-label="Dolly explorer home"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 3c0 9 16 17 16 26M24 3C24 12 8 20 8 29M9 7h14M12 12h8M12 20h8M9 25h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="brand-name">DOLLY <span class="brand-goat" role="img" aria-label="goat mascot">🐐</span></span><span class="brand-sub">RNA EXPLORER</span></span></a>
     <div class="nav-label">WORKSPACE</div>
     <nav aria-label="Main navigation">
       <button data-nav="overview" class="nav-item active" aria-current="page"><span class="nav-icon">◫</span>Overview</button>
@@ -31,7 +31,7 @@
         <div class="metrics" id="overview-metrics"></div>
         <div class="chart-grid"><article class="panel"><div class="panel-heading"><div><span class="eyebrow">CANDIDATE SITES</span><h2>Candidate sites meeting the coverage filter</h2></div><span class="chart-key"><i></i> Meets coverage filter</span></div><div id="sample-bars" class="chart-area" aria-label="Measured site counts"></div><p class="panel-note">Counts include sites with at least the selected number of reads, not confirmed modifications. Scroll within the list to see more samples.</p></article><article class="panel"><div class="panel-heading"><div><span class="eyebrow">READ COVERAGE</span><h2>How well are sites covered?</h2></div><span class="chart-key"><i></i> Sites</span></div><div id="coverage-histogram" class="chart-area"></div><p class="panel-note">Coverage is the number of reads at a site; it is not gene expression.</p></article></div>
         <article class="panel predictions-panel"><div class="prediction-intro"><div class="soft-icon">↗</div><div><h2 id="prediction-heading">Ready for your predictions</h2><p id="prediction-copy">Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.</p></div><button class="button primary" id="overview-predictions">Add predictions</button></div><div id="score-distribution" hidden></div></article>
-        <article class="panel" id="cellline-panel" hidden><div class="panel-heading"><div><span class="eyebrow">CELL LINES</span><h2>High-scoring site percentage by cell line</h2></div><span class="chart-key"><i></i> Runs</span></div><div id="cellline-chart" class="chart-area"></div><p class="panel-note" id="cellline-note"></p></article>
+        <article class="panel" id="cellline-panel" hidden><div class="panel-heading"><div><span class="eyebrow">CELL LINES</span><h2>High-scoring site percentage by cell line</h2></div><span class="chart-key">● Run &nbsp; │ Mean · colours identify cell lines</span></div><div id="cellline-chart" class="chart-area"></div><p class="panel-note" id="cellline-note"></p></article>
         <div class="section-heading"><h2>Loaded data</h2><button data-go="data" class="text-button">Manage datasets →</button></div><div id="sample-cards" class="sample-cards"></div>
       </section>
 
