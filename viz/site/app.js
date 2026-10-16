@@ -77,15 +77,20 @@ function refreshOptions() {
   $('sidebar-status').textContent = scored ? 'Prediction scores loaded' : 'Coverage workspace';
 }
 
+// Stable cell-line colours; run shades distinguish samples within each family.
+const cellHues = { A549: 160, H9: 213, HEYA8: 274, Hct116: 25, HepG2: 338, K562: 185, MCF7: 46 };
+function cellColour(cell, lightness = 38) {
+  return `hsl(${cellHues[cell] ?? 160} 52% ${lightness}%)`;
+}
 function hBars(entries) {
   const max = Math.max(1, ...entries.map(e => e.value));
   if (!entries.length) return '<div class="empty-chart">No sites match these filters.</div>';
-  return '<div class="hbars">' + entries.map(e => `<div class="bar-row"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%" title="${fmt(e.value)} candidate sites"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
+  return '<div class="hbars">' + entries.map(e => `<div class="bar-row" tabindex="0" aria-label="${esc(e.name)}: ${fmt(e.value)} candidate sites"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%;--sample-colour:${cellColour(e.cellLine)}"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
 }
 
 function histogram(counts, labels, scored = false) {
   const max = Math.max(1, ...counts);
-  return `<div class="histogram${scored ? ' scored' : ''}" role="img" aria-label="${esc(labels.map((l, i) => `${l}: ${counts[i]} sites`).join('; '))}">` + counts.map((n,i) => `<div class="hist-bin"><div class="hist-fill" style="height:${n / max * 86}%" title="${esc(labels[i])}: ${fmt(n)} sites"><span class="hist-count">${n ? fmt(n) : ''}</span></div><span class="hist-label">${esc(labels[i])}</span></div>`).join('') + '</div>';
+  return `<div class="histogram${scored ? ' scored' : ''}" role="group" aria-label="${scored ? 'Prediction score distribution' : 'Read coverage distribution'}">` + counts.map((n,i) => `<div class="hist-bin" tabindex="0" role="img" aria-label="${esc(labels[i])}: ${fmt(n)} site observations"><div class="hist-fill" style="height:${n / max * 86}%"><span class="hist-count">${fmt(n)}</span></div><span class="hist-label">${esc(labels[i])}</span></div>`).join('') + '</div>';
 }
 
 function pearson(xs, ys) {
@@ -111,13 +116,13 @@ function renderCellLines(threshold) {
   lines.forEach((c, i) => {
     const y = t + i * rowH + rowH / 2, mine = runs.filter(q => q.s.cellLine === c), mean = mine.reduce((a, q) => a + q.pct, 0) / mine.length;
     svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label">${esc(c)}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
-    svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="#0f5e4d" stroke-width="2"/>`;
-    svg += mine.map(q => `<circle cx="${x(q.pct).toFixed(1)}" cy="${y}" r="5" fill="#178c70" opacity=".55"><title>${esc(q.s.name)} · ${q.pct.toFixed(2)}% of ${fmt(q.sites)} sites</title></circle>`).join('');
+    svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="${cellColour(c, 30)}" stroke-width="2"/>`;
+    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" r="5" fill="${cellColour(c, 34 + runIndex * 6)}" stroke="white" stroke-width=".7"><title>${esc(q.s.name)} · ${q.pct.toFixed(2)}% of ${fmt(q.sites)} sites</title></circle>`).join('');
     svg += `<text x="${w - r + 8}" y="${y + 4}">${mean.toFixed(2)}%</text>`;
   });
   $('cellline-chart').innerHTML = `<svg class="scatter-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
   const rho = runs.length > 2 ? pearson(runs.map(q => Math.log10(q.sites)), runs.map(q => q.pct)) : null;
-  $('cellline-note').textContent = `Each dot represents one SG-NEx run; the vertical mark and right-hand percentage show the unweighted mean across runs for that cell line. All SG-NEx runs with scores are shown, using the selected minimum coverage. ${rho === null || !Number.isFinite(rho) ? '' : `Across runs, log candidate-site count and the percentage scoring at least ${state.cutoff} have Pearson r = ${rho.toFixed(2)}. `}Site count is an imperfect proxy for sequencing depth; this association does not establish a cause. Compare shared sites and check replicate consistency before interpreting cell-line differences. Cell-line summaries include only sites averaging at least 0.5 in one or more cell lines.`;
+  $('cellline-note').textContent = `Each colour family represents a cell line, with different shades for its runs. Each dot represents one SG-NEx run; the vertical mark and right-hand percentage show the unweighted mean across runs for that cell line. All SG-NEx runs with scores are shown, using the selected minimum coverage. ${rho === null || !Number.isFinite(rho) ? '' : `Across runs, log candidate-site count and the percentage scoring at least ${state.cutoff} have Pearson r = ${rho.toFixed(2)}. `}Site count is an imperfect proxy for sequencing depth; this association does not establish a cause. Compare shared sites and check replicate consistency before interpreting cell-line differences. Cell-line summaries include only sites averaging at least 0.5 in one or more cell lines.`;
 }
 
 function renderOverview() {
@@ -130,7 +135,7 @@ function renderOverview() {
     + metric('Mapped gene IDs', one ? fmt(s.genes) : '—', one ? 'Gene names can be imported' : 'Select one sample to count genes')
     + metric('Observations with predictions', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
   $('filter-caption').textContent = `${fmt(s.sites)} observations · ${samples.length} ${one ? 'sample' : 'samples'}`;
-  $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites })));
+  $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites, cellLine: a.cellLine })));
   $('coverage-histogram').innerHTML = histogram(s.coverageHist, ['<20','20–39','40–79','80–159','160–319','320–639','640–1279','1280+']);
   $('prediction-heading').textContent = s.scored ? 'Distribution of predicted m6A scores' : 'Ready for your predictions';
   $('prediction-copy').textContent = s.scored ? 'Each bar counts site observations in a score range. Higher scores indicate stronger model evidence for m6A, not the fraction of modified reads. The cutoff highlights predictions; it does not confirm modification.' : 'Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.';
