@@ -1,0 +1,4922 @@
+{
+  "datasets": [
+    {
+      "id": "dataset0",
+      "name": "Training dataset 0",
+      "cellLine": "Hct116",
+      "replicate": null,
+      "run": null,
+      "group": "development",
+      "rows": 121838,
+      "transcripts": 5333,
+      "genes": 3852,
+      "medianReads": 47.0,
+      "minReads": 20,
+      "maxReads": 991,
+      "source": "dataset0.json.gz",
+      "dataFile": "data/dataset0.json",
+      "model": null,
+      "description": "User-supplied development data. No model predictions are loaded.",
+      "annotationNote": "Gene IDs from supplied training metadata.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 121838,
+            "transcripts": 5333,
+            "genes": 3852,
+            "medianReads": 47.0,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              47887,
+              41301,
+              19025,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          },
+          "40": {
+            "sites": 73951,
+            "transcripts": 3285,
+            "genes": 2482,
+            "medianReads": 72,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              41301,
+              19025,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          },
+          "80": {
+            "sites": 32650,
+            "transcripts": 1664,
+            "genes": 1277,
+            "medianReads": 138.0,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              19025,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          },
+          "160": {
+            "sites": 13625,
+            "transcripts": 775,
+            "genes": 586,
+            "medianReads": 273,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "dataset1",
+      "name": "Development dataset 1",
+      "cellLine": "Unspecified",
+      "replicate": null,
+      "run": null,
+      "group": "development",
+      "rows": 90810,
+      "transcripts": 4451,
+      "genes": 2508,
+      "medianReads": 40.0,
+      "minReads": 20,
+      "maxReads": 994,
+      "source": "dataset1.json.gz",
+      "dataFile": "data/dataset1.json",
+      "model": null,
+      "description": "User-supplied development data. No model predictions are loaded.",
+      "annotationNote": "Gene IDs matched by transcript ID to dataset 0 metadata; gene names are not available.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 90810,
+            "transcripts": 4451,
+            "genes": 2508,
+            "medianReads": 40.0,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              45380,
+              23563,
+              12351,
+              5091,
+              2117,
+              2308,
+              0
+            ]
+          },
+          "40": {
+            "sites": 45430,
+            "transcripts": 2529,
+            "genes": 1691,
+            "medianReads": 77.0,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              23563,
+              12351,
+              5091,
+              2117,
+              2308,
+              0
+            ]
+          },
+          "80": {
+            "sites": 21867,
+            "transcripts": 1356,
+            "genes": 966,
+            "medianReads": 141,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              12351,
+              5091,
+              2117,
+              2308,
+              0
+            ]
+          },
+          "160": {
+            "sites": 9516,
+            "transcripts": 682,
+            "genes": 492,
+            "medianReads": 298.0,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              5091,
+              2117,
+              2308,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "dataset2",
+      "name": "Anonymised dataset 2",
+      "cellLine": "Unspecified",
+      "replicate": null,
+      "run": null,
+      "group": "development",
+      "rows": 1323,
+      "transcripts": 7,
+      "genes": 0,
+      "medianReads": 814,
+      "minReads": 26,
+      "maxReads": 3438,
+      "source": "dataset2.json.gz",
+      "dataFile": "data/dataset2.json",
+      "model": null,
+      "description": "User-supplied development data. No model predictions are loaded.",
+      "annotationNote": "Transcript IDs are anonymised. Cell line and gene identity are not supplied.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 1323,
+            "transcripts": 7,
+            "genes": 0,
+            "medianReads": 814,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              3,
+              30,
+              77,
+              116,
+              293,
+              479,
+              325
+            ]
+          },
+          "40": {
+            "sites": 1320,
+            "transcripts": 7,
+            "genes": 0,
+            "medianReads": 814.5,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              30,
+              77,
+              116,
+              293,
+              479,
+              325
+            ]
+          },
+          "80": {
+            "sites": 1290,
+            "transcripts": 7,
+            "genes": 0,
+            "medianReads": 840.5,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              77,
+              116,
+              293,
+              479,
+              325
+            ]
+          },
+          "160": {
+            "sites": 1213,
+            "transcripts": 7,
+            "genes": 0,
+            "medianReads": 865,
+            "scored": 0,
+            "scoreHist": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              116,
+              293,
+              479,
+              325
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_A549_directRNA_replicate5_run1",
+      "name": "A549 \u00b7 rep 5 \u00b7 run 1",
+      "cellLine": "A549",
+      "replicate": "5",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 66382,
+      "transcripts": 3252,
+      "genes": 2439,
+      "medianReads": 36,
+      "minReads": 20,
+      "maxReads": 993,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_A549_directRNA_replicate5_run1)",
+      "dataFile": "data/SGNex_A549_directRNA_replicate5_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (942,551 of 1,008,933 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 66382,
+            "transcripts": 3252,
+            "genes": 2439,
+            "medianReads": 36.0,
+            "scored": 66382,
+            "scoreHist": [
+              60889,
+              1666,
+              896,
+              658,
+              561,
+              521,
+              475,
+              395,
+              303,
+              18
+            ],
+            "coverageHist": [
+              0,
+              36836,
+              17002,
+              7032,
+              2759,
+              1479,
+              1274,
+              0
+            ]
+          },
+          "40": {
+            "sites": 29546,
+            "transcripts": 1623,
+            "genes": 1224,
+            "medianReads": 69.0,
+            "scored": 29546,
+            "scoreHist": [
+              27190,
+              751,
+              366,
+              264,
+              232,
+              207,
+              197,
+              184,
+              144,
+              11
+            ],
+            "coverageHist": [
+              0,
+              0,
+              17002,
+              7032,
+              2759,
+              1479,
+              1274,
+              0
+            ]
+          },
+          "80": {
+            "sites": 12544,
+            "transcripts": 770,
+            "genes": 572,
+            "medianReads": 141.0,
+            "scored": 12544,
+            "scoreHist": [
+              11618,
+              311,
+              146,
+              107,
+              74,
+              82,
+              75,
+              68,
+              61,
+              2
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              7032,
+              2759,
+              1479,
+              1274,
+              0
+            ]
+          },
+          "160": {
+            "sites": 5512,
+            "transcripts": 343,
+            "genes": 259,
+            "medianReads": 319.0,
+            "scored": 5512,
+            "scoreHist": [
+              5117,
+              131,
+              61,
+              38,
+              38,
+              35,
+              33,
+              33,
+              25,
+              1
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              2759,
+              1479,
+              1274,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_A549_directRNA_replicate6_run1",
+      "name": "A549 \u00b7 rep 6 \u00b7 run 1",
+      "cellLine": "A549",
+      "replicate": "6",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 187021,
+      "transcripts": 7273,
+      "genes": 4998,
+      "medianReads": 39,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_A549_directRNA_replicate6_run1)",
+      "dataFile": "data/SGNex_A549_directRNA_replicate6_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,313,558 of 1,500,579 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 187021,
+            "transcripts": 7273,
+            "genes": 4998,
+            "medianReads": 39,
+            "scored": 187021,
+            "scoreHist": [
+              167159,
+              6058,
+              3338,
+              2287,
+              2058,
+              1861,
+              1738,
+              1446,
+              975,
+              101
+            ],
+            "coverageHist": [
+              0,
+              94438,
+              51741,
+              23567,
+              10172,
+              3732,
+              3371,
+              0
+            ]
+          },
+          "40": {
+            "sites": 92583,
+            "transcripts": 4081,
+            "genes": 3000,
+            "medianReads": 72,
+            "scored": 92583,
+            "scoreHist": [
+              82904,
+              3054,
+              1628,
+              1051,
+              940,
+              867,
+              839,
+              709,
+              520,
+              71
+            ],
+            "coverageHist": [
+              0,
+              0,
+              51741,
+              23567,
+              10172,
+              3732,
+              3371,
+              0
+            ]
+          },
+          "80": {
+            "sites": 40842,
+            "transcripts": 2053,
+            "genes": 1568,
+            "medianReads": 140.0,
+            "scored": 40842,
+            "scoreHist": [
+              36771,
+              1341,
+              673,
+              458,
+              373,
+              351,
+              341,
+              286,
+              212,
+              36
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              23567,
+              10172,
+              3732,
+              3371,
+              0
+            ]
+          },
+          "160": {
+            "sites": 17275,
+            "transcripts": 997,
+            "genes": 743,
+            "medianReads": 274,
+            "scored": 17275,
+            "scoreHist": [
+              15596,
+              576,
+              287,
+              179,
+              146,
+              146,
+              122,
+              110,
+              99,
+              14
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              10172,
+              3732,
+              3371,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate2_run1",
+      "name": "H9 \u00b7 rep 2 \u00b7 run 1",
+      "cellLine": "H9",
+      "replicate": "2",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 103263,
+      "transcripts": 4109,
+      "genes": 3131,
+      "medianReads": 35,
+      "minReads": 20,
+      "maxReads": 994,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate2_run1)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate2_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,139,538 of 1,246,688 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 103263,
+            "transcripts": 4109,
+            "genes": 3131,
+            "medianReads": 35,
+            "scored": 103263,
+            "scoreHist": [
+              93730,
+              2862,
+              1531,
+              1091,
+              980,
+              872,
+              871,
+              705,
+              558,
+              63
+            ],
+            "coverageHist": [
+              0,
+              58470,
+              25794,
+              11190,
+              4549,
+              1545,
+              1715,
+              0
+            ]
+          },
+          "40": {
+            "sites": 44793,
+            "transcripts": 2036,
+            "genes": 1590,
+            "medianReads": 70,
+            "scored": 44793,
+            "scoreHist": [
+              40936,
+              1232,
+              613,
+              440,
+              361,
+              335,
+              338,
+              274,
+              237,
+              27
+            ],
+            "coverageHist": [
+              0,
+              0,
+              25794,
+              11190,
+              4549,
+              1545,
+              1715,
+              0
+            ]
+          },
+          "80": {
+            "sites": 18999,
+            "transcripts": 989,
+            "genes": 770,
+            "medianReads": 140,
+            "scored": 18999,
+            "scoreHist": [
+              17458,
+              510,
+              259,
+              173,
+              139,
+              124,
+              131,
+              102,
+              91,
+              12
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              11190,
+              4549,
+              1545,
+              1715,
+              0
+            ]
+          },
+          "160": {
+            "sites": 7809,
+            "transcripts": 461,
+            "genes": 354,
+            "medianReads": 267,
+            "scored": 7809,
+            "scoreHist": [
+              7141,
+              233,
+              100,
+              61,
+              66,
+              67,
+              54,
+              41,
+              40,
+              6
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              4549,
+              1545,
+              1715,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate2_run2",
+      "name": "H9 \u00b7 rep 2 \u00b7 run 2",
+      "cellLine": "H9",
+      "replicate": "2",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 51382,
+      "transcripts": 2137,
+      "genes": 1698,
+      "medianReads": 34,
+      "minReads": 20,
+      "maxReads": 988,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate2_run2)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate2_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (968,147 of 1,023,068 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 51382,
+            "transcripts": 2137,
+            "genes": 1698,
+            "medianReads": 34.0,
+            "scored": 51382,
+            "scoreHist": [
+              47215,
+              1336,
+              709,
+              486,
+              416,
+              412,
+              342,
+              263,
+              185,
+              18
+            ],
+            "coverageHist": [
+              0,
+              30713,
+              12692,
+              4829,
+              1552,
+              1117,
+              479,
+              0
+            ]
+          },
+          "40": {
+            "sites": 20669,
+            "transcripts": 970,
+            "genes": 781,
+            "medianReads": 67,
+            "scored": 20669,
+            "scoreHist": [
+              19059,
+              562,
+              269,
+              161,
+              147,
+              155,
+              144,
+              90,
+              74,
+              8
+            ],
+            "coverageHist": [
+              0,
+              0,
+              12692,
+              4829,
+              1552,
+              1117,
+              479,
+              0
+            ]
+          },
+          "80": {
+            "sites": 7977,
+            "transcripts": 439,
+            "genes": 341,
+            "medianReads": 129,
+            "scored": 7977,
+            "scoreHist": [
+              7299,
+              238,
+              116,
+              62,
+              62,
+              58,
+              64,
+              44,
+              28,
+              6
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              4829,
+              1552,
+              1117,
+              479,
+              0
+            ]
+          },
+          "160": {
+            "sites": 3148,
+            "transcripts": 202,
+            "genes": 167,
+            "medianReads": 322.0,
+            "scored": 3148,
+            "scoreHist": [
+              2904,
+              87,
+              43,
+              20,
+              12,
+              24,
+              27,
+              19,
+              11,
+              1
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              1552,
+              1117,
+              479,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate3_run1",
+      "name": "H9 \u00b7 rep 3 \u00b7 run 1",
+      "cellLine": "H9",
+      "replicate": "3",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 96507,
+      "transcripts": 3962,
+      "genes": 3014,
+      "medianReads": 35,
+      "minReads": 20,
+      "maxReads": 989,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate3_run1)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate3_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,127,581 of 1,227,452 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 96507,
+            "transcripts": 3962,
+            "genes": 3014,
+            "medianReads": 35,
+            "scored": 96507,
+            "scoreHist": [
+              88335,
+              2457,
+              1377,
+              904,
+              842,
+              760,
+              738,
+              632,
+              418,
+              44
+            ],
+            "coverageHist": [
+              0,
+              54058,
+              24452,
+              10593,
+              4292,
+              1509,
+              1603,
+              0
+            ]
+          },
+          "40": {
+            "sites": 42449,
+            "transcripts": 1934,
+            "genes": 1504,
+            "medianReads": 69,
+            "scored": 42449,
+            "scoreHist": [
+              39076,
+              1077,
+              582,
+              348,
+              348,
+              287,
+              281,
+              233,
+              197,
+              20
+            ],
+            "coverageHist": [
+              0,
+              0,
+              24452,
+              10593,
+              4292,
+              1509,
+              1603,
+              0
+            ]
+          },
+          "80": {
+            "sites": 17997,
+            "transcripts": 947,
+            "genes": 735,
+            "medianReads": 138,
+            "scored": 17997,
+            "scoreHist": [
+              16647,
+              438,
+              232,
+              134,
+              135,
+              118,
+              105,
+              93,
+              87,
+              8
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              10593,
+              4292,
+              1509,
+              1603,
+              0
+            ]
+          },
+          "160": {
+            "sites": 7404,
+            "transcripts": 441,
+            "genes": 334,
+            "medianReads": 272.0,
+            "scored": 7404,
+            "scoreHist": [
+              6805,
+              213,
+              85,
+              55,
+              57,
+              56,
+              56,
+              38,
+              34,
+              5
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              4292,
+              1509,
+              1603,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate3_run2",
+      "name": "H9 \u00b7 rep 3 \u00b7 run 2",
+      "cellLine": "H9",
+      "replicate": "3",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 45528,
+      "transcripts": 1962,
+      "genes": 1563,
+      "medianReads": 34,
+      "minReads": 20,
+      "maxReads": 992,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate3_run2)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate3_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (926,224 of 975,043 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 45528,
+            "transcripts": 1962,
+            "genes": 1563,
+            "medianReads": 34.0,
+            "scored": 45528,
+            "scoreHist": [
+              41983,
+              1145,
+              599,
+              397,
+              349,
+              325,
+              302,
+              240,
+              172,
+              16
+            ],
+            "coverageHist": [
+              0,
+              26677,
+              11479,
+              4417,
+              1476,
+              1005,
+              474,
+              0
+            ]
+          },
+          "40": {
+            "sites": 18851,
+            "transcripts": 904,
+            "genes": 730,
+            "medianReads": 67,
+            "scored": 18851,
+            "scoreHist": [
+              17402,
+              498,
+              240,
+              167,
+              121,
+              114,
+              127,
+              98,
+              78,
+              6
+            ],
+            "coverageHist": [
+              0,
+              0,
+              11479,
+              4417,
+              1476,
+              1005,
+              474,
+              0
+            ]
+          },
+          "80": {
+            "sites": 7372,
+            "transcripts": 415,
+            "genes": 322,
+            "medianReads": 130.0,
+            "scored": 7372,
+            "scoreHist": [
+              6774,
+              224,
+              84,
+              63,
+              47,
+              53,
+              54,
+              36,
+              35,
+              2
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              4417,
+              1476,
+              1005,
+              474,
+              0
+            ]
+          },
+          "160": {
+            "sites": 2955,
+            "transcripts": 191,
+            "genes": 159,
+            "medianReads": 320,
+            "scored": 2955,
+            "scoreHist": [
+              2741,
+              87,
+              27,
+              21,
+              13,
+              15,
+              26,
+              12,
+              12,
+              1
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              1476,
+              1005,
+              474,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run1",
+      "name": "H9 \u00b7 rep 4 \u00b7 run 1",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 145730,
+      "transcripts": 5428,
+      "genes": 4082,
+      "medianReads": 37,
+      "minReads": 20,
+      "maxReads": 995,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate4_run1)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate4_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,273,361 of 1,423,053 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 145730,
+            "transcripts": 5428,
+            "genes": 4082,
+            "medianReads": 37.0,
+            "scored": 145730,
+            "scoreHist": [
+              131593,
+              4115,
+              2257,
+              1634,
+              1444,
+              1376,
+              1277,
+              1114,
+              832,
+              88
+            ],
+            "coverageHist": [
+              0,
+              79228,
+              37054,
+              17154,
+              7685,
+              2316,
+              2293,
+              0
+            ]
+          },
+          "40": {
+            "sites": 66502,
+            "transcripts": 2818,
+            "genes": 2177,
+            "medianReads": 72.0,
+            "scored": 66502,
+            "scoreHist": [
+              60316,
+              1857,
+              999,
+              689,
+              634,
+              560,
+              521,
+              481,
+              399,
+              46
+            ],
+            "coverageHist": [
+              0,
+              0,
+              37054,
+              17154,
+              7685,
+              2316,
+              2293,
+              0
+            ]
+          },
+          "80": {
+            "sites": 29448,
+            "transcripts": 1390,
+            "genes": 1090,
+            "medianReads": 138.0,
+            "scored": 29448,
+            "scoreHist": [
+              26999,
+              786,
+              402,
+              279,
+              226,
+              214,
+              199,
+              185,
+              144,
+              14
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              17154,
+              7685,
+              2316,
+              2293,
+              0
+            ]
+          },
+          "160": {
+            "sites": 12294,
+            "transcripts": 662,
+            "genes": 519,
+            "medianReads": 260.0,
+            "scored": 12294,
+            "scoreHist": [
+              11264,
+              338,
+              174,
+              112,
+              86,
+              102,
+              87,
+              67,
+              56,
+              8
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              7685,
+              2316,
+              2293,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run2",
+      "name": "H9 \u00b7 rep 4 \u00b7 run 2",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 34134,
+      "transcripts": 1489,
+      "genes": 1183,
+      "medianReads": 33,
+      "minReads": 20,
+      "maxReads": 989,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_H9_directRNA_replicate4_run2)",
+      "dataFile": "data/SGNex_H9_directRNA_replicate4_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (849,948 of 886,969 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 34134,
+            "transcripts": 1489,
+            "genes": 1183,
+            "medianReads": 33.0,
+            "scored": 34134,
+            "scoreHist": [
+              31843,
+              751,
+              414,
+              285,
+              213,
+              195,
+              192,
+              134,
+              101,
+              6
+            ],
+            "coverageHist": [
+              0,
+              20665,
+              8566,
+              2619,
+              1377,
+              626,
+              281,
+              0
+            ]
+          },
+          "40": {
+            "sites": 13469,
+            "transcripts": 669,
+            "genes": 534,
+            "medianReads": 64,
+            "scored": 13469,
+            "scoreHist": [
+              12518,
+              316,
+              161,
+              103,
+              94,
+              73,
+              90,
+              64,
+              45,
+              5
+            ],
+            "coverageHist": [
+              0,
+              0,
+              8566,
+              2619,
+              1377,
+              626,
+              281,
+              0
+            ]
+          },
+          "80": {
+            "sites": 4903,
+            "transcripts": 291,
+            "genes": 230,
+            "medianReads": 147,
+            "scored": 4903,
+            "scoreHist": [
+              4550,
+              104,
+              64,
+              35,
+              39,
+              29,
+              38,
+              25,
+              17,
+              2
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              2619,
+              1377,
+              626,
+              281,
+              0
+            ]
+          },
+          "160": {
+            "sites": 2284,
+            "transcripts": 145,
+            "genes": 129,
+            "medianReads": 276.0,
+            "scored": 2284,
+            "scoreHist": [
+              2152,
+              38,
+              28,
+              15,
+              5,
+              11,
+              17,
+              12,
+              6,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              1377,
+              626,
+              281,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate1_run1",
+      "name": "HEYA8 \u00b7 rep 1 \u00b7 run 1",
+      "cellLine": "HEYA8",
+      "replicate": "1",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 172190,
+      "transcripts": 5849,
+      "genes": 4297,
+      "medianReads": 38,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HEYA8_directRNA_replicate1_run1)",
+      "dataFile": "data/SGNex_HEYA8_directRNA_replicate1_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,165,598 of 1,340,129 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 172190,
+            "transcripts": 5849,
+            "genes": 4297,
+            "medianReads": 38.0,
+            "scored": 172190,
+            "scoreHist": [
+              156314,
+              4659,
+              2554,
+              1797,
+              1530,
+              1575,
+              1475,
+              1267,
+              889,
+              130
+            ],
+            "coverageHist": [
+              0,
+              89229,
+              46645,
+              20906,
+              8490,
+              3674,
+              3246,
+              0
+            ]
+          },
+          "40": {
+            "sites": 82961,
+            "transcripts": 3242,
+            "genes": 2493,
+            "medianReads": 70,
+            "scored": 82961,
+            "scoreHist": [
+              75534,
+              2282,
+              1230,
+              819,
+              673,
+              640,
+              658,
+              589,
+              448,
+              88
+            ],
+            "coverageHist": [
+              0,
+              0,
+              46645,
+              20906,
+              8490,
+              3674,
+              3246,
+              0
+            ]
+          },
+          "80": {
+            "sites": 36316,
+            "transcripts": 1592,
+            "genes": 1244,
+            "medianReads": 141.0,
+            "scored": 36316,
+            "scoreHist": [
+              33050,
+              1017,
+              532,
+              360,
+              274,
+              269,
+              296,
+              265,
+              211,
+              42
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              20906,
+              8490,
+              3674,
+              3246,
+              0
+            ]
+          },
+          "160": {
+            "sites": 15410,
+            "transcripts": 774,
+            "genes": 596,
+            "medianReads": 289.0,
+            "scored": 15410,
+            "scoreHist": [
+              14065,
+              431,
+              235,
+              151,
+              98,
+              110,
+              127,
+              106,
+              70,
+              17
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              8490,
+              3674,
+              3246,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate1_run2",
+      "name": "HEYA8 \u00b7 rep 1 \u00b7 run 2",
+      "cellLine": "HEYA8",
+      "replicate": "1",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 39523,
+      "transcripts": 1695,
+      "genes": 1337,
+      "medianReads": 35,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HEYA8_directRNA_replicate1_run2)",
+      "dataFile": "data/SGNex_HEYA8_directRNA_replicate1_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (793,030 of 834,303 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 39523,
+            "transcripts": 1695,
+            "genes": 1337,
+            "medianReads": 35,
+            "scored": 39523,
+            "scoreHist": [
+              36779,
+              923,
+              426,
+              292,
+              296,
+              258,
+              237,
+              183,
+              115,
+              14
+            ],
+            "coverageHist": [
+              0,
+              22523,
+              10006,
+              3560,
+              1785,
+              1256,
+              393,
+              0
+            ]
+          },
+          "40": {
+            "sites": 17000,
+            "transcripts": 797,
+            "genes": 623,
+            "medianReads": 68.0,
+            "scored": 17000,
+            "scoreHist": [
+              15781,
+              426,
+              185,
+              129,
+              128,
+              118,
+              96,
+              78,
+              51,
+              8
+            ],
+            "coverageHist": [
+              0,
+              0,
+              10006,
+              3560,
+              1785,
+              1256,
+              393,
+              0
+            ]
+          },
+          "80": {
+            "sites": 6994,
+            "transcripts": 378,
+            "genes": 283,
+            "medianReads": 156.5,
+            "scored": 6994,
+            "scoreHist": [
+              6479,
+              185,
+              80,
+              44,
+              49,
+              56,
+              40,
+              38,
+              20,
+              3
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              3560,
+              1785,
+              1256,
+              393,
+              0
+            ]
+          },
+          "160": {
+            "sites": 3434,
+            "transcripts": 205,
+            "genes": 167,
+            "medianReads": 310.0,
+            "scored": 3434,
+            "scoreHist": [
+              3178,
+              92,
+              36,
+              20,
+              24,
+              27,
+              24,
+              20,
+              13,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              1785,
+              1256,
+              393,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate2_run1",
+      "name": "HEYA8 \u00b7 rep 2 \u00b7 run 1",
+      "cellLine": "HEYA8",
+      "replicate": "2",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 157389,
+      "transcripts": 5485,
+      "genes": 4034,
+      "medianReads": 37,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HEYA8_directRNA_replicate2_run1)",
+      "dataFile": "data/SGNex_HEYA8_directRNA_replicate2_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,144,704 of 1,304,570 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 157389,
+            "transcripts": 5485,
+            "genes": 4034,
+            "medianReads": 37,
+            "scored": 157389,
+            "scoreHist": [
+              143757,
+              4226,
+              2163,
+              1559,
+              1373,
+              1240,
+              1216,
+              1038,
+              732,
+              85
+            ],
+            "coverageHist": [
+              0,
+              83887,
+              41170,
+              18698,
+              7514,
+              3142,
+              2978,
+              0
+            ]
+          },
+          "40": {
+            "sites": 73502,
+            "transcripts": 2960,
+            "genes": 2284,
+            "medianReads": 71.0,
+            "scored": 73502,
+            "scoreHist": [
+              67244,
+              2020,
+              1013,
+              720,
+              577,
+              525,
+              555,
+              460,
+              338,
+              50
+            ],
+            "coverageHist": [
+              0,
+              0,
+              41170,
+              18698,
+              7514,
+              3142,
+              2978,
+              0
+            ]
+          },
+          "80": {
+            "sites": 32332,
+            "transcripts": 1449,
+            "genes": 1125,
+            "medianReads": 140.0,
+            "scored": 32332,
+            "scoreHist": [
+              29514,
+              949,
+              446,
+              299,
+              243,
+              232,
+              248,
+              216,
+              162,
+              23
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              18698,
+              7514,
+              3142,
+              2978,
+              0
+            ]
+          },
+          "160": {
+            "sites": 13634,
+            "transcripts": 710,
+            "genes": 542,
+            "medianReads": 294.0,
+            "scored": 13634,
+            "scoreHist": [
+              12512,
+              403,
+              183,
+              109,
+              99,
+              88,
+              99,
+              69,
+              55,
+              17
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              7514,
+              3142,
+              2978,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate2_run2",
+      "name": "HEYA8 \u00b7 rep 2 \u00b7 run 2",
+      "cellLine": "HEYA8",
+      "replicate": "2",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 117973,
+      "transcripts": 4050,
+      "genes": 3141,
+      "medianReads": 35,
+      "minReads": 20,
+      "maxReads": 995,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HEYA8_directRNA_replicate2_run2)",
+      "dataFile": "data/SGNex_HEYA8_directRNA_replicate2_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,077,000 of 1,197,113 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 117973,
+            "transcripts": 4050,
+            "genes": 3141,
+            "medianReads": 35,
+            "scored": 117973,
+            "scoreHist": [
+              108251,
+              3046,
+              1563,
+              1140,
+              945,
+              898,
+              893,
+              696,
+              479,
+              62
+            ],
+            "coverageHist": [
+              0,
+              67084,
+              28343,
+              13579,
+              4980,
+              2027,
+              1960,
+              0
+            ]
+          },
+          "40": {
+            "sites": 50889,
+            "transcripts": 1985,
+            "genes": 1577,
+            "medianReads": 72,
+            "scored": 50889,
+            "scoreHist": [
+              46747,
+              1358,
+              661,
+              465,
+              375,
+              362,
+              370,
+              295,
+              224,
+              32
+            ],
+            "coverageHist": [
+              0,
+              0,
+              28343,
+              13579,
+              4980,
+              2027,
+              1960,
+              0
+            ]
+          },
+          "80": {
+            "sites": 22546,
+            "transcripts": 950,
+            "genes": 756,
+            "medianReads": 134.0,
+            "scored": 22546,
+            "scoreHist": [
+              20661,
+              630,
+              306,
+              213,
+              154,
+              163,
+              174,
+              142,
+              94,
+              9
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              13579,
+              4980,
+              2027,
+              1960,
+              0
+            ]
+          },
+          "160": {
+            "sites": 8967,
+            "transcripts": 450,
+            "genes": 346,
+            "medianReads": 287,
+            "scored": 8967,
+            "scoreHist": [
+              8262,
+              245,
+              108,
+              77,
+              56,
+              58,
+              65,
+              54,
+              36,
+              6
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              4980,
+              2027,
+              1960,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate3_run1",
+      "name": "HEYA8 \u00b7 rep 3 \u00b7 run 1",
+      "cellLine": "HEYA8",
+      "replicate": "3",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 200897,
+      "transcripts": 6646,
+      "genes": 4779,
+      "medianReads": 40,
+      "minReads": 20,
+      "maxReads": 992,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HEYA8_directRNA_replicate3_run1)",
+      "dataFile": "data/SGNex_HEYA8_directRNA_replicate3_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,204,925 of 1,408,128 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 200897,
+            "transcripts": 6646,
+            "genes": 4779,
+            "medianReads": 40,
+            "scored": 200897,
+            "scoreHist": [
+              182717,
+              5618,
+              2975,
+              2211,
+              1865,
+              1684,
+              1566,
+              1319,
+              835,
+              107
+            ],
+            "coverageHist": [
+              0,
+              100112,
+              56234,
+              24351,
+              11754,
+              4601,
+              3845,
+              0
+            ]
+          },
+          "40": {
+            "sites": 100785,
+            "transcripts": 3837,
+            "genes": 2903,
+            "medianReads": 72,
+            "scored": 100785,
+            "scoreHist": [
+              91937,
+              2848,
+              1431,
+              1041,
+              844,
+              777,
+              737,
+              639,
+              458,
+              73
+            ],
+            "coverageHist": [
+              0,
+              0,
+              56234,
+              24351,
+              11754,
+              4601,
+              3845,
+              0
+            ]
+          },
+          "80": {
+            "sites": 44551,
+            "transcripts": 1947,
+            "genes": 1499,
+            "medianReads": 147,
+            "scored": 44551,
+            "scoreHist": [
+              40747,
+              1279,
+              630,
+              413,
+              345,
+              317,
+              336,
+              251,
+              209,
+              24
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              24351,
+              11754,
+              4601,
+              3845,
+              0
+            ]
+          },
+          "160": {
+            "sites": 20200,
+            "transcripts": 1003,
+            "genes": 769,
+            "medianReads": 271.0,
+            "scored": 20200,
+            "scoreHist": [
+              18492,
+              617,
+              274,
+              168,
+              139,
+              139,
+              159,
+              110,
+              90,
+              12
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              11754,
+              4601,
+              3845,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate3_run1",
+      "name": "Hct116 \u00b7 rep 3 \u00b7 run 1",
+      "cellLine": "Hct116",
+      "replicate": "3",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 155658,
+      "transcripts": 6010,
+      "genes": 4347,
+      "medianReads": 38,
+      "minReads": 20,
+      "maxReads": 991,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_Hct116_directRNA_replicate3_run1)",
+      "dataFile": "data/SGNex_Hct116_directRNA_replicate3_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,235,069 of 1,391,230 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 155658,
+            "transcripts": 6010,
+            "genes": 4347,
+            "medianReads": 38.0,
+            "scored": 155658,
+            "scoreHist": [
+              141359,
+              3829,
+              2168,
+              1570,
+              1408,
+              1322,
+              1338,
+              1404,
+              1063,
+              197
+            ],
+            "coverageHist": [
+              0,
+              80771,
+              42198,
+              19064,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          },
+          "40": {
+            "sites": 74887,
+            "transcripts": 3294,
+            "genes": 2489,
+            "medianReads": 71,
+            "scored": 74887,
+            "scoreHist": [
+              68255,
+              1788,
+              974,
+              696,
+              616,
+              572,
+              605,
+              698,
+              559,
+              124
+            ],
+            "coverageHist": [
+              0,
+              0,
+              42198,
+              19064,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          },
+          "80": {
+            "sites": 32689,
+            "transcripts": 1667,
+            "genes": 1280,
+            "medianReads": 138,
+            "scored": 32689,
+            "scoreHist": [
+              29952,
+              723,
+              413,
+              289,
+              258,
+              235,
+              225,
+              295,
+              248,
+              51
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              19064,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          },
+          "160": {
+            "sites": 13625,
+            "transcripts": 775,
+            "genes": 586,
+            "medianReads": 273,
+            "scored": 13625,
+            "scoreHist": [
+              12567,
+              282,
+              151,
+              108,
+              109,
+              98,
+              95,
+              105,
+              95,
+              15
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              7848,
+              3165,
+              2612,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate3_run4",
+      "name": "Hct116 \u00b7 rep 3 \u00b7 run 4",
+      "cellLine": "Hct116",
+      "replicate": "3",
+      "run": "4",
+      "group": "sgnex",
+      "rows": 135870,
+      "transcripts": 6202,
+      "genes": 4221,
+      "medianReads": 38,
+      "minReads": 20,
+      "maxReads": 993,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_Hct116_directRNA_replicate3_run4)",
+      "dataFile": "data/SGNex_Hct116_directRNA_replicate3_run4.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,166,644 of 1,302,514 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 135870,
+            "transcripts": 6202,
+            "genes": 4221,
+            "medianReads": 38.0,
+            "scored": 135870,
+            "scoreHist": [
+              121195,
+              4424,
+              2357,
+              1706,
+              1445,
+              1388,
+              1327,
+              1124,
+              787,
+              117
+            ],
+            "coverageHist": [
+              0,
+              70631,
+              37015,
+              16081,
+              6764,
+              2915,
+              2464,
+              0
+            ]
+          },
+          "40": {
+            "sites": 65239,
+            "transcripts": 3350,
+            "genes": 2394,
+            "medianReads": 71,
+            "scored": 65239,
+            "scoreHist": [
+              58164,
+              2175,
+              1145,
+              813,
+              643,
+              637,
+              619,
+              533,
+              439,
+              71
+            ],
+            "coverageHist": [
+              0,
+              0,
+              37015,
+              16081,
+              6764,
+              2915,
+              2464,
+              0
+            ]
+          },
+          "80": {
+            "sites": 28224,
+            "transcripts": 1687,
+            "genes": 1239,
+            "medianReads": 141.0,
+            "scored": 28224,
+            "scoreHist": [
+              25266,
+              971,
+              487,
+              335,
+              247,
+              238,
+              237,
+              229,
+              184,
+              30
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              16081,
+              6764,
+              2915,
+              2464,
+              0
+            ]
+          },
+          "160": {
+            "sites": 12143,
+            "transcripts": 790,
+            "genes": 574,
+            "medianReads": 284,
+            "scored": 12143,
+            "scoreHist": [
+              10943,
+              433,
+              207,
+              129,
+              95,
+              85,
+              94,
+              80,
+              67,
+              10
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              6764,
+              2915,
+              2464,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate4_run3",
+      "name": "Hct116 \u00b7 rep 4 \u00b7 run 3",
+      "cellLine": "Hct116",
+      "replicate": "4",
+      "run": "3",
+      "group": "sgnex",
+      "rows": 238748,
+      "transcripts": 8908,
+      "genes": 5919,
+      "medianReads": 40,
+      "minReads": 20,
+      "maxReads": 997,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_Hct116_directRNA_replicate4_run3)",
+      "dataFile": "data/SGNex_Hct116_directRNA_replicate4_run3.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,360,999 of 1,599,747 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 238748,
+            "transcripts": 8908,
+            "genes": 5919,
+            "medianReads": 40.0,
+            "scored": 238748,
+            "scoreHist": [
+              208436,
+              8834,
+              4644,
+              3679,
+              2991,
+              2944,
+              2723,
+              2514,
+              1752,
+              231
+            ],
+            "coverageHist": [
+              0,
+              117208,
+              63453,
+              33157,
+              14575,
+              5862,
+              4493,
+              0
+            ]
+          },
+          "40": {
+            "sites": 121540,
+            "transcripts": 5113,
+            "genes": 3661,
+            "medianReads": 77.0,
+            "scored": 121540,
+            "scoreHist": [
+              106427,
+              4517,
+              2336,
+              1779,
+              1387,
+              1402,
+              1299,
+              1256,
+              980,
+              157
+            ],
+            "coverageHist": [
+              0,
+              0,
+              63453,
+              33157,
+              14575,
+              5862,
+              4493,
+              0
+            ]
+          },
+          "80": {
+            "sites": 58087,
+            "transcripts": 2783,
+            "genes": 2082,
+            "medianReads": 141,
+            "scored": 58087,
+            "scoreHist": [
+              51009,
+              2229,
+              1091,
+              838,
+              623,
+              580,
+              606,
+              554,
+              475,
+              82
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              33157,
+              14575,
+              5862,
+              4493,
+              0
+            ]
+          },
+          "160": {
+            "sites": 24930,
+            "transcripts": 1391,
+            "genes": 1048,
+            "medianReads": 278.0,
+            "scored": 24930,
+            "scoreHist": [
+              22012,
+              927,
+              471,
+              349,
+              243,
+              222,
+              257,
+              203,
+              212,
+              34
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              14575,
+              5862,
+              4493,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HepG2_directRNA_replicate5_run2",
+      "name": "HepG2 \u00b7 rep 5 \u00b7 run 2",
+      "cellLine": "HepG2",
+      "replicate": "5",
+      "run": "2",
+      "group": "sgnex",
+      "rows": 259535,
+      "transcripts": 9213,
+      "genes": 6197,
+      "medianReads": 41,
+      "minReads": 20,
+      "maxReads": 995,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HepG2_directRNA_replicate5_run2)",
+      "dataFile": "data/SGNex_HepG2_directRNA_replicate5_run2.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,321,352 of 1,580,887 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 259535,
+            "transcripts": 9213,
+            "genes": 6197,
+            "medianReads": 41,
+            "scored": 259535,
+            "scoreHist": [
+              236339,
+              6843,
+              3843,
+              2875,
+              2342,
+              2236,
+              2072,
+              1794,
+              1076,
+              115
+            ],
+            "coverageHist": [
+              0,
+              123408,
+              72397,
+              36596,
+              15366,
+              6636,
+              5132,
+              0
+            ]
+          },
+          "40": {
+            "sites": 136127,
+            "transcripts": 5353,
+            "genes": 3941,
+            "medianReads": 75,
+            "scored": 136127,
+            "scoreHist": [
+              124241,
+              3468,
+              1958,
+              1455,
+              1185,
+              1116,
+              1048,
+              933,
+              647,
+              76
+            ],
+            "coverageHist": [
+              0,
+              0,
+              72397,
+              36596,
+              15366,
+              6636,
+              5132,
+              0
+            ]
+          },
+          "80": {
+            "sites": 63730,
+            "transcripts": 2837,
+            "genes": 2168,
+            "medianReads": 141.0,
+            "scored": 63730,
+            "scoreHist": [
+              58334,
+              1586,
+              894,
+              641,
+              554,
+              487,
+              457,
+              424,
+              313,
+              40
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              36596,
+              15366,
+              6636,
+              5132,
+              0
+            ]
+          },
+          "160": {
+            "sites": 27134,
+            "transcripts": 1372,
+            "genes": 1056,
+            "medianReads": 280.0,
+            "scored": 27134,
+            "scoreHist": [
+              24818,
+              713,
+              381,
+              260,
+              223,
+              207,
+              192,
+              173,
+              153,
+              14
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              15366,
+              6636,
+              5132,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_HepG2_directRNA_replicate6_run1",
+      "name": "HepG2 \u00b7 rep 6 \u00b7 run 1",
+      "cellLine": "HepG2",
+      "replicate": "6",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 247181,
+      "transcripts": 8252,
+      "genes": 5761,
+      "medianReads": 40,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_HepG2_directRNA_replicate6_run1)",
+      "dataFile": "data/SGNex_HepG2_directRNA_replicate6_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,317,709 of 1,564,890 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 247181,
+            "transcripts": 8252,
+            "genes": 5761,
+            "medianReads": 40,
+            "scored": 247181,
+            "scoreHist": [
+              220471,
+              8184,
+              4430,
+              3258,
+              2815,
+              2555,
+              2257,
+              1929,
+              1155,
+              127
+            ],
+            "coverageHist": [
+              0,
+              122316,
+              68247,
+              33263,
+              13370,
+              5600,
+              4385,
+              0
+            ]
+          },
+          "40": {
+            "sites": 124865,
+            "transcripts": 4664,
+            "genes": 3518,
+            "medianReads": 73,
+            "scored": 124865,
+            "scoreHist": [
+              111203,
+              4216,
+              2252,
+              1575,
+              1367,
+              1283,
+              1155,
+              1043,
+              685,
+              86
+            ],
+            "coverageHist": [
+              0,
+              0,
+              68247,
+              33263,
+              13370,
+              5600,
+              4385,
+              0
+            ]
+          },
+          "80": {
+            "sites": 56618,
+            "transcripts": 2380,
+            "genes": 1856,
+            "medianReads": 138.0,
+            "scored": 56618,
+            "scoreHist": [
+              50550,
+              2011,
+              961,
+              659,
+              593,
+              548,
+              505,
+              442,
+              305,
+              44
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              33263,
+              13370,
+              5600,
+              4385,
+              0
+            ]
+          },
+          "160": {
+            "sites": 23355,
+            "transcripts": 1119,
+            "genes": 872,
+            "medianReads": 281,
+            "scored": 23355,
+            "scoreHist": [
+              20699,
+              908,
+              406,
+              284,
+              242,
+              245,
+              222,
+              178,
+              146,
+              25
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              13370,
+              5600,
+              4385,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate4_run1",
+      "name": "K562 \u00b7 rep 4 \u00b7 run 1",
+      "cellLine": "K562",
+      "replicate": "4",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 86510,
+      "transcripts": 4875,
+      "genes": 3289,
+      "medianReads": 37,
+      "minReads": 20,
+      "maxReads": 993,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_K562_directRNA_replicate4_run1)",
+      "dataFile": "data/SGNex_K562_directRNA_replicate4_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,017,209 of 1,104,444 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 86510,
+            "transcripts": 4875,
+            "genes": 3289,
+            "medianReads": 37.0,
+            "scored": 86510,
+            "scoreHist": [
+              79073,
+              2207,
+              1154,
+              839,
+              732,
+              722,
+              657,
+              596,
+              477,
+              53
+            ],
+            "coverageHist": [
+              0,
+              46778,
+              22469,
+              9833,
+              3824,
+              1814,
+              1792,
+              0
+            ]
+          },
+          "40": {
+            "sites": 39732,
+            "transcripts": 2470,
+            "genes": 1748,
+            "medianReads": 71.0,
+            "scored": 39732,
+            "scoreHist": [
+              36349,
+              1037,
+              505,
+              347,
+              338,
+              321,
+              288,
+              271,
+              251,
+              25
+            ],
+            "coverageHist": [
+              0,
+              0,
+              22469,
+              9833,
+              3824,
+              1814,
+              1792,
+              0
+            ]
+          },
+          "80": {
+            "sites": 17263,
+            "transcripts": 1189,
+            "genes": 857,
+            "medianReads": 139,
+            "scored": 17263,
+            "scoreHist": [
+              15910,
+              449,
+              207,
+              137,
+              126,
+              113,
+              115,
+              104,
+              89,
+              13
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              9833,
+              3824,
+              1814,
+              1792,
+              0
+            ]
+          },
+          "160": {
+            "sites": 7430,
+            "transcripts": 559,
+            "genes": 384,
+            "medianReads": 310.0,
+            "scored": 7430,
+            "scoreHist": [
+              6842,
+              202,
+              94,
+              51,
+              50,
+              51,
+              52,
+              38,
+              43,
+              7
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              3824,
+              1814,
+              1792,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate5_run1",
+      "name": "K562 \u00b7 rep 5 \u00b7 run 1",
+      "cellLine": "K562",
+      "replicate": "5",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 79077,
+      "transcripts": 4511,
+      "genes": 3060,
+      "medianReads": 37,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_K562_directRNA_replicate5_run1)",
+      "dataFile": "data/SGNex_K562_directRNA_replicate5_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (972,861 of 1,052,601 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 79077,
+            "transcripts": 4511,
+            "genes": 3060,
+            "medianReads": 37,
+            "scored": 79077,
+            "scoreHist": [
+              72250,
+              2033,
+              1051,
+              805,
+              655,
+              621,
+              639,
+              595,
+              394,
+              34
+            ],
+            "coverageHist": [
+              0,
+              42844,
+              20470,
+              8882,
+              3408,
+              1714,
+              1759,
+              0
+            ]
+          },
+          "40": {
+            "sites": 36233,
+            "transcripts": 2290,
+            "genes": 1611,
+            "medianReads": 71,
+            "scored": 36233,
+            "scoreHist": [
+              33147,
+              983,
+              459,
+              350,
+              279,
+              275,
+              263,
+              277,
+              182,
+              18
+            ],
+            "coverageHist": [
+              0,
+              0,
+              20470,
+              8882,
+              3408,
+              1714,
+              1759,
+              0
+            ]
+          },
+          "80": {
+            "sites": 15763,
+            "transcripts": 1114,
+            "genes": 798,
+            "medianReads": 141,
+            "scored": 15763,
+            "scoreHist": [
+              14484,
+              410,
+              196,
+              141,
+              114,
+              103,
+              109,
+              120,
+              76,
+              10
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              8882,
+              3408,
+              1714,
+              1759,
+              0
+            ]
+          },
+          "160": {
+            "sites": 6881,
+            "transcripts": 508,
+            "genes": 343,
+            "medianReads": 322,
+            "scored": 6881,
+            "scoreHist": [
+              6326,
+              183,
+              81,
+              61,
+              48,
+              46,
+              39,
+              53,
+              38,
+              6
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              3408,
+              1714,
+              1759,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate6_run1",
+      "name": "K562 \u00b7 rep 6 \u00b7 run 1",
+      "cellLine": "K562",
+      "replicate": "6",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 100379,
+      "transcripts": 6050,
+      "genes": 3717,
+      "medianReads": 38,
+      "minReads": 20,
+      "maxReads": 996,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_K562_directRNA_replicate6_run1)",
+      "dataFile": "data/SGNex_K562_directRNA_replicate6_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (898,721 of 999,100 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 100379,
+            "transcripts": 6050,
+            "genes": 3717,
+            "medianReads": 38,
+            "scored": 100379,
+            "scoreHist": [
+              89960,
+              3301,
+              1603,
+              1260,
+              1043,
+              967,
+              900,
+              792,
+              500,
+              53
+            ],
+            "coverageHist": [
+              0,
+              52162,
+              26135,
+              12283,
+              5214,
+              2282,
+              2303,
+              0
+            ]
+          },
+          "40": {
+            "sites": 48217,
+            "transcripts": 3182,
+            "genes": 2082,
+            "medianReads": 74,
+            "scored": 48217,
+            "scoreHist": [
+              43215,
+              1647,
+              798,
+              564,
+              466,
+              434,
+              390,
+              398,
+              275,
+              30
+            ],
+            "coverageHist": [
+              0,
+              0,
+              26135,
+              12283,
+              5214,
+              2282,
+              2303,
+              0
+            ]
+          },
+          "80": {
+            "sites": 22082,
+            "transcripts": 1590,
+            "genes": 1071,
+            "medianReads": 145.0,
+            "scored": 22082,
+            "scoreHist": [
+              19794,
+              810,
+              365,
+              228,
+              208,
+              169,
+              179,
+              183,
+              129,
+              17
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              12283,
+              5214,
+              2282,
+              2303,
+              0
+            ]
+          },
+          "160": {
+            "sites": 9799,
+            "transcripts": 801,
+            "genes": 547,
+            "medianReads": 299,
+            "scored": 9799,
+            "scoreHist": [
+              8822,
+              352,
+              166,
+              99,
+              83,
+              69,
+              78,
+              67,
+              56,
+              7
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              5214,
+              2282,
+              2303,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_MCF7_directRNA_replicate3_run1",
+      "name": "MCF7 \u00b7 rep 3 \u00b7 run 1",
+      "cellLine": "MCF7",
+      "replicate": "3",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 109315,
+      "transcripts": 7513,
+      "genes": 4749,
+      "medianReads": 37,
+      "minReads": 20,
+      "maxReads": 990,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_MCF7_directRNA_replicate3_run1)",
+      "dataFile": "data/SGNex_MCF7_directRNA_replicate3_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,143,302 of 1,252,617 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 109315,
+            "transcripts": 7513,
+            "genes": 4749,
+            "medianReads": 37,
+            "scored": 109315,
+            "scoreHist": [
+              99073,
+              3340,
+              1706,
+              1255,
+              1033,
+              949,
+              961,
+              692,
+              296,
+              10
+            ],
+            "coverageHist": [
+              0,
+              58620,
+              28585,
+              12376,
+              5444,
+              2138,
+              2152,
+              0
+            ]
+          },
+          "40": {
+            "sites": 50695,
+            "transcripts": 3791,
+            "genes": 2528,
+            "medianReads": 71,
+            "scored": 50695,
+            "scoreHist": [
+              46210,
+              1508,
+              733,
+              512,
+              443,
+              387,
+              402,
+              336,
+              157,
+              7
+            ],
+            "coverageHist": [
+              0,
+              0,
+              28585,
+              12376,
+              5444,
+              2138,
+              2152,
+              0
+            ]
+          },
+          "80": {
+            "sites": 22110,
+            "transcripts": 1802,
+            "genes": 1217,
+            "medianReads": 142.0,
+            "scored": 22110,
+            "scoreHist": [
+              20312,
+              634,
+              298,
+              206,
+              172,
+              135,
+              152,
+              127,
+              69,
+              5
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              12376,
+              5444,
+              2138,
+              2152,
+              0
+            ]
+          },
+          "160": {
+            "sites": 9734,
+            "transcripts": 837,
+            "genes": 544,
+            "medianReads": 289.0,
+            "scored": 9734,
+            "scoreHist": [
+              9013,
+              257,
+              118,
+              82,
+              71,
+              51,
+              60,
+              47,
+              35,
+              0
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              5444,
+              2138,
+              2152,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "SGNex_MCF7_directRNA_replicate4_run1",
+      "name": "MCF7 \u00b7 rep 4 \u00b7 run 1",
+      "cellLine": "MCF7",
+      "replicate": "4",
+      "run": "1",
+      "group": "sgnex",
+      "rows": 143048,
+      "transcripts": 6307,
+      "genes": 4409,
+      "medianReads": 37,
+      "minReads": 20,
+      "maxReads": 992,
+      "source": "SG-NEx m6Anet-processed data.json (SGNex_MCF7_directRNA_replicate4_run1)",
+      "dataFile": "data/SGNex_MCF7_directRNA_replicate4_run1.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "description": "SG-NEx direct RNA-seq run with Dolly v2 site-level scores. Sites with fewer than 20 reads (1,302,485 of 1,446,022 predicted) and SIRV/ERCC spike-ins are excluded.",
+      "annotationNote": "Gene IDs from Ensembl 91 transcript annotation; gene names are not available. Model trained on Hct116 only, so scores in other cell lines may be affected by cell-line shift.",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 143048,
+            "transcripts": 6307,
+            "genes": 4409,
+            "medianReads": 37.0,
+            "scored": 143048,
+            "scoreHist": [
+              129517,
+              3803,
+              2154,
+              1656,
+              1336,
+              1302,
+              1199,
+              1134,
+              841,
+              106
+            ],
+            "coverageHist": [
+              0,
+              77385,
+              38010,
+              16212,
+              6640,
+              2360,
+              2441,
+              0
+            ]
+          },
+          "40": {
+            "sites": 65663,
+            "transcripts": 3275,
+            "genes": 2422,
+            "medianReads": 69,
+            "scored": 65663,
+            "scoreHist": [
+              59472,
+              1747,
+              968,
+              731,
+              577,
+              567,
+              553,
+              515,
+              469,
+              64
+            ],
+            "coverageHist": [
+              0,
+              0,
+              38010,
+              16212,
+              6640,
+              2360,
+              2441,
+              0
+            ]
+          },
+          "80": {
+            "sites": 27653,
+            "transcripts": 1568,
+            "genes": 1171,
+            "medianReads": 137,
+            "scored": 27653,
+            "scoreHist": [
+              25162,
+              802,
+              376,
+              275,
+              196,
+              224,
+              204,
+              181,
+              201,
+              32
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              16212,
+              6640,
+              2360,
+              2441,
+              0
+            ]
+          },
+          "160": {
+            "sites": 11441,
+            "transcripts": 732,
+            "genes": 532,
+            "medianReads": 274,
+            "scored": 11441,
+            "scoreHist": [
+              10440,
+              346,
+              129,
+              118,
+              66,
+              88,
+              86,
+              69,
+              87,
+              12
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              6640,
+              2360,
+              2441,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "cellline_A549",
+      "name": "A549 \u00b7 mean of 2 runs",
+      "cellLine": "A549",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 2,
+      "rows": 8097,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 8097,
+            "transcripts": 2765,
+            "genes": 2222,
+            "medianReads": 36,
+            "scored": 8097,
+            "scoreHist": [
+              36,
+              129,
+              353,
+              611,
+              1084,
+              1836,
+              1671,
+              1370,
+              934,
+              73
+            ],
+            "coverageHist": [
+              0,
+              4578,
+              2571,
+              606,
+              191,
+              107,
+              44,
+              0
+            ]
+          },
+          "40": {
+            "sites": 3519,
+            "transcripts": 1348,
+            "genes": 1124,
+            "medianReads": 56,
+            "scored": 3519,
+            "scoreHist": [
+              4,
+              38,
+              139,
+              265,
+              500,
+              767,
+              724,
+              597,
+              446,
+              39
+            ],
+            "coverageHist": [
+              0,
+              0,
+              2571,
+              606,
+              191,
+              107,
+              44,
+              0
+            ]
+          },
+          "80": {
+            "sites": 948,
+            "transcripts": 385,
+            "genes": 317,
+            "medianReads": 129.0,
+            "scored": 948,
+            "scoreHist": [
+              0,
+              9,
+              22,
+              61,
+              143,
+              203,
+              193,
+              165,
+              137,
+              15
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              606,
+              191,
+              107,
+              44,
+              0
+            ]
+          },
+          "160": {
+            "sites": 342,
+            "transcripts": 135,
+            "genes": 100,
+            "medianReads": 285.5,
+            "scored": 342,
+            "scoreHist": [
+              0,
+              5,
+              10,
+              23,
+              46,
+              85,
+              65,
+              57,
+              48,
+              3
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              191,
+              107,
+              44,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 2 A549 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    },
+    {
+      "id": "cellline_H9",
+      "name": "H9 \u00b7 mean of 6 runs",
+      "cellLine": "H9",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 6,
+      "rows": 5932,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 5932,
+            "transcripts": 2127,
+            "genes": 1796,
+            "medianReads": 29.0,
+            "scored": 5932,
+            "scoreHist": [
+              12,
+              80,
+              188,
+              444,
+              786,
+              1391,
+              1263,
+              1030,
+              689,
+              49
+            ],
+            "coverageHist": [
+              0,
+              4552,
+              975,
+              234,
+              99,
+              54,
+              18,
+              0
+            ]
+          },
+          "40": {
+            "sites": 1380,
+            "transcripts": 580,
+            "genes": 495,
+            "medianReads": 54.0,
+            "scored": 1380,
+            "scoreHist": [
+              1,
+              7,
+              29,
+              92,
+              211,
+              327,
+              298,
+              225,
+              180,
+              10
+            ],
+            "coverageHist": [
+              0,
+              0,
+              975,
+              234,
+              99,
+              54,
+              18,
+              0
+            ]
+          },
+          "80": {
+            "sites": 405,
+            "transcripts": 167,
+            "genes": 140,
+            "medianReads": 136,
+            "scored": 405,
+            "scoreHist": [
+              0,
+              3,
+              7,
+              21,
+              54,
+              90,
+              96,
+              71,
+              57,
+              6
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              234,
+              99,
+              54,
+              18,
+              0
+            ]
+          },
+          "160": {
+            "sites": 171,
+            "transcripts": 76,
+            "genes": 59,
+            "medianReads": 260,
+            "scored": 171,
+            "scoreHist": [
+              0,
+              2,
+              2,
+              5,
+              25,
+              42,
+              42,
+              25,
+              24,
+              4
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              99,
+              54,
+              18,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 6 H9 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    },
+    {
+      "id": "cellline_HEYA8",
+      "name": "HEYA8 \u00b7 mean of 5 runs",
+      "cellLine": "HEYA8",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 5,
+      "rows": 8181,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 8181,
+            "transcripts": 2782,
+            "genes": 2288,
+            "medianReads": 30,
+            "scored": 8181,
+            "scoreHist": [
+              30,
+              110,
+              327,
+              645,
+              1090,
+              1923,
+              1722,
+              1407,
+              853,
+              74
+            ],
+            "coverageHist": [
+              0,
+              5472,
+              1708,
+              664,
+              161,
+              89,
+              87,
+              0
+            ]
+          },
+          "40": {
+            "sites": 2709,
+            "transcripts": 1032,
+            "genes": 872,
+            "medianReads": 64,
+            "scored": 2709,
+            "scoreHist": [
+              1,
+              26,
+              72,
+              208,
+              392,
+              611,
+              567,
+              471,
+              321,
+              40
+            ],
+            "coverageHist": [
+              0,
+              0,
+              1708,
+              664,
+              161,
+              89,
+              87,
+              0
+            ]
+          },
+          "80": {
+            "sites": 1001,
+            "transcripts": 389,
+            "genes": 324,
+            "medianReads": 123,
+            "scored": 1001,
+            "scoreHist": [
+              0,
+              8,
+              30,
+              64,
+              132,
+              228,
+              231,
+              175,
+              117,
+              16
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              664,
+              161,
+              89,
+              87,
+              0
+            ]
+          },
+          "160": {
+            "sites": 337,
+            "transcripts": 147,
+            "genes": 119,
+            "medianReads": 340,
+            "scored": 337,
+            "scoreHist": [
+              0,
+              3,
+              8,
+              20,
+              37,
+              85,
+              85,
+              55,
+              39,
+              5
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              161,
+              89,
+              87,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 5 HEYA8 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    },
+    {
+      "id": "cellline_Hct116",
+      "name": "Hct116 \u00b7 mean of 3 runs",
+      "cellLine": "Hct116",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 3,
+      "rows": 10890,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 10890,
+            "transcripts": 3594,
+            "genes": 2807,
+            "medianReads": 32.0,
+            "scored": 10890,
+            "scoreHist": [
+              6,
+              48,
+              134,
+              381,
+              922,
+              2769,
+              2649,
+              2247,
+              1575,
+              159
+            ],
+            "coverageHist": [
+              0,
+              7037,
+              2418,
+              845,
+              392,
+              101,
+              97,
+              0
+            ]
+          },
+          "40": {
+            "sites": 3853,
+            "transcripts": 1440,
+            "genes": 1191,
+            "medianReads": 64,
+            "scored": 3853,
+            "scoreHist": [
+              0,
+              9,
+              31,
+              105,
+              354,
+              911,
+              917,
+              781,
+              657,
+              88
+            ],
+            "coverageHist": [
+              0,
+              0,
+              2418,
+              845,
+              392,
+              101,
+              97,
+              0
+            ]
+          },
+          "80": {
+            "sites": 1435,
+            "transcripts": 563,
+            "genes": 472,
+            "medianReads": 140,
+            "scored": 1435,
+            "scoreHist": [
+              0,
+              1,
+              6,
+              30,
+              109,
+              320,
+              336,
+              316,
+              281,
+              36
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              845,
+              392,
+              101,
+              97,
+              0
+            ]
+          },
+          "160": {
+            "sites": 590,
+            "transcripts": 243,
+            "genes": 186,
+            "medianReads": 234.0,
+            "scored": 590,
+            "scoreHist": [
+              0,
+              0,
+              2,
+              9,
+              43,
+              120,
+              149,
+              125,
+              128,
+              14
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              392,
+              101,
+              97,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 3 Hct116 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    },
+    {
+      "id": "cellline_HepG2",
+      "name": "HepG2 \u00b7 mean of 2 runs",
+      "cellLine": "HepG2",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 2,
+      "rows": 11270,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 11270,
+            "transcripts": 3747,
+            "genes": 2952,
+            "medianReads": 37.0,
+            "scored": 11270,
+            "scoreHist": [
+              64,
+              230,
+              480,
+              813,
+              1351,
+              2677,
+              2468,
+              1949,
+              1134,
+              104
+            ],
+            "coverageHist": [
+              0,
+              5939,
+              3020,
+              1316,
+              576,
+              221,
+              198,
+              0
+            ]
+          },
+          "40": {
+            "sites": 5331,
+            "transcripts": 1821,
+            "genes": 1531,
+            "medianReads": 70,
+            "scored": 5331,
+            "scoreHist": [
+              13,
+              80,
+              214,
+              378,
+              716,
+              1173,
+              1127,
+              960,
+              601,
+              69
+            ],
+            "coverageHist": [
+              0,
+              0,
+              3020,
+              1316,
+              576,
+              221,
+              198,
+              0
+            ]
+          },
+          "80": {
+            "sites": 2311,
+            "transcripts": 850,
+            "genes": 715,
+            "medianReads": 143,
+            "scored": 2311,
+            "scoreHist": [
+              2,
+              25,
+              78,
+              157,
+              324,
+              489,
+              497,
+              414,
+              287,
+              38
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              1316,
+              576,
+              221,
+              198,
+              0
+            ]
+          },
+          "160": {
+            "sites": 995,
+            "transcripts": 356,
+            "genes": 294,
+            "medianReads": 270,
+            "scored": 995,
+            "scoreHist": [
+              0,
+              8,
+              28,
+              64,
+              119,
+              229,
+              209,
+              169,
+              151,
+              18
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              576,
+              221,
+              198,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 2 HepG2 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    },
+    {
+      "id": "cellline_K562",
+      "name": "K562 \u00b7 mean of 3 runs",
+      "cellLine": "K562",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 3,
+      "rows": 4773,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 4773,
+            "transcripts": 1969,
+            "genes": 1473,
+            "medianReads": 30,
+            "scored": 4773,
+            "scoreHist": [
+              20,
+              61,
+              166,
+              373,
+              587,
+              1088,
+              998,
+              897,
+              550,
+              33
+            ],
+            "coverageHist": [
+              0,
+              3159,
+              977,
+              368,
+              155,
+              58,
+              56,
+              0
+            ]
+          },
+          "40": {
+            "sites": 1614,
+            "transcripts": 691,
+            "genes": 536,
+            "medianReads": 66.0,
+            "scored": 1614,
+            "scoreHist": [
+              2,
+              7,
+              48,
+              107,
+              214,
+              343,
+              333,
+              325,
+              219,
+              16
+            ],
+            "coverageHist": [
+              0,
+              0,
+              977,
+              368,
+              155,
+              58,
+              56,
+              0
+            ]
+          },
+          "80": {
+            "sites": 637,
+            "transcripts": 289,
+            "genes": 219,
+            "medianReads": 136,
+            "scored": 637,
+            "scoreHist": [
+              1,
+              0,
+              12,
+              42,
+              79,
+              149,
+              124,
+              124,
+              94,
+              12
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              368,
+              155,
+              58,
+              56,
+              0
+            ]
+          },
+          "160": {
+            "sites": 269,
+            "transcripts": 113,
+            "genes": 86,
+            "medianReads": 288,
+            "scored": 269,
+            "scoreHist": [
+              0,
+              0,
+              3,
+              14,
+              34,
+              53,
+              61,
+              48,
+              48,
+              8
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              155,
+              58,
+              56,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 3 K562 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    },
+    {
+      "id": "cellline_MCF7",
+      "name": "MCF7 \u00b7 mean of 2 runs",
+      "cellLine": "MCF7",
+      "replicate": null,
+      "run": null,
+      "group": "cellline",
+      "runs": 2,
+      "rows": 9300,
+      "dataFile": "data/cell_lines.json",
+      "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
+      "stats": {
+        "thresholds": [
+          20,
+          40,
+          80,
+          160
+        ],
+        "byMinReads": {
+          "20": {
+            "sites": 9300,
+            "transcripts": 3668,
+            "genes": 2010,
+            "medianReads": 36.0,
+            "scored": 9300,
+            "scoreHist": [
+              64,
+              182,
+              321,
+              530,
+              713,
+              2251,
+              2160,
+              1826,
+              1137,
+              116
+            ],
+            "coverageHist": [
+              0,
+              5102,
+              2623,
+              957,
+              371,
+              135,
+              112,
+              0
+            ]
+          },
+          "40": {
+            "sites": 4198,
+            "transcripts": 1673,
+            "genes": 977,
+            "medianReads": 65.0,
+            "scored": 4198,
+            "scoreHist": [
+              16,
+              52,
+              115,
+              228,
+              330,
+              954,
+              955,
+              851,
+              626,
+              71
+            ],
+            "coverageHist": [
+              0,
+              0,
+              2623,
+              957,
+              371,
+              135,
+              112,
+              0
+            ]
+          },
+          "80": {
+            "sites": 1575,
+            "transcripts": 666,
+            "genes": 386,
+            "medianReads": 134,
+            "scored": 1575,
+            "scoreHist": [
+              3,
+              15,
+              39,
+              73,
+              115,
+              359,
+              356,
+              308,
+              270,
+              37
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              957,
+              371,
+              135,
+              112,
+              0
+            ]
+          },
+          "160": {
+            "sites": 618,
+            "transcripts": 260,
+            "genes": 139,
+            "medianReads": 265.0,
+            "scored": 618,
+            "scoreHist": [
+              1,
+              4,
+              12,
+              28,
+              38,
+              139,
+              146,
+              116,
+              122,
+              12
+            ],
+            "coverageHist": [
+              0,
+              0,
+              0,
+              0,
+              371,
+              135,
+              112,
+              0
+            ]
+          }
+        }
+      },
+      "description": "Mean Dolly v2 score and mean reads across the 2 MCF7 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+    }
+  ],
+  "catalog": [
+    {
+      "id": "SGNex_A549_directRNA_replicate5_run1",
+      "cellLine": "A549",
+      "replicate": "5",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_A549_directRNA_replicate6_run1",
+      "cellLine": "A549",
+      "replicate": "6",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate2_run1",
+      "cellLine": "H9",
+      "replicate": "2",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate2_run2",
+      "cellLine": "H9",
+      "replicate": "2",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate3_run1",
+      "cellLine": "H9",
+      "replicate": "3",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate3_run2",
+      "cellLine": "H9",
+      "replicate": "3",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run1",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_H9_directRNA_replicate4_run2",
+      "cellLine": "H9",
+      "replicate": "4",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate1_run1",
+      "cellLine": "HEYA8",
+      "replicate": "1",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate1_run2",
+      "cellLine": "HEYA8",
+      "replicate": "1",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate2_run1",
+      "cellLine": "HEYA8",
+      "replicate": "2",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate2_run2",
+      "cellLine": "HEYA8",
+      "replicate": "2",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HEYA8_directRNA_replicate3_run1",
+      "cellLine": "HEYA8",
+      "replicate": "3",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate3_run1",
+      "cellLine": "Hct116",
+      "replicate": "3",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate3_run4",
+      "cellLine": "Hct116",
+      "replicate": "3",
+      "run": "4",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_Hct116_directRNA_replicate4_run3",
+      "cellLine": "Hct116",
+      "replicate": "4",
+      "run": "3",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HepG2_directRNA_replicate5_run2",
+      "cellLine": "HepG2",
+      "replicate": "5",
+      "run": "2",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_HepG2_directRNA_replicate6_run1",
+      "cellLine": "HepG2",
+      "replicate": "6",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate4_run1",
+      "cellLine": "K562",
+      "replicate": "4",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate5_run1",
+      "cellLine": "K562",
+      "replicate": "5",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_K562_directRNA_replicate6_run1",
+      "cellLine": "K562",
+      "replicate": "6",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_MCF7_directRNA_replicate3_run1",
+      "cellLine": "MCF7",
+      "replicate": "3",
+      "run": "1",
+      "loaded": true
+    },
+    {
+      "id": "SGNex_MCF7_directRNA_replicate4_run1",
+      "cellLine": "MCF7",
+      "replicate": "4",
+      "run": "1",
+      "loaded": true
+    }
+  ],
+  "catalogAsOf": "2026-10-12",
+  "catalogSource": "AWS folder listing supplied by the user",
+  "dataMode": "coverage_with_predictions",
+  "notes": "Development datasets are not SG-NEx runs. 23 SG-NEx run(s) carry Dolly v2 predictions.",
+  "cellLineMinScore": 0.5
+}
