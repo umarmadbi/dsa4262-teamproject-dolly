@@ -6,7 +6,7 @@ const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;',
 const fmt = n => Number(n).toLocaleString('en-US');
 const state = { samples: [], catalog: [], rows: [], page: 'overview', tablePage: 0,
   sort: 'n_reads', descending: true, filtered: [], comparison: null, cutoff: .5,
-  selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0 } };
+  selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0, genes: 0 } };
 const loads = new Map();
 let toastTimer, searchTimer;
 
@@ -174,9 +174,10 @@ function renderOverview() {
   if (!samples.length) {
     $('overview-metrics').innerHTML = metric('Site observations', '0', 'No samples selected')
       + metric('Median read coverage', '—', 'Select at least one sample')
-      + metric('Mapped gene IDs', '—', 'Select at least one sample')
+      + geneMetric()
       + metric('Observations with predictions', '0', 'No samples selected');
     $('filter-caption').textContent = '0 observations · 0 samples';
+    updateUniqueGenes([], threshold);
     const empty = '<div class="empty-chart">Choose samples from the checkbox list above.</div>';
     $('sample-bars').innerHTML = $('coverage-histogram').innerHTML = empty;
     $('score-distribution').hidden = true;
@@ -190,8 +191,9 @@ function renderOverview() {
   const s = combineStats(samples.map(a => a.stats), threshold), above = aboveCutoff(s.scoreHist, state.cutoff), one = samples.length === 1;
   $('overview-metrics').innerHTML = metric('Site observations', fmt(s.sites), one ? `${fmt(s.transcripts)} transcripts` : `Across ${samples.length} samples; shared sites count once per sample`)
     + metric('Median read coverage', s.medianReads === null ? '—' : fmt(s.medianReads), one ? 'Reads at a candidate site' : 'Median of per-sample medians')
-    + metric('Mapped gene IDs', one ? fmt(s.genes) : '—', one ? 'Gene names can be imported' : 'Select one sample to count genes')
+    + geneMetric()
     + metric('Observations with predictions', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
+  updateUniqueGenes(samples, threshold);
   $('filter-caption').textContent = `${fmt(s.sites)} observations · ${samples.length} ${one ? 'sample' : 'samples'}`;
   $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites, cellLine: a.cellLine, group: a.group })));
   $('coverage-histogram').innerHTML = histogram(s.coverageHist, ['<20','20–39','40–79','80–159','160–319','320–639','640–1279','1280+']);
@@ -240,20 +242,259 @@ function renderSampleGroups(samples, threshold) {
   }).join('');
 }
 
+
+/* Compact source files are read sequentially; retain only two, plus small derived indexes. */
+const compactFiles = new Map(), compactRequests = new Map();
+const geneCoverage = new Map(), transcriptRunRows = new Map();
+async function compactSource(s) {
+  if (compactFiles.has(s.dataFile)) {
+    const data = compactFiles.get(s.dataFile);
+    compactFiles.delete(s.dataFile); compactFiles.set(s.dataFile, data); return data;
+  }
+  if (!compactRequests.has(s.dataFile)) {
+    compactRequests.set(s.dataFile, fetch(s.dataFile).then(r => {
+      if (!r.ok) throw new Error('Could not read ' + s.name);
+      return r.json();
+    }).then(data => {
+      compactFiles.set(s.dataFile, data);
+      while (compactFiles.size > 2) compactFiles.delete(compactFiles.keys().next().value);
+      return data;
+    }).finally(() => compactRequests.delete(s.dataFile)));
+  }
+  return compactRequests.get(s.dataFile);
+}
+async function geneCoverageFor(s) {
+  if (geneCoverage.has(s.id)) return geneCoverage.get(s.id);
+  const genes = new Map();
+  const add = (gene, reads) => { if (gene) genes.set(gene, Math.max(reads, genes.get(gene) || 0)); };
+  if (s.data) {
+    for (const r of s.data) add(state.annotations.get(r.transcript_id)?.[0] || r.gene_id, r.n_reads);
+  } else {
+    const data = await compactSource(s);
+    for (const [tx, , reads] of data.sites) {
+      const gene = state.annotations.get(data.transcripts[tx])?.[0] || data.genes[data.transcriptGenes[tx]];
+      add(gene, reads);
+    }
+  }
+  geneCoverage.set(s.id, genes); return genes;
+}
+function geneMetric() {
+  return '<div class="metric"><div class="metric-label">Unique genes represented</div><div class="metric-value" id="unique-gene-value">…</div><div class="metric-foot" id="unique-gene-note">Counting distinct mapped gene IDs…</div></div>';
+}
+async function updateUniqueGenes(samples, threshold) {
+  const token = ++state.tokens.genes, genes = new Set();
+  if (!samples.length) {
+    $('unique-gene-value').textContent = '0'; $('unique-gene-note').textContent = 'No samples selected'; return;
+  }
+  try {
+    for (let i = 0; i < samples.length; i++) {
+      if (token !== state.tokens.genes) return;
+      const coverage = await geneCoverageFor(samples[i]);
+      if (token !== state.tokens.genes) return;
+      for (const [gene, maxReads] of coverage) if (maxReads >= threshold) genes.add(gene);
+      $('unique-gene-note').textContent = `Counting genes · ${i + 1}/${samples.length} samples checked`;
+    }
+    $('unique-gene-value').textContent = fmt(genes.size);
+    $('unique-gene-note').textContent = 'Distinct mapped IDs at this coverage; shared genes counted once';
+  } catch (error) {
+    if (token !== state.tokens.genes) return;
+    $('unique-gene-value').textContent = 'Unavailable';
+    $('unique-gene-note').textContent = 'A sample could not load. Retry by changing a filter or refreshing.';
+  }
+}
+
+const transcriptView = { tx: '', position: null, ids: [], rows: [], runPoints: [], runToken: 0 };
+function scoreColour(score) {
+  return score === null ? '#e9eeea' : `hsl(160 48% ${96 - score * 65}%)`;
+}
+function clearTranscriptView(message) {
+  transcriptView.runToken++;
+  transcriptView.rows = []; transcriptView.ids = []; transcriptView.runPoints = [];
+  $('transcript-visuals').hidden = true;
+  $('transcript-empty').hidden = false; $('transcript-empty').textContent = message;
+}
+function prepareTranscriptView(ids, allRows) {
+  const f = explorerFilter();
+  // Score filters apply only to the table: retain low scores for visual comparisons.
+  const candidates = filterRows(allRows, { minReads: f.minReads, search: f.search });
+  const txs = [...new Set(candidates.map(r => r.transcript_id))].sort();
+  const query = f.search.trim();
+  const exact = txs.find(tx => tx.toLowerCase() === query.toLowerCase());
+  if (exact) transcriptView.tx = exact;
+  else if (!txs.includes(transcriptView.tx)) transcriptView.tx = query && txs.length === 1 ? txs[0] : '';
+  const shown = txs.slice(0, 200);
+  if (transcriptView.tx && !shown.includes(transcriptView.tx)) shown.unshift(transcriptView.tx);
+  $('transcript-choice').innerHTML = '<option value="">Choose a transcript…</option>' +
+    shown.map(tx => `<option value="${esc(tx)}">${esc(tx)}</option>`).join('');
+  $('transcript-choice').value = transcriptView.tx;
+  $('transcript-choice-note').textContent = txs.length > 200
+    ? `${fmt(txs.length)} matches; showing the first 200. Refine your search to find another transcript.`
+    : `${fmt(txs.length)} matching transcripts. Versioned and versionless IDs are kept separate.`;
+  if (!transcriptView.tx) {
+    clearTranscriptView(txs.length ? 'Search for a transcript above, or choose one here to compare its sites.' : 'No transcripts match this search and coverage filter.');
+    return;
+  }
+  transcriptView.ids = ids;
+  transcriptView.rows = allRows.filter(r => r.transcript_id === transcriptView.tx && r.n_reads >= f.minReads);
+  const positions = [...new Set(transcriptView.rows.map(r => r.transcript_position))].sort((a,b) => a-b);
+  if (!positions.length) { clearTranscriptView('No sites at this coverage for the selected transcript.'); return; }
+  if (!positions.includes(transcriptView.position)) transcriptView.position = positions[0];
+  $('transcript-empty').hidden = true; $('transcript-visuals').hidden = false;
+  const summaries = ids.every(id => sample(id)?.group === 'cellline');
+  $('transcript-meta').textContent = `${transcriptView.tx} · ${positions.length} measured positions · ${summaries ? 'cell-line mean scores' : 'sample scores'}`;
+  $('transcript-scope-note').textContent = summaries
+    ? 'Summary subset: sites qualify only if the mean score is ≥0.5 in at least one cell line. Reads are rounded mean coverage. Visuals use the coverage filter; minimum-score and scored-only filters affect the table only.'
+    : 'Visuals use the selected sample and coverage filter; minimum-score and scored-only filters affect the table only. Scores are predictions, not modification fractions.';
+  $('transcript-position').innerHTML = positions.map(p => `<option value="${p}">${fmt(p)}</option>`).join('');
+  $('transcript-position').value = transcriptView.position;
+  const cells = new Map(transcriptView.rows.map(r => [r.sample_id + ':' + r.transcript_position, r]));
+  $('transcript-heatmap').innerHTML = `<table class="heatmap-table"><caption class="sr-only">Prediction scores by sample and transcript position</caption><thead><tr><th>Cell line / sample</th>${positions.map(p=>`<th scope="col">${fmt(p)}</th>`).join('')}</tr></thead><tbody>${ids.map(id => {
+    const s = sample(id), name = s.group === 'cellline' ? s.cellLine : s.name;
+    return `<tr><th scope="row" style="color:${cellColour(s.cellLine)}">${esc(name)}</th>${positions.map(p => {
+      const row = cells.get(id + ':' + p), score = row?.score ?? null;
+      const label = row ? (score === null ? 'No prediction' : 'Score ' + score.toFixed(3)) : 'No summary or measurement under this coverage filter';
+      return `<td><button type="button" class="heatmap-cell${p === transcriptView.position ? ' selected' : ''}" data-tx-position="${p}" aria-pressed="${p === transcriptView.position}" aria-label="${esc(name)}, position ${p}: ${label}${row ? ', coverage ' + row.n_reads : ''}" style="background:${scoreColour(score)};color:${score !== null && score >= .65 ? '#fff' : '#143b34'}">${score === null ? '—' : score.toFixed(2)}</button></td>`;
+    }).join('')}</tr>`;
+  }).join('')}</tbody></table>`;
+  const w = Math.max(620, Math.min(1600, positions.length * 55)), lo = positions[0], hi = positions.at(-1);
+  const x = p => hi === lo ? w/2 : 36 + (p-lo)/(hi-lo)*(w-72);
+  $('transcript-track').innerHTML = `<svg viewBox="0 0 ${w} 86" width="${w}" height="86" role="group" aria-label="Candidate positions across the observed span of this transcript"><line x1="36" y1="28" x2="${w-36}" y2="28" stroke="#c8d9cc" stroke-width="3"/>${positions.map(p=>`<circle role="button" tabindex="0" data-tx-position="${p}" aria-label="Inspect position ${p}" aria-pressed="${p === transcriptView.position}" cx="${x(p)}" cy="28" r="${p === transcriptView.position ? 7 : 5}" fill="${p === transcriptView.position ? '#143b34' : '#65ab91'}"/>`).join('')}<text x="36" y="65">${fmt(lo)}</text>${hi !== lo ? `<text x="${w-36}" y="65" text-anchor="end">${fmt(hi)}</text>` : ''}</svg>`;
+  const selectedRows = transcriptView.rows.filter(r => r.transcript_position === transcriptView.position);
+  const sequences = [...new Set(selectedRows.map(r => r.sequence).filter(Boolean))];
+  $('transcript-site-context').textContent = `Position ${fmt(transcriptView.position)} · Sequence: ${sequences.join(' / ') || 'not supplied'} · ${selectedRows.length} summary/sample measurements`;
+  renderTranscriptRuns();
+}
+async function rowsForTranscript(s, tx) {
+  if (s.data) return s.data.filter(r => r.transcript_id === tx);
+  const key = s.id + ':' + tx;
+  if (transcriptRunRows.has(key)) return transcriptRunRows.get(key);
+  const data = await compactSource(s), index = data.transcripts.indexOf(tx);
+  const rows = index < 0 ? [] : data.sites.filter(r=>r[0]===index).map(([,pos,reads,seq,label,score]) => ({
+    transcript_id:tx, transcript_position:pos, n_reads:reads, sequence:data.sequences[seq], score:score??null, sample_id:s.id
+  }));
+  transcriptRunRows.set(key, rows);
+  // Small per-transcript extracts, not whole decoded sample datasets.
+  while (transcriptRunRows.size > 250) transcriptRunRows.delete(transcriptRunRows.keys().next().value);
+  return rows;
+}
+async function renderTranscriptRuns() {
+  const token = ++transcriptView.runToken, tx = transcriptView.tx, pos = transcriptView.position;
+  const minReads = explorerFilter().minReads;
+  const choices = transcriptView.ids.map(sample);
+  const runs = state.samples.filter(s => s.group !== 'cellline' && choices.some(c =>
+    c.group === 'cellline' ? s.group === 'sgnex' && s.cellLine === c.cellLine : s.id === c.id));
+  $('transcript-run-heading').textContent = `Individual runs at position ${fmt(pos)}`;
+  $('transcript-run-chart').innerHTML = '';
+  transcriptView.runPoints = [];
+  $('transcript-run-status').textContent = 'Loading individual-run measurements…';
+  const result = [];
+  for (const s of runs) {
+    if (token !== transcriptView.runToken) return;
+    try {
+      const rows = await rowsForTranscript(s, tx);
+      if (token !== transcriptView.runToken) return;
+      const row = rows.find(r => r.transcript_position === pos && r.n_reads >= minReads);
+      result.push({ s, row: row ?? null, error: false });
+    } catch {
+      if (token !== transcriptView.runToken) return;
+      result.push({ s, row:null, error:true });
+    }
+    $('transcript-run-status').textContent = `Checking runs · ${result.length}/${runs.length}`;
+  }
+  if (token !== transcriptView.runToken) return;
+  transcriptView.runPoints = result;
+  renderTranscriptRunPlot(result);
+}
+function renderTranscriptRunPlot(result) {
+  const groups = [...new Set(result.map(q => q.s.cellLine))].sort();
+  const scored = result.filter(q => q.row?.score !== null && q.row?.score !== undefined);
+  const errors = result.filter(q=>q.error).length;
+  $('transcript-run-status').textContent = `${scored.length}/${result.length} runs have a score at this exact transcript ID and position with ≥${explorerFilter().minReads} reads.${errors ? ' ' + errors + ' run files could not load; these are not missing measurements.' : ''} Dots show runs; vertical marks show unweighted means. A missing score does not mean unmodified.`;
+  const w=760,l=100,r=130,t=22,rowH=44,h=t+groups.length*rowH+44,x=v=>l+v*(w-l-r);
+  let svg = [0,.25,.5,.75,1].map(v=>`<line x1="${x(v)}" y1="${t-8}" x2="${x(v)}" y2="${h-36}" stroke="#e5ece5"/><text x="${x(v)}" y="${h-14}" text-anchor="middle">${v.toFixed(2)}</text>`).join('');
+  groups.forEach((cell,i)=>{
+    const mine=result.filter(q=>q.s.cellLine===cell), measured=mine.filter(q=>q.row?.score!==null && q.row?.score!==undefined);
+    const y=t+i*rowH+20, colour=cellColour(cell);
+    svg += `<text x="${l-14}" y="${y+4}" text-anchor="end" style="fill:${colour};font-weight:600">${esc(cell)}</text>`;
+    measured.forEach((q,j)=>{
+      const ri=result.indexOf(q), offset=(j-(measured.length-1)/2)*3;
+      svg += `<circle class="site-run-dot" role="img" tabindex="0" data-site-run="${ri}" aria-label="${esc(q.s.name)}: score ${q.row.score.toFixed(3)}, ${q.row.n_reads} reads" cx="${x(q.row.score)}" cy="${y+offset}" r="5" fill="${colour}" stroke="white" stroke-width="1"/>`;
+    });
+    if (measured.length) {
+      const mean=measured.reduce((n,q)=>n+q.row.score,0)/measured.length;
+      svg += `<line x1="${x(mean)}" x2="${x(mean)}" y1="${y-12}" y2="${y+12}" stroke="${colour}" stroke-width="2"/><text x="${w-r+12}" y="${y+4}" style="fill:${colour}">${mean.toFixed(3)} · ${measured.length}/${mine.length} runs</text>`;
+    } else svg += `<text x="${w-r+12}" y="${y+4}">No scored runs</text>`;
+  });
+  $('transcript-run-chart').innerHTML = groups.length
+    ? `<svg class="site-run-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Prediction scores from zero to one for individual runs">${svg}</svg>`
+    : '<div class="empty-chart">No individual runs are available for this selection.</div>';
+}
+function selectTranscriptPosition(position) {
+  transcriptView.position = Number(position);
+  // Reuses opened summary rows; the small run extracts are cached.
+  const ids = transcriptView.ids.slice();
+  prepareTranscriptView(ids, ids.flatMap(sampleRows));
+}
+function showSiteRunTooltip(dot) {
+  const q = transcriptView.runPoints[Number(dot.dataset.siteRun)];
+  if (!q?.row) return;
+  clearTimeout(dotTooltipTimer);
+  if (activeDot) activeDot.removeAttribute('aria-describedby');
+  activeDot=dot;
+  const tip=$('run-tooltip');
+  tip.innerHTML=`<div class="run-tooltip-kicker">${esc(q.s.cellLine)} · Individual run</div><strong class="run-tooltip-name">${esc(q.s.name)}</strong><div class="run-tooltip-value">${q.row.score.toFixed(3)}<span>prediction score</span></div><p>${fmt(q.row.n_reads)} reads · position ${fmt(transcriptView.position)}</p><div class="run-tooltip-foot">${esc(transcriptView.tx)}<br>Not the fraction of modified reads</div>`;
+  tip.style.setProperty('--tooltip-colour',cellColour(q.s.cellLine,60));tip.hidden=false;
+  dot.setAttribute('aria-describedby','run-tooltip');
+  const rect=dot.getBoundingClientRect(),width=tip.offsetWidth,height=tip.offsetHeight;
+  tip.style.left=`${Math.max(12,Math.min(rect.left+rect.width/2-width/2,window.innerWidth-width-12))}px`;
+  tip.style.top=`${Math.max(12,Math.min(rect.top>height+20?rect.top-height-12:rect.bottom+12,window.innerHeight-height-12))}px`;
+}
+function bindTranscriptView() {
+  $('transcript-choice').addEventListener('change', e => {
+    transcriptView.tx=e.target.value;transcriptView.position=null;
+    // An explicit choice narrows the table to the exact ID via the existing search.
+    $('site-search').value=e.target.value;renderExplorer();
+  });
+  $('transcript-position').addEventListener('change',e=>selectTranscriptPosition(e.target.value));
+  for (const id of ['transcript-heatmap','transcript-track']) {
+    $(id).addEventListener('click',e=>{const hit=e.target.closest('[data-tx-position]');if(hit)selectTranscriptPosition(hit.dataset.txPosition);});
+  }
+  $('transcript-track').addEventListener('keydown',e=>{
+    const hit=e.target.closest('[data-tx-position]');
+    if(hit && (e.key==='Enter'||e.key===' ')){e.preventDefault();selectTranscriptPosition(hit.dataset.txPosition);}
+  });
+  const chart=$('transcript-run-chart');
+  chart.addEventListener('pointerover',e=>{const dot=e.target.closest('.site-run-dot');if(dot)showSiteRunTooltip(dot);});
+  chart.addEventListener('pointerout',e=>{if(e.target.closest('.site-run-dot'))scheduleHideDotTooltip();});
+  chart.addEventListener('focusin',e=>{const dot=e.target.closest('.site-run-dot');if(dot)showSiteRunTooltip(dot);});
+  chart.addEventListener('focusout',scheduleHideDotTooltip);
+  chart.addEventListener('click',e=>{const dot=e.target.closest('.site-run-dot');if(dot)showSiteRunTooltip(dot);});
+}
+
 function explorerFilter() {
   return { sample: $('site-sample').value, minReads: Math.max(1,Number($('site-reads').value)||1), search: $('site-search').value,
     scoredOnly: $('scored-only').checked, minScore: $('site-score').disabled || $('site-score').value === '' ? null : Number($('site-score').value) };
 }
 async function renderExplorer(resetPage = true) {
   if (resetPage) state.tablePage = 0;
+  transcriptView.runToken++; hideDotTooltip();
   const choice = $('site-sample').value, ids = choice === 'cellline_all' ? cellLineIds() : [choice], token = ++state.tokens.explorer;
   const scored = ids.some(id => sample(id)?.scoredTotal);
   $('site-score').disabled = $('scored-only').disabled = !scored;
   $('score-filter-note').textContent = scored ? 'Scores are model predictions, not experimental calls.' : 'Import predictions to enable score filters.';
   if (ids.some(id => !sample(id)?.data)) { $('site-result-count').textContent = 'Loading sites…'; $('site-table-body').innerHTML = '<tr><td class="empty-cell" colspan="8">Loading sites for this sample…</td></tr>'; }
-  try { await ensureLoaded(ids); } catch (error) { if (token === state.tokens.explorer) $('site-result-count').textContent = error.message; return; }
+  if (ids.some(id => !sample(id)?.data)) clearTranscriptView('Loading transcript measurements…');
+  try { await ensureLoaded(ids); } catch (error) {
+    if (token === state.tokens.explorer) { $('site-result-count').textContent = error.message; clearTranscriptView('Could not load this sample. Try another selection or refresh.'); }
+    return;
+  }
   if (token !== state.tokens.explorer) return;
-  const rows = filterRows(ids.flatMap(sampleRows), { ...explorerFilter(), sample: 'all' }), key = state.sort, direction = state.descending ? -1 : 1;
+  const allRows = ids.flatMap(sampleRows);
+  prepareTranscriptView(ids, allRows);
+  const summary = ids.every(id => sample(id)?.group === 'cellline');
+  document.querySelector('[data-sort="n_reads"]').textContent = summary ? 'Mean reads ↕' : 'Reads ↕';
+  document.querySelector('[data-sort="score"]').textContent = summary ? 'Mean score ↕' : 'Score ↕';
+  const rows = filterRows(allRows, { ...explorerFilter(), sample: 'all' }), key = state.sort, direction = state.descending ? -1 : 1;
   rows.sort((a,b) => {
     if (a[key] === null && b[key] !== null) return 1;
     if (b[key] === null && a[key] !== null) return -1;
@@ -400,6 +641,7 @@ async function doImport(event) {
       for(const s of loaded)s.data=annotate(s.data);
       notify(`Updated annotations for ${fmt(matched)} opened site observations; samples opened later are annotated as they load.`);
     }
+    geneCoverage.clear(); transcriptRunRows.clear();
     refresh();$('import-dialog').close();go(type==='coverage'?'data':'explorer');
   }catch(error){$('import-error').textContent=error.message;$('import-error').hidden=false;}
   finally{button.disabled=false;button.textContent='Import data';}
@@ -484,6 +726,7 @@ function bind() {
   $('show-helper').addEventListener('click',()=>$('helper-dialog').showModal());
   $('import-type').addEventListener('change',importTypeChanged);$('import-id').addEventListener('change',guessMetadata);$('import-form').addEventListener('submit',doImport);
   bindOverviewControls();
+  bindTranscriptView();
   $('reset-filters').addEventListener('click',()=>{state.selectedSamples=null;$('global-reads').value='20';renderOverview();});
   $('site-search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>renderExplorer(),180);});
   for(const id of ['site-sample','site-reads','site-score','scored-only'])$(id).addEventListener('change',()=>renderExplorer());
