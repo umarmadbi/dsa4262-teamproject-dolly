@@ -45,13 +45,12 @@
           <div id="transcript-empty" class="transcript-empty">Search for a transcript above, or choose one here to compare its sites.</div>
           <div id="transcript-visuals" hidden>
             <p class="transcript-meta" id="transcript-meta"></p>
-            <div class="transcript-chart-heading"><h3>Scores across sites</h3><div class="heatmap-key"><span>0</span><i></i><span>1</span><span class="heatmap-missing">— Missing / no score</span></div></div>
+            <div class="transcript-chart-heading"><h3>Prediction scores by transcript position</h3><div class="heatmap-key"><span>0</span><i></i><span>1</span><span class="heatmap-missing">— Missing / no score</span></div></div>
             <div id="transcript-heatmap" class="heatmap-scroll"></div>
-            <p class="fine-print">Click a column’s cell to inspect that position below. Grey means absent, excluded by coverage, or without a prediction—not a score of zero.</p>
-            <h3 class="transcript-track-heading">Where are these sites?</h3><div id="transcript-track" class="transcript-track"></div>
-            <p class="fine-print">Positions are spaced by transcript coordinate across the observed span. This is not the full transcript length or an exon diagram. Closely spaced points can be selected using the position menu.</p>
-            <div class="transcript-site-toolbar"><label for="transcript-position">Inspect position<select id="transcript-position"></select></label><p id="transcript-site-context"></p></div>
-            <div class="transcript-run-panel"><h3 id="transcript-run-heading">Individual runs</h3><p class="fine-print" id="transcript-run-status" aria-live="polite"></p><div id="transcript-run-chart"></div></div>
+            <p class="fine-print">Each column is a nucleotide position within this transcript; its 7-mer sequence is shown beneath the position. Grey means missing or without a prediction, not zero. Use the dropdown below to inspect a position.</p>
+            <div class="transcript-site-toolbar"><label for="transcript-position">Inspect transcript position<select id="transcript-position"></select></label><p id="transcript-site-context"></p></div>
+            <div class="transcript-run-panel"><h3>Compare cell-line mean scores</h3><p class="fine-print">Unweighted means of the individual runs passing the selected coverage filter at this exact site. All bars use a fixed 0–1 scale; missing scores are excluded, not treated as zero.</p><div id="transcript-cell-bars"></div></div>
+            <div class="transcript-run-panel"><h3 id="transcript-run-heading">Individual runs</h3><p class="fine-print" id="transcript-run-status" aria-live="polite"></p><div id="transcript-run-chart"></div><details class="run-values"><summary>Show scores and coverage for every run</summary><div id="transcript-run-values"></div></details></div>
             <p class="transcript-scope-note" id="transcript-scope-note"></p>
           </div>
         </article>
@@ -100,3 +99,4 @@
 <script type="module" src="app.js"></script>
 </body>
 </html>
+
