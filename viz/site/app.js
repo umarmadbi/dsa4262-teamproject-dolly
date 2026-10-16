@@ -320,8 +320,7 @@ function prepareTranscriptView(ids, allRows) {
   const txs = [...new Set(candidates.map(r => r.transcript_id))].sort();
   const query = f.search.trim();
   const exact = txs.find(tx => tx.toLowerCase() === query.toLowerCase());
-  if (exact) transcriptView.tx = exact;
-  else if (!txs.includes(transcriptView.tx)) transcriptView.tx = query && txs.length === 1 ? txs[0] : '';
+  if (!txs.includes(transcriptView.tx)) transcriptView.tx = exact || (query && txs.length === 1 ? txs[0] : '');
   const shown = txs.slice(0, 200);
   if (transcriptView.tx && !shown.includes(transcriptView.tx)) shown.unshift(transcriptView.tx);
   $('transcript-choice').innerHTML = '<option value="">Choose a transcript…</option>' +
@@ -343,8 +342,7 @@ function prepareTranscriptView(ids, allRows) {
   const summaries = ids.every(id => sample(id)?.group === 'cellline');
   const annotations = transcriptView.rows.map(r => state.annotations.get(r.transcript_id) || [r.gene_id, r.gene_name]);
   const geneIds = [...new Set(annotations.map(a=>a[0]).filter(Boolean))];
-  const geneNames = [...new Set(annotations.map(a=>a[1]).filter(Boolean))];
-  $('transcript-meta').textContent = `Transcript: ${transcriptView.tx} · Gene: ${geneNames.join(' / ') || 'name not supplied'}${geneIds.length ? ' (' + geneIds.join(' / ') + ')' : ''} · ${positions.length} measured positions · ${summaries ? 'cell-line mean scores' : 'sample scores'}`;
+  $('transcript-meta').textContent = `Transcript: ${transcriptView.tx} · Gene ID: ${geneIds.join(' / ') || 'not supplied'} · ${positions.length} measured positions · ${summaries ? 'cell-line mean scores' : 'sample scores'}`;
   const sequenceAt = p => [...new Set(transcriptView.rows.filter(r=>r.transcript_position===p).map(r=>r.sequence).filter(Boolean))].join(' / ') || 'not supplied';
   $('transcript-scope-note').textContent = summaries
     ? 'Summary subset: sites qualify only if the mean score is ≥0.5 in at least one cell line. Reads are rounded mean coverage. Visuals use the coverage filter; minimum-score and scored-only filters affect the table only.'
@@ -386,7 +384,6 @@ async function renderTranscriptRuns() {
     c.group === 'cellline' ? s.group === 'sgnex' && s.cellLine === c.cellLine : s.id === c.id));
   $('transcript-run-heading').textContent = `Within-cell-line variation at transcript position ${fmt(pos)}`;
   $('transcript-run-chart').innerHTML = '';
-  $('transcript-cell-bars').innerHTML = '<p class="fine-print">Loading run scores…</p>';
   $('transcript-run-values').innerHTML = '';
   transcriptView.runPoints = [];
   $('transcript-run-status').textContent = 'Loading individual-run measurements…';
@@ -413,12 +410,6 @@ function renderTranscriptRunPlot(result) {
   const scored = result.filter(q => q.row?.score !== null && q.row?.score !== undefined);
   const errors = result.filter(q=>q.error).length;
   $('transcript-run-status').textContent = `${scored.length}/${result.length} runs have a score at this exact transcript ID and position with ≥${explorerFilter().minReads} reads.${errors ? ' ' + errors + ' run files could not load; these are not missing measurements.' : ''} Dots show runs; vertical marks show unweighted means. A missing score does not mean unmodified.`;
-  $('transcript-cell-bars').innerHTML = '<div class="site-bar-axis"><span>0</span><span>Prediction score</span><span>1</span></div>' + groups.map(cell => {
-    const mine = result.filter(q=>q.s.cellLine===cell);
-    const measured = mine.filter(q=>q.row?.score!=null);
-    const mean = measured.length ? measured.reduce((sum,q)=>sum+q.row.score,0)/measured.length : null;
-    return `<div class="site-mean-row" style="--cell-colour:${cellColour(cell)}"><strong>${esc(cell)}</strong><div class="site-mean-track" role="img" aria-label="${esc(cell)} mean score: ${mean===null?'unavailable':mean.toFixed(3)}"><div style="width:${mean===null?0:mean*100}%"></div></div><span>${mean===null?'No score':mean.toFixed(3)}<small>${measured.length}/${mine.length} runs</small></span></div>`;
-  }).join('') || '<p class="fine-print">No individual runs are available.</p>';
   $('transcript-run-values').innerHTML = `<table><thead><tr><th>Cell line</th><th>Sample / run</th><th>Score</th><th>Read coverage</th></tr></thead><tbody>${result.map(q=>`<tr><td style="color:${cellColour(q.s.cellLine)}">${esc(q.s.cellLine)}</td><td>${esc(q.s.name)}</td><td>${q.error?'Could not load':q.row?.score==null?'No score at this coverage':q.row.score.toFixed(3)}</td><td>${q.row?fmt(q.row.n_reads):'—'}</td></tr>`).join('')}</tbody></table>`;
   const w=760,l=100,r=130,t=22,rowH=44,h=t+groups.length*rowH+44,x=v=>l+v*(w-l-r);
   let svg = [0,.25,.5,.75,1].map(v=>`<line x1="${x(v)}" y1="${t-8}" x2="${x(v)}" y2="${h-36}" stroke="#e5ece5"/><text x="${x(v)}" y="${h-14}" text-anchor="middle">${v.toFixed(2)}</text>`).join('');
@@ -462,8 +453,8 @@ function showSiteRunTooltip(dot) {
 function bindTranscriptView() {
   $('transcript-choice').addEventListener('change', e => {
     transcriptView.tx=e.target.value;transcriptView.position=null;
-    // An explicit choice narrows the table to the exact ID via the existing search.
-    $('site-search').value=e.target.value;renderExplorer();
+    // Keep the gene/search context so sibling transcripts remain selectable.
+    renderExplorer();
   });
   $('transcript-position').addEventListener('change',e=>selectTranscriptPosition(e.target.value));
   const chart=$('transcript-run-chart');
