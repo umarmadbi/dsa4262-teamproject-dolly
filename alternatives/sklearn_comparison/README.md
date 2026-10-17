@@ -2,8 +2,8 @@
 
 A self-contained, independent pipeline written by Nitish (committed 9 Oct 2026). **The team's intermediate
 leaderboard submission used Nitish's model.** It is separate from the main pipeline (`scripts/train.py` /
-`scripts/predict.py` with `src/m6a/`, the v1 and v2 models in the main README) and simpler; the final leaderboard
-model has not been decided yet.
+`scripts/predict.py` with `src/m6a/`, the v1 and v2 models in the main README) and simpler. The team's default
+model is now v2 of the main pipeline.
 
 **Moved on 16 Oct 2026** (commit "Reorganise repo"), code unchanged:
 

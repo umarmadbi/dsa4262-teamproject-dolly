@@ -2,8 +2,10 @@
 
 Usage (from the repo root):
     python scripts/predict.py --json data/sample/sample.json.gz \
-                              --model models/m6a_model.joblib \
                               --out results/sample_predictions.csv [--jobs 2]
+
+The default model is v2 (models/m6a_model_v2.joblib), the team's final model.
+To use the older v1 model instead, add --model models/m6a_model.joblib.
 
 Output: CSV with columns transcript_id,transcript_position,score where score
 is the probability (0-1) that the site carries m6A. Pass one sequencing run
@@ -20,13 +22,14 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from m6a.pipeline import load_sites  # noqa: E402,F401  (also needed to unpickle the model)
 
-DEFAULT_MODEL = Path(__file__).resolve().parents[1] / "models" / "m6a_model.joblib"
+DEFAULT_MODEL = Path(__file__).resolve().parents[1] / "models" / "m6a_model_v2.joblib"   # v2 = final model
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--json", required=True, help="data.json or data.json.gz")
-    ap.add_argument("--model", default=str(DEFAULT_MODEL))
+    ap.add_argument("--model", default=str(DEFAULT_MODEL),
+                    help="trained model file (default: models/m6a_model_v2.joblib)")
     ap.add_argument("--out", required=True, help="output CSV")
     ap.add_argument("--jobs", type=int, default=2)
     a = ap.parse_args()

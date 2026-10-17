@@ -18,7 +18,7 @@ paired differences against that model.
 | File | Written by | Contents |
 |---|---|---|
 | `test_genes_d0.csv` | `experiments/common.py` (first run) | The frozen 20% of dataset0 genes (775) held out as the test set. **Do not edit**: every result depends on it. |
-| `sample_predictions.csv` | `scripts/predict.py` on `data/sample/` | Example output of the prediction script (500 sites), as shown in the main README. |
+| `sample_predictions.csv` | `scripts/predict.py` (default v2 model) on `data/sample/` | Example output of the prediction script (500 sites), as shown in the main README and [HOW_TO_RUN.md](../HOW_TO_RUN.md). |
 
 ## Task 1, v1 model (experiments 01-06)
 

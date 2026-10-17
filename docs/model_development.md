@@ -94,7 +94,7 @@ barely moves its score with the fraction; the final model's median score climbs 
 **Training on two runs** (dataset0-train + matching dataset1 transcripts): dataset0 test PR 0.510 vs 0.520
 for dataset0 alone, a difference within noise, so the shipped model is trained on all of dataset0.
 
-The shipped model (`models/m6a_model.joblib`) is retrained on **all** of dataset0 with `scripts/train.py`.
+The v1 model file (`models/m6a_model.joblib`) is retrained on **all** of dataset0 with `scripts/train.py --v1`.
 Run through `scripts/predict.py` on the raw dataset1 file it gives ROC 0.861 / PR 0.405 on the unseen
 transcripts (same as above), scoring 90,810 sites in 42 s.
 
@@ -180,9 +180,10 @@ vs v1). `d1 strict` drops the 2,339 "unseen" dataset1 sites (15%) whose transcri
 model learns that run's batch effects, so the dataset1 gain overstates what a new, unseen run would get. With only
 two labelled runs this cannot be tested cleanly, so the shipped v2 is trained on dataset0 only, as v1 was.
 
-**Model file.** `models/m6a_model_v2.joblib` (`python scripts/train.py --v2 --data data/data0/dataset0.json.gz
-data/data0/data.info.labelled --out models/m6a_model_v2.joblib`). `models/m6a_model.joblib` (v1) and the default
-of `train.py` are unchanged until the team agrees to switch.
+**Model file.** `models/m6a_model_v2.joblib` (`python scripts/train.py --data data/data0/dataset0.json.gz
+data/data0/data.info.labelled`). **v2 is the team's default model (decided 17 Oct 2026):** it is the default of
+both `scripts/train.py` and `scripts/predict.py`. v1 stays in `models/m6a_model.joblib` for comparison
+(`train.py --v1`, `predict.py --model models/m6a_model.joblib`).
 Run through `scripts/predict.py` on the raw dataset1 file it gives ROC 0.878 / PR 0.434 on the unseen transcripts
 (same as above), scoring 90,810 sites in 168 s. The file is 16 MB (three seed models + fallback + annotation table).
 

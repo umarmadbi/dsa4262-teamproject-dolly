@@ -5,11 +5,16 @@ DSA4262 Team Project (2026), team **Dolly**.
 We predict, for every candidate site in a transcript, the probability that it carries an **m6A** modification. The
 input is Oxford Nanopore direct RNA-Seq signal, already processed by m6Anet's `dataprep` (`data.json`); the labels
 come from m6ACE-Seq (`data.info`). We measure performance with **ROC AUC and PR AUC** and compare against simple
-baselines and the published tool **m6Anet**.
+baselines and the published tool **m6Anet**. The team's final model is **v2** (`models/m6a_model_v2.joblib`), the
+default of both scripts.
+
+> **Evaluating or running this repository?** Follow **[HOW_TO_RUN.md](HOW_TO_RUN.md)**: step-by-step instructions to
+> install the software on a fresh AWS Ubuntu machine, run the prediction script on the included test data (about
+> 5 minutes in total), check the output, score a full SG-NEx run, retrain the model and open the visualisation.
 
 | Task | What it asks for | Where it is | Status |
 |---|---|---|---|
-| **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (v1 and v2 models; intermediate leaderboard was submitted with Nitish's model, see [section 5](#alternative-pipeline)) |
+| **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (final model: v2; intermediate leaderboard was submitted with Nitish's model, see [section 5](#alternative-pipeline)) |
 | **Task 2** | Predict m6A on all SG-NEx direct RNA-Seq runs, compare cell lines | `experiments/12_sgnex_m6anet_compare.py`, [docs/sgnex_task2.md](docs/sgnex_task2.md) | Done (23 runs, 7 cell lines) |
 | **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; run it locally on your laptop ([section 7](#7-the-interactive-visualisation)), not hosted online |
 
@@ -36,6 +41,7 @@ baselines and the published tool **m6Anet**.
 
 | I want to... | Go to |
 |---|---|
+| Install and run everything step by step (as an evaluator would) | **[HOW_TO_RUN.md](HOW_TO_RUN.md)** |
 | Score a new `data.json` with our model | [Section 5](#5-task-1-train-and-predict): `python scripts/predict.py ...` |
 | Understand how the model works and why | [docs/model_development.md](docs/model_development.md) (every experiment, every number) |
 | See what the data looks like and its pitfalls | [docs/eda_findings.md](docs/eda_findings.md), `notebooks/01_EDA.ipynb` |
@@ -60,8 +66,8 @@ Held-out data, never used for any modelling decision (details and confidence int
 | 5-mer prior (simple baseline) | 0.80 / 0.14 | 0.72 / 0.16 |
 | LightGBM on site features | 0.92 / 0.48 | 0.83 / 0.36 |
 | Pretrained m6Anet | 0.93 / 0.49 | 0.83 / 0.35 |
-| **v1** (`models/m6a_model.joblib`, current default) | **0.93 / 0.52** | **0.86 / 0.40** |
-| **v2** (`models/m6a_model_v2.joblib`) | **0.95 / 0.56** | **0.88 / 0.43** |
+| v1 (`models/m6a_model.joblib`, earlier model) | 0.93 / 0.52 | 0.86 / 0.40 |
+| **v2** (`models/m6a_model_v2.joblib`, **final model, default**) | **0.95 / 0.56** | **0.88 / 0.43** |
 
 PR AUC is the main metric: only ~4.5% of sites are modified, so a random model scores ~0.045 and accuracy is
 meaningless. v2 beats v1 on every test set with bootstrap CIs above zero.
@@ -70,7 +76,7 @@ On the 23 unlabelled SG-NEx runs (Task 2), v2 and m6Anet agree moderately (media
 method's calls are shared), both put their calls near the stop codon and in 3' UTRs and on the GGACT motif, as expected for m6A. See
 [docs/sgnex_task2.md](docs/sgnex_task2.md).
 
-![evaluation](docs/figures/model_evaluation.png)
+![evaluation of v2](docs/figures/model_evaluation_v2.png)
 
 ---
 
@@ -79,6 +85,7 @@ method's calls are shared), both put their calls near the stop codon and in 3' U
 ```
 .
 ├── README.md                    <- you are here
+├── HOW_TO_RUN.md                <- step-by-step: install, predict, train, visualise (for evaluators)
 ├── requirements.txt             <- Python packages for the main environment (.venv)
 ├── environment_m6anet.yml       <- separate conda env for running m6Anet (Python 3.8)
 ├── setup_env.sh / setup_env.bat <- create .venv (Linux/macOS/AWS, Windows)
@@ -101,8 +108,8 @@ method's calls are shared), both put their calls near the stop codon and in 3' U
 │
 ├── experiments/                 <- NUMBERED STUDIES 01-12 behind every result (see experiments/README.md)
 ├── models/                      <- TRAINED MODELS
-│   ├── m6a_model.joblib         <- v1 (2.5 MB), default of predict.py
-│   └── m6a_model_v2.joblib      <- v2 (16 MB): + Ensembl transcript-structure features, 3 seeds
+│   ├── m6a_model_v2.joblib      <- v2 (16 MB), FINAL MODEL, default of train.py / predict.py
+│   └── m6a_model.joblib         <- v1 (2.5 MB), earlier model kept for comparison
 ├── resources/
 │   └── ensembl91_transcripts.csv.gz <- per-transcript annotation used by v2
 ├── results/                     <- METRICS AND LOGS (indexed in results/README.md)
@@ -180,20 +187,18 @@ Open `notebooks/01_EDA.ipynb` and run all cells. The first run parses the json f
 ```bash
 source .venv/bin/activate
 
-# predict with the shipped v1 model (small test set included in the repo)
+# predict with the final v2 model (default) on the small test set included in the repo
 python scripts/predict.py --json data/sample/sample.json.gz --out results/sample_predictions.csv
 
-# predict with v2
-python scripts/predict.py --json data/data1/dataset1.json.gz --model models/m6a_model_v2.joblib \
-                          --out dataset1_predictions.csv --jobs 2
+# predict on a full run
+python scripts/predict.py --json data/data1/dataset1.json.gz --out dataset1_predictions.csv --jobs 2
 
-# retrain v1 from scratch (~10 min on 2 cores, ~2 GB RAM)
-python scripts/train.py --data data/data0/dataset0.json.gz data/data0/data.info.labelled \
-                        --out models/m6a_model.joblib
+# retrain v2 from scratch (default; ~25-40 min on 2 cores) -> models/m6a_model_v2.joblib
+python scripts/train.py --data data/data0/dataset0.json.gz data/data0/data.info.labelled
 
-# retrain v2 (~25-40 min)
-python scripts/train.py --v2 --data data/data0/dataset0.json.gz data/data0/data.info.labelled \
-                        --out models/m6a_model_v2.joblib
+# the earlier v1 model: predict with it, or retrain it (~10 min) -> models/m6a_model.joblib
+python scripts/predict.py --json data/sample/sample.json.gz --model models/m6a_model.joblib --out v1_predictions.csv
+python scripts/train.py --v1 --data data/data0/dataset0.json.gz data/data0/data.info.labelled
 ```
 
 - `predict.py` writes `transcript_id,transcript_position,score` (score = probability of m6A, 0-1) for every site in
@@ -202,12 +207,13 @@ python scripts/train.py --v2 --data data/data0/dataset0.json.gz data/data0/data.
 - `--jobs N` sets the number of CPU cores.
 - `train.py` accepts `--data JSON LABELS` several times to train on more than one run.
 
-### v1 vs v2: which model to use?
-**v1** is the default of both scripts. **v2** adds 16 transcript-structure features
-from Ensembl 91 (distance to the stop codon and exon junctions, region, exon length, ...) and averages three seeds.
-It is better on every test set (table above) but is not yet the team default. Transcripts that are not in Ensembl 91
-(e.g. the synthetic dataset2) are scored by a v1-style fallback model inside the same file. v2 is ~4x slower to
-predict (dataset1: 168 s vs 42 s). **Team decision needed:** switch the default to v2?
+### v1 vs v2
+**v2 is the team's final model and the default of both scripts** (decided 17 Oct 2026). It adds 16
+transcript-structure features from Ensembl 91 (distance to the stop codon and exon junctions, region, exon length,
+...) to v1 and averages three seeds. It is better on every test set (table above). Transcripts that are not in
+Ensembl 91 (e.g. the synthetic dataset2) are scored by a v1-style fallback model inside the same file. v2 is ~4x
+slower to predict than v1 (dataset1: 168 s vs 42 s). v1 is kept in `models/m6a_model.joblib` for comparison
+(`--model models/m6a_model.joblib` / `train.py --v1`).
 
 ### The model in one paragraph
 A read-level LightGBM scores individual reads (the multiple-instance idea behind m6Anet); the read scores are pooled
@@ -235,7 +241,7 @@ Full write-up: **[docs/sgnex_task2.md](docs/sgnex_task2.md)**. The pipeline:
 2. **Score every run with v2:**
    ```bash
    for d in data/sgnex/SGNex_*; do
-     python scripts/predict.py --json $d/data.json --model models/m6a_model_v2.joblib \
+     python scripts/predict.py --json $d/data.json \
                                --out results/sgnex_v2/$(basename $d).csv --jobs 2
    done
    ```
@@ -419,11 +425,13 @@ shared files. Use separate ports when serving the dashboard.
 - [x] Task 2: predictions on all 23 SG-NEx runs + comparison with m6Anet and across cell lines
 - [x] Interactive visualisation (`viz/`)
 - [x] Intermediate leaderboard: submitted with Nitish's model (`alternatives/sklearn_comparison/`)
-- [ ] Decide which model to submit for the final leaderboard: v1, v2 or Nitish's
+- [x] Decide the final model: v2 (default of `train.py` / `predict.py`)
+- [x] Step-by-step run guide for evaluators ([HOW_TO_RUN.md](HOW_TO_RUN.md))
 - [ ] Optional: host the visualisation online (see [Section 7](#publishing-not-available-for-now))
 - [ ] Final leaderboard predictions
 - [ ] Report (use [docs/ai_use_log.md](docs/ai_use_log.md) for the AI-use section)
-- [ ] Make the repo **public** and test this README on a fresh Ubuntu machine
+- [ ] Make the repo **public** (evaluators and markers cannot clone it while it is private)
+- [ ] Test [HOW_TO_RUN.md](HOW_TO_RUN.md) on a fresh AWS Ubuntu machine
 
 **Budget:** the team shares one AWS budget, which must also cover the peer evaluation. **Stop the machine in Ronin
 when you finish a session.** Overspending costs 5% of the project grade.

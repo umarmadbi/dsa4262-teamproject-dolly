@@ -1,6 +1,7 @@
 # docs/
 
-Write-ups and figures. Start with the main [README](../README.md); these go into detail.
+Write-ups and figures. Start with the main [README](../README.md); to install and run the code step by step, see
+[HOW_TO_RUN.md](../HOW_TO_RUN.md). These go into detail.
 
 | Document | What it covers | Read it when |
 |---|---|---|
