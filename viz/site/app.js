@@ -544,7 +544,10 @@ async function renderComparison() {
   if (!sample(a)?.data || !sample(b)?.data) $('compare-metrics').innerHTML=metric('Loading','…','Fetching site data for both samples');
   try { await ensureLoaded([a,b]); } catch (error) { if (token===state.tokens.compare) notify(error.message); return; }
   if (token!==state.tokens.compare) return;
-  const left=sampleRows(a).filter(r=>r.n_reads>=minReads),right=sampleRows(b).filter(r=>r.n_reads>=minReads);
+  let left=sampleRows(a).filter(r=>r.n_reads>=minReads),right=sampleRows(b).filter(r=>r.n_reads>=minReads);
+  if(state.crossPairScope){left=left.filter(r=>state.crossPairScope.has(crossKey(r)));right=right.filter(r=>state.crossPairScope.has(crossKey(r)));}
+  $('matrix-pair-scope').hidden=!state.crossPairScope;
+  $('matrix-pair-scope-text').textContent=state.crossPairScope?'Pair view restricted to the '+fmt(state.crossPairScope.size)+' shared sites from the selected heatmap box. Both datasets contain this same set, so only-in-one counts are zero.':'';
   const sa=sample(a),sb=sample(b), sameModel=Boolean(sa?.model && sa.model===sb?.model);
   const canScore = sameModel && left.some(r=>r.score!==null) && right.some(r=>r.score!==null);
   $('compare-score-option').disabled=!canScore;
@@ -646,6 +649,116 @@ function bindRankedSites(){
   });
 }
 
+
+const crossViews={matrix:{selected:null,token:0},atlas:{selected:null,token:0,limit:25}};
+const crossKey=r=>r.transcript_id+':'+r.transcript_position;
+function sharedSiteMaps(groups,minReads){
+  const maps=groups.map(rows=>new Map(rows.filter(r=>r.n_reads>=minReads&&Number.isFinite(r.score)).map(r=>[crossKey(r),r])));
+  const keys=maps.length?[...maps[0].keys()].filter(k=>maps.every(m=>m.has(k))):[];
+  return {maps,keys};
+}
+function pairDistance(a,b,keys){
+  const valid=keys||[...a.keys()].filter(k=>b.has(k));
+  return {n:valid.length,value:valid.length?valid.reduce((sum,k)=>sum+Math.abs(a.get(k).score-b.get(k).score),0)/valid.length:null};
+}
+function crossOptions(kind){
+  const v=crossViews[kind],ids=cellLineIds();
+  if(v.selected===null)v.selected=new Set(ids);
+  $(kind+'-cells').innerHTML=ids.map(id=>'<label class="cross-cell"><input type="checkbox" value="'+esc(id)+'" '+(v.selected.has(id)?'checked':'')+'><span style="color:'+cellColour(sample(id).cellLine)+'">'+esc(sample(id).cellLine)+'</span></label>').join('');
+  return ids.filter(id=>v.selected.has(id));
+}
+async function renderCross(kind){
+  const v=crossViews[kind],token=++v.token,ids=crossOptions(kind);
+  const minReads=Math.max(1,Number($(kind+'-reads').value)||20);
+  $(kind+'-output').innerHTML='';
+  $(kind+'-status').textContent='Loading cell-line summaries…';
+  v.data=null;
+  if(ids.length<2){$(kind+'-status').textContent='Select at least two cell lines.';return;}
+  const models=new Set(ids.map(id=>sample(id).model));
+  if(models.size!==1||!sample(ids[0]).model){$(kind+'-status').textContent='Select summaries from the same prediction model.';return;}
+  try{await ensureLoaded(ids);}catch(e){if(token===v.token)$(kind+'-status').textContent='Could not load summaries. Change a filter to retry.';return;}
+  if(token!==v.token)return;
+  const {maps,keys}=sharedSiteMaps(ids.map(sampleRows),minReads);
+  v.data={ids,maps,keys,minReads};
+  if(kind==='matrix')renderMatrix();else renderAtlas();
+}
+function renderMatrix(){
+  const d=crossViews.matrix.data;if(!d)return;
+  const pairwise=$('matrix-mode').value==='pairwise',names=d.ids.map(id=>sample(id).cellLine);
+  $('matrix-status').textContent=pairwise
+    ? 'Pair-specific shared sites: each box may use a different site set. Counts are shown; closest/furthest pair rankings are disabled in this mode.'
+    : fmt(d.keys.length)+' identical shared sites across all '+d.ids.length+' selected cell lines, with mean coverage ≥'+d.minReads+' in every cell line.';
+  if(!pairwise&&!d.keys.length){$('matrix-output').innerHTML='<p class="empty-chart">No sites meet these criteria in every selected cell line. Lower coverage, select fewer cell lines, or choose pair-specific shared sites.</p>';return;}
+  const pairs=[];
+  const grid=d.ids.map((id,i)=>d.ids.map((other,j)=>{
+    const p=pairDistance(d.maps[i],d.maps[j],pairwise?null:d.keys);
+    if(j>i&&p.n)pairs.push({...p,i,j});
+    return p;
+  }));
+  pairs.sort((a,b)=>a.value-b.value||a.i-b.i||a.j-b.j);
+  let cards='';
+  if(!pairwise&&pairs.length){
+    const card=(label,target)=>{
+      const tied=pairs.filter(p=>Math.abs(p.value-target.value)<1e-12);
+      return '<div class="cross-stat"><small>'+label+(tied.length>1?' (tie)':'')+'</small><strong>'+tied.map(p=>esc(names[p.i])+' / '+esc(names[p.j])).join(', ')+'</strong><span>Mean absolute difference '+target.value.toFixed(3)+'</span></div>';
+    };
+    cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0])+card('Most different predicted score patterns',pairs.at(-1))+'</div>';
+  }
+  $('matrix-output').innerHTML=cards+'<div class="matrix-key"><span>0 · closer agreement</span><i></i><span>1 · larger difference</span></div><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">Mean absolute prediction score differences between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th>'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
+    const bg=p.value===null?'#edf0eb':'hsl(160 40% '+(96-p.value*65)+'%)',fg=p.value!==null&&p.value>.6?'white':'#143b34';
+    return '<td><button type="button" class="matrix-cell" '+(i===j||!p.n?'disabled':'')+' data-matrix-pair="'+i+','+j+'" style="background:'+bg+';color:'+fg+'" aria-label="'+esc(names[i]+' and '+names[j])+': '+(p.n?'mean absolute difference '+p.value.toFixed(4)+' across '+p.n+' sites':'no shared scores')+'"><strong>'+(p.n?p.value.toFixed(3):'—')+'</strong><small>'+fmt(p.n)+' sites</small></button></td>';
+  }).join('')+'</tr>').join('')+'</tbody></table></div><p class="fine-print">Click a non-diagonal box to inspect that pair below. The pair view will use exactly the sites used by the selected box. Values are descriptive prediction differences, not biological distance or statistical significance.</p>';
+}
+function atlasRanking(d,mode){
+  return d.keys.map(key=>{
+    const rows=d.maps.map(m=>m.get(key)),scores=rows.map(r=>r.score);
+    const min=Math.min(...scores),max=Math.max(...scores);
+    return {key,rows,min,max,range:max-min};
+  }).sort((a,b)=>(mode==='range'?b.range-a.range:b.min-a.min)||a.key.localeCompare(b.key));
+}
+function renderAtlas(){
+  const v=crossViews.atlas,d=v.data;if(!d)return;
+  const range=$('atlas-rank').value==='range',ranked=atlasRanking(d,range?'range':'high');
+  v.ranked=ranked;
+  $('atlas-status').textContent=fmt(d.keys.length)+' sites have scores and mean coverage ≥'+d.minReads+' in every one of the '+d.ids.length+' selected cell lines. '+(range?'Ranked by maximum − minimum score, largest first.':'Ranked by minimum score across selected cell lines, highest first.');
+  const shown=ranked.slice(0,v.limit);
+  $('atlas-output').innerHTML='<div class="table-scroll"><table><thead><tr><th>Rank</th><th>Gene ID</th><th>Transcript / position</th><th>7-mer</th><th>Lowest score · cell line(s)</th><th>Highest score · cell line(s)</th><th>Range</th><th>Explore</th></tr></thead><tbody>'+shown.map((r,i)=>{
+    const extreme=value=>r.rows.flatMap((row,j)=>Math.abs(row.score-value)<1e-12?[sample(d.ids[j]).cellLine]:[]).join(', ');
+    const first=r.rows[0],genes=[...new Set(r.rows.map(x=>x.gene_id).filter(Boolean))].join(' / '),seq=[...new Set(r.rows.map(x=>x.sequence).filter(Boolean))].join(' / ');
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(genes||'—')+'</td><td>'+esc(first.transcript_id)+'<br>Position '+fmt(first.transcript_position)+'</td><td class="sequence">'+esc(seq||'—')+'</td><td>'+r.min.toFixed(3)+'<small>'+esc(extreme(r.min))+'</small></td><td>'+r.max.toFixed(3)+'<small>'+esc(extreme(r.max))+'</small></td><td>'+r.range.toFixed(3)+'</td><td><button class="text-button" data-atlas-open="'+i+'">Inspect site / runs →</button></td></tr>';
+  }).join('')+(shown.length?'':'<tr><td colspan="8">No sites qualify in every selected cell line. Try fewer cell lines or lower coverage.</td></tr>')+'</tbody></table></div><div class="rank-footer"><span>Showing '+shown.length+' of '+fmt(ranked.length)+'</span><button class="button small" data-atlas-more '+(shown.length>=ranked.length?'hidden':'')+'>Show 25 more</button></div>';
+}
+function bindCrossViews(){
+  for(const kind of ['matrix','atlas']){
+    $(kind+'-cells').addEventListener('change',e=>{
+      if(e.target.type!=='checkbox')return;
+      const v=crossViews[kind];e.target.checked?v.selected.add(e.target.value):v.selected.delete(e.target.value);v.limit=25;renderCross(kind);
+    });
+    $(kind+'-reads').addEventListener('change',()=>{crossViews[kind].limit=25;renderCross(kind);});
+  }
+  $('matrix-mode').addEventListener('change',renderMatrix);
+  $('atlas-rank').addEventListener('change',()=>{crossViews.atlas.limit=25;renderAtlas();});
+  $('matrix-output').addEventListener('click',e=>{
+    const button=e.target.closest('[data-matrix-pair]');if(!button)return;
+    const d=crossViews.matrix.data;if(!d)return;
+    const [i,j]=button.dataset.matrixPair.split(',').map(Number);
+    const keys=$('matrix-mode').value==='pairwise'?[...d.maps[i].keys()].filter(k=>d.maps[j].has(k)):d.keys;
+    state.crossPairScope=new Set(keys);
+    $('compare-a').value=d.ids[i];$('compare-b').value=d.ids[j];$('compare-reads').value=d.minReads;$('compare-metric').value='score';state.compareChosen=true;
+    renderComparison();$('compare-a').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  $('clear-matrix-scope').addEventListener('click',()=>{state.crossPairScope=null;renderComparison();});
+  $('atlas-output').addEventListener('click',e=>{
+    if(e.target.closest('[data-atlas-more]')){crossViews.atlas.limit+=25;renderAtlas();return;}
+    const button=e.target.closest('[data-atlas-open]');if(!button)return;
+    const r=crossViews.atlas.ranked[Number(button.dataset.atlasOpen)]?.rows[0];if(!r)return;
+    $('site-sample').value='cellline_all';$('site-search').value=r.transcript_id;$('site-reads').value=crossViews.atlas.data.minReads;$('site-score').value='';$('scored-only').checked=false;
+    transcriptView.tx=r.transcript_id;transcriptView.position=r.transcript_position;
+    renderExplorer();$('transcript-panel-title').scrollIntoView({behavior:'smooth',block:'start'});
+    notify('Inspecting this site across all loaded cell lines; the ranking uses your selected cell lines.');
+  });
+}
+
 function renderData() {
   const listed = state.samples.filter(s => s.group !== 'cellline');
   $('loaded-count').textContent=`${listed.length} samples · ${fmt(listed.reduce((n,s)=>n+s.rows,0))} observations`;
@@ -665,7 +778,7 @@ function go(page) {
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
   document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===page);if(el.dataset.nav===page)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Methods & guide'}[page];
-  if(page==='overview')renderOverview();if(page==='explorer')renderExplorer();if(page==='compare')renderComparison();if(page==='data')renderData();
+  if(page==='overview')renderOverview();if(page==='explorer'){renderExplorer();renderCross('atlas');}if(page==='compare'){renderComparison();renderCross('matrix');}if(page==='data')renderData();
   history.replaceState(null,'',`#${page}`);window.scrollTo({top:0,behavior:'auto'});
 }
 
@@ -794,6 +907,7 @@ function bindOverviewControls() {
 }
 
 function bind() {
+  bindCrossViews();
   bindRankedSites();
   document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
   document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
@@ -815,7 +929,7 @@ function bind() {
   $('site-table-body').addEventListener('click',e=>{const b=e.target.closest('[data-detail]');if(b)showDetail(state.filtered[Number(b.dataset.detail)]);});
   $('export-sites').addEventListener('click',()=>{download(toCSV(state.filtered,['sample_id','transcript_id','transcript_position','gene_id','gene_name','sequence','n_reads','score']),'dolly_filtered_sites.csv');notify(`Exported ${fmt(state.filtered.length)} filtered observations.`);});
   for(const id of ['compare-a','compare-b'])$(id).addEventListener('change',()=>{state.compareChosen=true;});
-  for(const id of ['compare-a','compare-b','compare-metric','compare-reads'])$(id).addEventListener('change',renderComparison);
+  for(const id of ['compare-a','compare-b','compare-metric','compare-reads'])$(id).addEventListener('change',()=>{if(id!=='compare-metric')state.crossPairScope=null;renderComparison();});
   $('export-comparison').addEventListener('click',()=>{const c=state.comparison;download(toCSV(c.pairs.map(p=>({sample_a:c.a,sample_b:c.b,site:p.key,measure:c.measure,value_a:p.x,value_b:p.y})),['sample_a','sample_b','site','measure','value_a','value_b']),'dolly_shared_sites.csv');});
   $('catalog-cell').addEventListener('change',renderData);
   $('catalog-table').addEventListener('click',e=>{const b=e.target.closest('[data-catalog-import]');if(b){const id=b.dataset.catalogImport;openImport(sample(id)?'predictions':'coverage',id);}});
