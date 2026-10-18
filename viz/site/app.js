@@ -718,10 +718,10 @@ function renderMatrix(){
     };
     cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0],'closest')+card('Most different predicted score patterns',pairs.at(-1),'furthest')+'</div>';
   }
-  const emphasise=$('matrix-scale').checked&&pairs.length>0;
+  const emphasise=Boolean(state.matrixEmphasis)&&pairs.length>0;
   const scaleMin=emphasise?pairs[0].value:0,scaleMax=emphasise?pairs.at(-1).value:1;
   const scaleLabel=emphasise?'Visible off-diagonal range; colours emphasise relative differences, including small ones.':'Full 0–1 scale; colours show absolute differences.';
-  $('matrix-output').innerHTML=cards+'<p class="fine-print"><strong>Each box shows the mean absolute score difference.</strong> Lower values mean more similar predictions at the compared sites.</p><div class="matrix-key"><span>'+scaleMin.toFixed(3)+' · closer agreement</span><i></i><span>'+scaleMax.toFixed(3)+' · larger difference</span></div><p class="matrix-scale-note">'+scaleLabel+'</p><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">Mean absolute prediction score differences between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th scope="col" style="color:'+cellColour(n)+'">'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
+  $('matrix-output').innerHTML=cards+'<p class="fine-print"><strong>Each box shows the mean absolute score difference.</strong> Lower values mean more similar predictions at the compared sites.</p><div class="matrix-scale-toolbar"><label class="matrix-scale-control"><input id="matrix-scale" type="checkbox" '+(state.matrixEmphasis?'checked':'')+'> Emphasise visible differences <span>Colour scale adjusts to the displayed pairs.</span></label></div><div class="matrix-key"><span>'+scaleMin.toFixed(3)+' · closer agreement</span><i></i><span>'+scaleMax.toFixed(3)+' · larger difference</span></div><p class="matrix-scale-note">'+scaleLabel+'</p><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">Mean absolute prediction score differences between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th scope="col" style="color:'+cellColour(n)+'">'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
     const intensity=p.value===null?0:scaleMax===scaleMin ? 0.5 :Math.max(0,Math.min(1,(p.value-scaleMin)/(scaleMax-scaleMin)));
     const bg=i===j?'#f0f2f3':p.value===null?'#edf0eb':'hsl(160 40% '+(96-intensity*65)+'%)',fg=i!==j&&p.value!==null&&intensity>.6?'white':'#143b34';
     const description=names[i]+' and '+names[j]+': '+(p.n?'mean absolute score difference '+p.value.toFixed(4)+' across '+fmt(p.n)+' shared sites':'no shared scores');
@@ -775,7 +775,10 @@ function bindCrossViews(){
     $(kind+'-reads').addEventListener('change',()=>{crossViews[kind].limit=25;renderCross(kind);});
   }
   $('matrix-mode').addEventListener('change',renderMatrix);
-  $('matrix-scale').addEventListener('change',renderMatrix);
+  $('matrix-output').addEventListener('change',e=>{
+    if(e.target.id!=='matrix-scale')return;
+    state.matrixEmphasis=e.target.checked;renderMatrix();$('matrix-scale')?.focus({preventScroll:true});
+  });
   $('atlas-rank').addEventListener('change',()=>{crossViews.atlas.limit=25;renderAtlas();});
   $('matrix-output').addEventListener('click',e=>{
     const button=e.target.closest('[data-matrix-pair]');if(!button)return;
