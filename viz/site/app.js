@@ -562,7 +562,7 @@ async function renderComparison() {
   const sa=sample(a),sb=sample(b), sameModel=Boolean(sa?.model && sa.model===sb?.model);
   const canScore = sameModel && left.some(r=>r.score!==null) && right.some(r=>r.score!==null);
   $('compare-score-option').disabled=!canScore;
-  if ($('compare-metric').value==='score'&&!canScore) $('compare-metric').value='n_reads';
+  $('compare-metric').value=canScore?(state.compareMeasurePreference||'score'):'n_reads';
   const measure=$('compare-metric').value;
   const result=compareSamples(left,right,measure); state.comparison={...result,a,b,measure};
   $('compare-metrics').innerHTML=metric('Shared candidate sites',fmt(result.shared),'Matched transcript + position')+metric('Sites in sample A but not in sample B',fmt(result.onlyLeft),'Measured under current filters')+metric('Sites in sample B but not in sample A',fmt(result.onlyRight),'Measured under current filters');
@@ -774,7 +774,7 @@ function bindCrossViews(){
     const [i,j]=button.dataset.matrixPair.split(',').map(Number);
     const keys=$('matrix-mode').value==='pairwise'?[...d.maps[i].keys()].filter(k=>d.maps[j].has(k)):d.keys;
     state.crossPairScope=new Set(keys);
-    $('compare-a').value=d.ids[i];$('compare-b').value=d.ids[j];$('compare-reads').value=d.minReads;$('compare-metric').value='score';state.compareChosen=true;
+    $('compare-a').value=d.ids[i];$('compare-b').value=d.ids[j];$('compare-reads').value=d.minReads;$('compare-metric').value='score';state.compareMeasurePreference='score';state.compareChosen=true;
     setComparisonTab('pair');$('compare-tab-pair').focus();$('compare-tab-pair').scrollIntoView({behavior:'smooth',block:'start'});
   });
   $('clear-matrix-scope').addEventListener('click',()=>{state.crossPairScope=null;renderComparison();});
@@ -1014,7 +1014,7 @@ function bind() {
   $('site-table-body').addEventListener('click',e=>{const b=e.target.closest('[data-detail]');if(b)showDetail(state.filtered[Number(b.dataset.detail)]);});
   $('export-sites').addEventListener('click',()=>{download(toCSV(state.filtered,['sample_id','transcript_id','transcript_position','gene_id','gene_name','sequence','n_reads','score']),'dolly_filtered_sites.csv');notify(`Exported ${fmt(state.filtered.length)} filtered observations.`);});
   for(const id of ['compare-a','compare-b'])$(id).addEventListener('change',()=>{state.compareChosen=true;});
-  for(const id of ['compare-a','compare-b','compare-metric','compare-reads'])$(id).addEventListener('change',()=>{if(id!=='compare-metric')state.crossPairScope=null;renderComparison();});
+  for(const id of ['compare-a','compare-b','compare-metric','compare-reads'])$(id).addEventListener('change',()=>{if(id==='compare-metric')state.compareMeasurePreference=$('compare-metric').value;else state.crossPairScope=null;renderComparison();});
   $('export-comparison').addEventListener('click',()=>{const c=state.comparison;download(toCSV(c.pairs.map(p=>({sample_a:c.a,sample_b:c.b,site:p.key,measure:c.measure,value_a:p.x,value_b:p.y})),['sample_a','sample_b','site','measure','value_a','value_b']),'dolly_shared_sites.csv');});
   $('catalog-cell').addEventListener('change',renderData);
   $('catalog-table').addEventListener('click',e=>{const b=e.target.closest('[data-catalog-import]');if(b){const id=b.dataset.catalogImport;openImport(sample(id)?'predictions':'coverage',id);}});
