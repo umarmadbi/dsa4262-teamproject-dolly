@@ -14,10 +14,11 @@ let exploredSampleTimer;
 function highlightExploredSample(){
   const selector=$('site-sample');
   clearTimeout(exploredSampleTimer);
-  selector.classList.add('sample-selection-highlight');
-  selector.focus({preventScroll:true});
+  const visible=$('site-sample-picker')?.querySelector('summary')||selector;
+  visible.classList.add('sample-selection-highlight');
+  visible.focus({preventScroll:true});
   notify('Now viewing: '+shortName(selector.value)+'. The sample selector has been updated.');
-  exploredSampleTimer=setTimeout(()=>selector.classList.remove('sample-selection-highlight'),5500);
+  exploredSampleTimer=setTimeout(()=>visible.classList.remove('sample-selection-highlight'),5500);
 }
 function notify(text) { $('toast').textContent = text; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 5500); }
 function download(text, filename, type = 'text/csv;charset=utf-8') {
@@ -964,11 +965,47 @@ function singleChoicePicker(id,label,options,value){
   const selected=options.find(o=>String(o.value)===String(value));
   return '<details class="single-choice-picker" id="'+id+'"><summary aria-label="'+esc(label)+'"><span>'+esc(selected?.label||String(value))+'</span><span aria-hidden="true">⌄</span></summary><div class="single-choice-menu" role="group" aria-label="'+esc(label)+'">'+options.map(o=>'<button type="button" data-choice="'+esc(o.value)+'" aria-pressed="'+(String(o.value)===String(value))+'">'+esc(o.label)+'</button>').join('')+'</div></details>';
 }
+// Styled single-choice controls retain the native selects as the data source.
+function enhanceAnalysisSelects(){
+  const labels={'site-sample':'Sample','transcript-choice':'Exact transcript ID','transcript-position':'Inspect transcript position','compare-a':'Sample A','compare-b':'Sample B','compare-metric':'Measure'};
+  for(const [id,label] of Object.entries(labels)){
+    const select=$(id),picker=document.createElement('details');
+    picker.id=id+'-picker';picker.className='single-choice-picker analysis-picker';
+    picker.dataset.selectId=id;
+    picker.innerHTML='<summary aria-label="'+esc(label)+'"><span class="choice-current"></span><span aria-hidden="true">⌄</span></summary><div class="single-choice-menu" role="group" aria-label="'+esc(label)+'"></div>';
+    select.after(picker);select.hidden=true;select.setAttribute('aria-hidden','true');select.tabIndex=-1;
+    const sync=()=>{
+      const chosen=select.selectedOptions[0],summary=picker.querySelector('summary'),menu=picker.querySelector('.single-choice-menu');
+      picker.querySelector('.choice-current').textContent=chosen?.textContent||'Choose an option';
+      summary.setAttribute('aria-disabled',String(select.disabled));summary.tabIndex=select.disabled?-1:0;
+      picker.classList.toggle('is-disabled',select.disabled);
+      if(select.disabled)picker.open=false;
+      menu.innerHTML=[...select.children].map(child=>{
+        const optionMarkup=o=>'<button type="button" data-choice="'+esc(o.value)+'" aria-pressed="'+o.selected+'" '+(select.disabled||o.disabled||o.parentElement.disabled?'disabled':'')+'>'+esc(o.textContent)+'</button>';
+        return child.tagName==='OPTGROUP'?'<div class="choice-group-label">'+esc(child.label)+'</div>'+[...child.children].map(optionMarkup).join(''):child.tagName==='OPTION'?optionMarkup(child):'';
+      }).join('');
+    };
+    // Programmatic selection (e.g. Explore or Inspect site) updates the visible label immediately.
+    const valueProperty=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
+    Object.defineProperty(select,'value',{configurable:true,get(){return valueProperty.get.call(this);},set(v){valueProperty.set.call(this,v);sync();}});
+    new MutationObserver(sync).observe(select,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','selected','label'],characterData:true});
+    select.addEventListener('change',sync);
+    picker.querySelector('summary').addEventListener('click',e=>{if(select.disabled)e.preventDefault();});
+    sync();
+  }
+}
+
 function bindSingleChoicePickers(){
   document.addEventListener('click',e=>{
     const option=e.target.closest('.single-choice-picker [data-choice]');
     if(option){
-      const id=option.closest('details').id;
+      const picker=option.closest('details'),id=picker.id;
+      if(option.disabled)return;
+      if(picker.dataset.selectId){
+        const select=$(picker.dataset.selectId);select.value=option.dataset.choice;
+        picker.open=false;select.dispatchEvent(new Event('change',{bubbles:true}));
+        picker.querySelector('summary').focus({preventScroll:true});return;
+      }
       if(id==='coverage-picker')$('global-reads').value=option.dataset.choice;
       else if(id==='cutoff-picker')state.cutoff=Number(option.dataset.choice);
       else return;
@@ -978,11 +1015,11 @@ function bindSingleChoicePickers(){
     document.querySelectorAll('.single-choice-picker[open]').forEach(p=>{if(!p.contains(e.target))p.open=false;});
   });
   document.addEventListener('keydown',e=>{
-    const picker=e.target.closest('.single-choice-picker');if(!picker)return;
+    const picker=e.target.closest('.single-choice-picker');if(!picker||picker.classList.contains('is-disabled'))return;
     if(e.key==='Escape'){picker.open=false;picker.querySelector('summary').focus();return;}
     if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;
     e.preventDefault();picker.open=true;
-    const options=[...picker.querySelectorAll('[data-choice]')],i=options.indexOf(document.activeElement);
+    const options=[...picker.querySelectorAll('[data-choice]:not(:disabled)')],i=options.indexOf(document.activeElement);
     const next=e.key==='Home'?0:e.key==='End'?options.length-1:e.key==='ArrowDown'?(i+1)%options.length:(i<=0?options.length-1:i-1);
     options[next]?.focus();
   });
@@ -1028,6 +1065,7 @@ function bindOverviewControls() {
 }
 
 function bind() {
+  enhanceAnalysisSelects();
   bindExplorerTabs();
   bindComparisonTabs();
   bindCrossViews();
