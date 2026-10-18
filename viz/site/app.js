@@ -740,6 +740,16 @@ function renderAtlas(){
   }).join('')+(shown.length?'':'<tr><td colspan="8">No sites qualify in every selected cell line. Try fewer cell lines or lower coverage.</td></tr>')+'</tbody></table></div><div class="rank-footer"><span>Showing '+shown.length+' of '+fmt(ranked.length)+'</span><button class="button small" data-atlas-more '+(shown.length>=ranked.length?'hidden':'')+'>Show 25 more</button></div>';
 }
 function bindCrossViews(){
+  const siteSetPicker=$('matrix-picker');
+  siteSetPicker.addEventListener('change',e=>{
+    if(e.target.name!=='matrix-site-set')return;
+    $('matrix-mode').value=e.target.value;
+    $('matrix-picker-title').textContent=e.target.closest('label').querySelector('strong').textContent;
+    renderMatrix();siteSetPicker.open=false;siteSetPicker.querySelector('summary').focus();
+  });
+  siteSetPicker.addEventListener('keydown',e=>{if(e.key==='Escape'){siteSetPicker.open=false;siteSetPicker.querySelector('summary').focus();}});
+  document.addEventListener('click',e=>{if(!siteSetPicker.contains(e.target))siteSetPicker.open=false;});
+
   const discovery=$('atlas-picker');
   discovery.addEventListener('change',e=>{
     if(e.target.name!=='atlas-ranking')return;
