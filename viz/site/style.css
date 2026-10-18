@@ -154,3 +154,27 @@
 .overlap-center>span{display:block;width:100%;max-width:110px;margin:5px auto 0;padding:0 5px;box-sizing:border-box;text-align:center;line-height:1.5}
 
 .rank-panel{margin-top:24px}.rank-panel[hidden]{display:none}.rank-panel .panel-heading{flex-wrap:wrap;gap:18px}.rank-panel label{display:grid;gap:6px;font-size:11px}.rank-panel select{min-width:220px}.rank-agreement{background:#edf5ee;color:#245b47;padding:14px;border-radius:8px;margin:16px 0;font-size:13px}.rank-panel .fine-print{margin:10px 0;line-height:1.7}.rank-panel .table-scroll{margin-top:20px}.rank-panel td{font-size:11px}.rank-panel td:last-child{min-width:140px}.rank-panel td button{display:block;margin:5px 0}.rank-selected{background:#fff4d9}.rank-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;font-size:11px}
+
+/* Carry the inspected position's emphasis through its coordinate and sequence. */
+.heatmap-table th.selected-position-header{background:#deeee3;color:#143b34;border-radius:6px;box-shadow:inset 0 0 0 2px #143b34}
+.heatmap-table th.selected-position-header>span,.heatmap-table th.selected-position-header .position-sequence{font-weight:750;color:#143b34}
+/* Styled ranking menu, with native radios for keyboard selection. */
+.rank-picker{position:relative;min-width:290px;max-width:100%}
+.rank-picker-label{display:block;font-size:9px;letter-spacing:1.2px;color:#39745c;font-weight:700;margin:0 0 8px}
+#rank-picker{position:relative;z-index:12}
+#rank-picker summary{display:flex;align-items:center;justify-content:space-between;gap:24px;list-style:none;cursor:pointer;background:#e9f4ed;border:1px solid #95bba7;border-radius:12px;padding:13px 16px;box-shadow:0 3px 12px #143b340a}
+#rank-picker summary::-webkit-details-marker{display:none}
+#rank-picker summary small{display:block;font-size:10px;color:#607c6c;margin-bottom:5px}
+#rank-picker-title{font-size:14px;font-weight:650;color:#143b34}
+.rank-chevron{font-size:21px;color:#26765b}
+#rank-picker[open] summary{border-color:#207158;box-shadow:0 0 0 3px #21957e16}
+#rank-picker summary:focus-visible{outline:3px solid #267bb2;outline-offset:3px}
+.rank-options{position:absolute;right:0;top:calc(100% + 8px);width:360px;max-width:calc(100vw - 50px);padding:8px;background:white;border:1px solid #d4e3d8;border-radius:13px;box-shadow:0 14px 36px #143b3425;margin:0}
+.rank-panel .rank-options .rank-option{display:flex;align-items:center;gap:11px;padding:12px;border-radius:9px;cursor:pointer}
+.rank-option input{width:16px;height:16px;min-height:0;margin:0;padding:0;accent-color:#187359;flex:none}
+.rank-option strong{display:block;font-size:12px;color:#244b3d}
+.rank-option small{display:block;font-size:10px;line-height:1.5;color:#6c8072;margin-top:4px}
+.rank-option:hover,.rank-option:has(input:checked){background:#edf6ef}
+.rank-option:focus-within{outline:2px solid #267bb2;outline-offset:-2px}
+#rank-mode[hidden]{display:none}
+@media(max-width:600px){.rank-picker{width:100%;min-width:0}.rank-options{width:100%}}
