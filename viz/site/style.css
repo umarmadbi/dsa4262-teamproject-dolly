@@ -206,3 +206,12 @@
 .coverage-input-row{display:flex;align-items:center;gap:8px}.cross-controls .coverage-card input[type=number]{width:110px;min-height:28px;border:0;background:transparent;padding:0;font-size:17px;font-weight:650;color:#143b34}
 .coverage-input-row small{font-size:11px;color:#607c6c}.coverage-card:focus-within{outline:3px solid #21957e22;border-color:#207158}
 @media(max-width:600px){.explorer-tabs{grid-template-columns:1fr}.exact-measurements>summary span{display:block;margin:6px 0 0}.coverage-picker{width:100%;min-width:0}}
+
+/* Separate broad cell-line comparisons from pair inspection. */
+.pair-view-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:24px 0 18px}
+.pair-view-heading h2{margin:0 0 8px}
+.pair-view-heading p{margin:0}
+.pair-view-heading button{flex-shrink:0}
+#matrix-pair-scope{border-left:3px solid #21816a;padding:14px 18px;background:#edf5ef;border-radius:8px;margin:16px 0;line-height:1.6}
+#matrix-pair-scope .text-button{display:block;margin-top:8px}
+@media(max-width:650px){.pair-view-heading{align-items:flex-start;flex-direction:column}}
