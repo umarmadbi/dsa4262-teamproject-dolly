@@ -350,7 +350,7 @@ function prepareTranscriptView(ids, allRows) {
   $('transcript-position').innerHTML = positions.map(p => `<option value="${p}">Position ${fmt(p)} · ${esc(sequenceAt(p))}</option>`).join('');
   $('transcript-position').value = transcriptView.position;
   const cells = new Map(transcriptView.rows.map(r => [r.sample_id + ':' + r.transcript_position, r]));
-  $('transcript-heatmap').innerHTML = `<table class="heatmap-table"><caption class="sr-only">Prediction scores by sample and transcript position</caption><thead><tr><th>Cell line / sample</th>${positions.map(p=>`<th scope="col"><span>Position ${fmt(p)}</span><small class="position-sequence">7-mer: ${esc(sequenceAt(p))}</small></th>`).join('')}</tr></thead><tbody>${ids.map(id => {
+  $('transcript-heatmap').innerHTML = `<table class="heatmap-table"><caption class="sr-only">Prediction scores by sample and transcript position</caption><thead><tr><th>Cell line / sample</th>${positions.map(p=>`<th scope="col" class="${p === transcriptView.position ? 'selected-position-header' : ''}"><span>Position ${fmt(p)}</span><small class="position-sequence">7-mer: ${esc(sequenceAt(p))}</small></th>`).join('')}</tr></thead><tbody>${ids.map(id => {
     const s = sample(id), name = s.group === 'cellline' ? s.cellLine : s.name;
     return `<tr><th scope="row" style="color:${cellColour(s.cellLine)}">${esc(name)}</th>${positions.map(p => {
       const row = cells.get(id + ':' + p), score = row?.score ?? null;
@@ -609,6 +609,17 @@ function renderRankedSites(){
   }).join(''):'<tr><td colspan="10">Choose two datasets with prediction scores from the same model.</td></tr>';
 }
 function bindRankedSites(){
+  const picker=$('rank-picker');
+  picker.addEventListener('change',e=>{
+    if(e.target.name!=='site-ranking')return;
+    $('rank-mode').value=e.target.value;
+    $('rank-picker-title').textContent=e.target.closest('label').querySelector('strong').textContent;
+    picker.open=false;
+    rankView.limit=25;renderRankedSites();
+    picker.querySelector('summary').focus();
+  });
+  picker.addEventListener('keydown',e=>{if(e.key==='Escape'){picker.open=false;picker.querySelector('summary').focus();}});
+  document.addEventListener('click',e=>{if(!picker.contains(e.target))picker.open=false;});
   $('rank-mode').addEventListener('change',()=>{rankView.limit=25;renderRankedSites();});
   $('rank-more').addEventListener('click',()=>{rankView.limit+=25;renderRankedSites();});
   $('rank-table-body').addEventListener('click',e=>{
