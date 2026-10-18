@@ -215,3 +215,12 @@
 #matrix-pair-scope{border-left:3px solid #21816a;padding:14px 18px;background:#edf5ef;border-radius:8px;margin:16px 0;line-height:1.6}
 #matrix-pair-scope .text-button{display:block;margin-top:8px}
 @media(max-width:650px){.pair-view-heading{align-items:flex-start;flex-direction:column}}
+
+/* Confirm the sample selected from Data & imports. */
+#site-sample.sample-selection-highlight{
+  font-weight:700;
+  color:#143b34;
+  background-color:#e3f3e9;
+  border-color:#21816a;
+  box-shadow:0 0 0 4px rgba(33,129,106,.18);
+}
