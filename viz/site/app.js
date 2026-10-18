@@ -488,7 +488,9 @@ async function renderExplorer(resetPage = true) {
   const summary = ids.every(id => sample(id)?.group === 'cellline');
   document.querySelector('[data-sort="n_reads"]').textContent = summary ? 'Mean reads ↕' : 'Reads ↕';
   document.querySelector('[data-sort="score"]').textContent = summary ? 'Mean score ↕' : 'Score ↕';
-  const rows = filterRows(allRows, { ...explorerFilter(), sample: 'all' }), key = state.sort, direction = state.descending ? -1 : 1;
+  const tableRows = transcriptView.tx ? allRows.filter(r=>r.transcript_id===transcriptView.tx) : allRows;
+  $('exact-scope').textContent = transcriptView.tx ? 'Measurements for '+transcriptView.tx+'. Coverage and score filters apply; all positions in this transcript are included.' : 'Measurements matching the search and filters. Choose a transcript above to narrow this table.';
+  const rows = filterRows(tableRows, { ...explorerFilter(), sample: 'all' }), key = state.sort, direction = state.descending ? -1 : 1;
   rows.sort((a,b) => {
     if (a[key] === null && b[key] !== null) return 1;
     if (b[key] === null && a[key] !== null) return -1;
@@ -729,6 +731,15 @@ function renderAtlas(){
   }).join('')+(shown.length?'':'<tr><td colspan="8">No sites qualify in every selected cell line. Try fewer cell lines or lower coverage.</td></tr>')+'</tbody></table></div><div class="rank-footer"><span>Showing '+shown.length+' of '+fmt(ranked.length)+'</span><button class="button small" data-atlas-more '+(shown.length>=ranked.length?'hidden':'')+'>Show 25 more</button></div>';
 }
 function bindCrossViews(){
+  const discovery=$('atlas-picker');
+  discovery.addEventListener('change',e=>{
+    if(e.target.name!=='atlas-ranking')return;
+    $('atlas-rank').value=e.target.value;
+    $('atlas-picker-title').textContent=e.target.closest('label').querySelector('strong').textContent;
+    crossViews.atlas.limit=25;renderAtlas();discovery.open=false;discovery.querySelector('summary').focus();
+  });
+  discovery.addEventListener('keydown',e=>{if(e.key==='Escape'){discovery.open=false;discovery.querySelector('summary').focus();}});
+  document.addEventListener('click',e=>{if(!discovery.contains(e.target))discovery.open=false;});
   for(const kind of ['matrix','atlas']){
     $(kind+'-cells').addEventListener('change',e=>{
       if(e.target.type!=='checkbox')return;
