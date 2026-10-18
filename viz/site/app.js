@@ -546,7 +546,7 @@ async function renderComparison() {
   if ($('compare-metric').value==='score'&&!canScore) $('compare-metric').value='n_reads';
   const measure=$('compare-metric').value;
   const result=compareSamples(left,right,measure); state.comparison={...result,a,b,measure};
-  $('compare-metrics').innerHTML=metric('Shared candidate sites',fmt(result.shared),'Matched transcript + position')+metric('Only in sample A',fmt(result.onlyLeft),'Measured under current filters')+metric('Only in sample B',fmt(result.onlyRight),'Measured under current filters');
+  $('compare-metrics').innerHTML=metric('Shared candidate sites',fmt(result.shared),'Matched transcript + position')+metric('Sites in sample A and not in sample B',fmt(result.onlyLeft),'Measured under current filters')+metric('Sites in sample B and not in sample A',fmt(result.onlyRight),'Measured under current filters');
   $('scatter-title').textContent=measure==='score'?'Prediction scores at shared sites':'Coverage at shared sites';
   $('scatter-plot').innerHTML=scatter(result.pairs,measure==='n_reads',shortName(a),shortName(b));
   $('scatter-note').textContent=result.pairs.length ? `${fmt(result.pairs.length)} paired measurements; the plot shows up to 1,600 evenly spaced points for readability. The dashed line marks equal values.` : 'No sites with both measurements are available.';
@@ -558,7 +558,7 @@ async function renderComparison() {
   const colors=['#138770','#83b395','#d4dfbc'],circ=2*Math.PI*80;let offset=0;
   const arcs=fractions.map((f,i)=>{const out=`<circle cx="100" cy="100" r="80" fill="none" stroke="${colors[i]}" stroke-width="29" stroke-dasharray="${f*circ} ${circ}" stroke-dashoffset="${-offset*circ}" transform="rotate(-90 100 100)"/>`;offset+=f;return out;}).join('');
   $('overlap-chart').innerHTML=`<div class="overlap-ring"><svg viewBox="0 0 200 200" aria-hidden="true">${arcs}</svg><div class="overlap-center"><strong>${total?(fractions[0]*100).toFixed(1)+'%':'—'}</strong><span>of the site union is shared</span></div></div>`;
-  $('overlap-legend').innerHTML=[['Shared',result.shared],['Only sample A',result.onlyLeft],['Only sample B',result.onlyRight]].map(([name,n],i)=>`<div class="legend-row"><span class="legend-swatch" style="background:${colors[i]}"></span>${name}<strong>${fmt(n)}</strong></div>`).join('');
+  $('overlap-legend').innerHTML=[['Shared',result.shared],['Sites in sample A and not in sample B',result.onlyLeft],['Sites in sample B and not in sample A',result.onlyRight]].map(([name,n],i)=>`<div class="legend-row"><span class="legend-swatch" style="background:${colors[i]}"></span>${name}<strong>${fmt(n)}</strong></div>`).join('');
   $('export-comparison').disabled=!result.pairs.length;
 }
 
