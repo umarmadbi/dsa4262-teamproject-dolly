@@ -812,7 +812,7 @@ function renderData() {
   $('catalog-table').innerHTML=state.catalog.filter(s=>cell==='all'||s.cellLine===cell).map(s=>{
     const available=sample(s.id),scored=Boolean(available?.scoredTotal);
     const primary=available?'<button class="text-button" data-explore-sample="'+esc(s.id)+'">Explore →</button>':'<button class="text-button" data-catalog-import="'+esc(s.id)+'">Import coverage →</button>';
-    const extra=available?'<button class="text-button catalogue-secondary" data-catalog-import="'+esc(s.id)+'">'+(scored?'Import scores…':'Add scores…')+'</button>':'';
+    const extra=available?'<button class="button small catalogue-secondary" title="Import an existing prediction CSV; this does not run a model" data-catalog-import="'+esc(s.id)+'">'+(scored?'↑ Import scores CSV':'＋ Add scores CSV')+'</button>':'';
     return '<tr><td class="transcript">'+esc(s.id)+'</td><td>'+esc(s.cellLine)+'</td><td>'+esc(s.replicate)+'</td><td>'+esc(s.run)+'</td><td><span class="pill '+(scored?'ready':'pending')+'">'+(scored?'Predictions available':available?'Coverage only':'Not added')+'</span></td><td>'+primary+extra+'</td></tr>';
   }).join('');
 }
@@ -883,7 +883,7 @@ function refresh() { refreshOptions();renderOverview();renderExplorer();renderCo
 function importTypeChanged() {
   const type=$('import-type').value;
   $('coverage-fields').hidden=type!=='coverage';$('prediction-fields').hidden=type!=='predictions';$('model-fields').hidden=type==='annotations';
-  $('import-help').textContent={coverage:'Required: transcript_id, transcript_position, n_reads. Optional: sequence, gene_id, gene_name, score, label. One sample per file.',predictions:'Required: transcript_id, transcript_position, score. The model name/version is required. Scores must match the selected sample.',annotations:'Required: transcript_id and gene_id; gene_name is optional. Use the reference annotation matching these reads.'}[type];
+  $('import-help').textContent={coverage:'Required: transcript_id, transcript_position, n_reads. Optional: sequence, gene_id, gene_name, score, label. One sample per file.',predictions:'Import predictions already generated outside this website; this does not run a model. Required: transcript_id, transcript_position, score, plus a model name/version. Matching sites are updated; other sites retain their scores. For a different model, import coverage as a separate sample first. Imports are cleared on reload.',annotations:'Required: transcript_id and gene_id; gene_name is optional. Use the reference annotation matching these reads.'}[type];
 }
 function openImport(type='coverage', id='') {
   $('import-form').reset();$('import-error').hidden=true;$('import-type').value=type;importTypeChanged();
