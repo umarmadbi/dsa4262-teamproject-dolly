@@ -224,3 +224,8 @@
   border-color:#21816a;
   box-shadow:0 0 0 4px rgba(33,129,106,.18);
 }
+
+.matrix-picker{max-width:440px;min-width:280px}
+#matrix-picker-title{font-size:14px;font-weight:650;color:#143b34}
+.matrix-picker summary>span:first-child{min-width:0}
+@media(max-width:600px){.matrix-picker{width:100%;max-width:none;min-width:0}}
