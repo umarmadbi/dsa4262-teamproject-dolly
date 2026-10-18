@@ -800,18 +800,22 @@ function bindCrossViews(){
 }
 
 function renderData() {
-  const listed = state.samples.filter(s => s.group !== 'cellline');
-  $('loaded-count').textContent=`${listed.length} samples · ${fmt(listed.reduce((n,s)=>n+s.rows,0))} observations`;
-  $('loaded-table').innerHTML='<div class="table-scroll"><table><thead><tr><th>Sample</th><th>Cell line</th><th>Sites</th><th>Coverage / scores</th><th>Model label</th><th></th></tr></thead><tbody>'+state.samples.map(s=>{
-    return `<tr><td><strong>${esc(s.name)}</strong><div class="muted">${esc(sourceTag(s))}</div></td><td>${esc(s.cellLine)}</td><td>${fmt(s.rows)}</td><td><span class="pill">${s.data?'Loaded':'Loads when opened'}</span> <span class="pill ${s.scoredTotal?'ready':'pending'}">${s.scoredTotal?fmt(s.scoredTotal)+' scores':'Scores pending'}</span></td><td class="model-label" title="${esc(s.model||'')}">${esc(s.model||'—')}</td><td><button class="text-button" data-explore-sample="${esc(s.id)}">Explore →</button></td></tr>`;
-  }).join('')+'</tbody></table></div>';
+  const listed=state.samples.filter(s=>s.group!=='cellline'),summaries=state.samples.filter(s=>s.group==='cellline');
+  $('loaded-count').textContent=listed.length+' sample datasets · '+summaries.length+' derived cell-line summaries';
+  const groups=[['Development datasets',listed.filter(s=>s.group==='development')]];
+  const runs=listed.filter(s=>s.group==='sgnex');
+  for(const cell of [...new Set(runs.map(s=>s.cellLine))].sort())groups.push([cell+' · SG-NEx runs',runs.filter(s=>s.cellLine===cell)]);
+  groups.push(['Imported samples',listed.filter(s=>s.group==='imported')],['Derived cell-line summaries',summaries]);
+  const table=items=>'<div class="table-scroll"><table><thead><tr><th>Dataset</th><th>Cell line</th><th>Site observations</th><th>Predictions</th><th>Model</th><th>Actions</th></tr></thead><tbody>'+items.map(s=>'<tr><td><strong>'+esc(s.name)+'</strong><div class="muted">'+esc(sourceTag(s))+'</div></td><td>'+esc(s.cellLine)+'</td><td>'+fmt(s.rows)+'</td><td><span class="pill '+(s.scoredTotal?'ready':'pending')+'">'+(s.scoredTotal?fmt(s.scoredTotal)+' scores':'Coverage only')+'</span></td><td class="model-label" title="'+esc(s.model||'')+'">'+esc(s.model||'—')+'</td><td><button class="text-button" data-explore-sample="'+esc(s.id)+'">Explore →</button></td></tr>').join('')+'</tbody></table></div>';
+  $('loaded-table').innerHTML=groups.filter(([,items])=>items.length).map(([title,items])=>'<section class="dataset-group"><div class="dataset-group-heading"><h3>'+esc(title)+'</h3><span>'+items.length+' datasets</span></div>'+(title==='Derived cell-line summaries'?'<p class="dataset-group-note">Derived from the runs above, not additional independent samples. These summaries retain the preselected site subset.</p>':'')+table(items)+'</section>').join('');
   const cell=$('catalog-cell').value;
   $('catalog-table').innerHTML=state.catalog.filter(s=>cell==='all'||s.cellLine===cell).map(s=>{
-    const loaded=Boolean(sample(s.id));
-    return `<tr><td class="transcript">${esc(s.id)}</td><td>${esc(s.cellLine)}</td><td>${esc(s.replicate)}</td><td>${esc(s.run)}</td><td><span class="pill ${loaded?'ready':'pending'}">${loaded?'Available':'Not loaded'}</span></td><td><button class="text-button" data-catalog-import="${esc(s.id)}">${loaded?'Add scores':'Import coverage'} →</button></td></tr>`;
+    const available=sample(s.id),scored=Boolean(available?.scoredTotal);
+    const primary=available?'<button class="text-button" data-explore-sample="'+esc(s.id)+'">Explore →</button>':'<button class="text-button" data-catalog-import="'+esc(s.id)+'">Import coverage →</button>';
+    const extra=available?'<button class="text-button catalogue-secondary" data-catalog-import="'+esc(s.id)+'">'+(scored?'Import scores…':'Add scores…')+'</button>':'';
+    return '<tr><td class="transcript">'+esc(s.id)+'</td><td>'+esc(s.cellLine)+'</td><td>'+esc(s.replicate)+'</td><td>'+esc(s.run)+'</td><td><span class="pill '+(scored?'ready':'pending')+'">'+(scored?'Predictions available':available?'Coverage only':'Not added')+'</span></td><td>'+primary+extra+'</td></tr>';
   }).join('');
 }
-
 
 function setExplorerTab(tab,render=true){
   state.explorerTab=tab==='discover'?'discover':'inspect';
@@ -1093,9 +1097,9 @@ function bind() {
   for(const id of ['compare-a','compare-b','compare-metric','compare-reads'])$(id).addEventListener('change',()=>{if(id==='compare-metric')state.compareMeasurePreference=$('compare-metric').value;else state.crossPairScope=null;renderComparison();});
   $('export-comparison').addEventListener('click',()=>{const c=state.comparison;download(toCSV(c.pairs.map(p=>({sample_a:c.a,sample_b:c.b,site:p.key,measure:c.measure,value_a:p.x,value_b:p.y})),['sample_a','sample_b','site','measure','value_a','value_b']),'dolly_shared_sites.csv');});
   $('catalog-cell').addEventListener('change',renderData);
-  $('catalog-table').addEventListener('click',e=>{const b=e.target.closest('[data-catalog-import]');if(b){const id=b.dataset.catalogImport;openImport(sample(id)?'predictions':'coverage',id);}});
+  $('catalog-table').addEventListener('click',e=>{const explore=e.target.closest('[data-explore-sample]');if(explore){$('site-sample').value=explore.dataset.exploreSample;setExplorerTab('inspect',false);go('explorer');highlightExploredSample();return;}const b=e.target.closest('[data-catalog-import]');if(b){const id=b.dataset.catalogImport;openImport(sample(id)?'predictions':'coverage',id);}});
   $('loaded-table').addEventListener('click',e=>{const b=e.target.closest('[data-explore-sample]');if(b){$('site-sample').value=b.dataset.exploreSample;setExplorerTab('inspect',false);go('explorer');highlightExploredSample();}});
-  $('annotation-template').addEventListener('click',()=>{const map=new Map();state.samples.filter(s=>s.data).flatMap(s=>s.data).forEach(r=>{if(r.gene_id&&!map.has(r.transcript_id))map.set(r.transcript_id,{transcript_id:r.transcript_id,gene_id:r.gene_id,gene_name:r.gene_name});});download(toCSV([...map.values()],['transcript_id','gene_id','gene_name']),'dolly_transcript_gene_map.csv');});
+  $('annotation-template').addEventListener('click',()=>{const map=new Map();state.samples.filter(s=>s.data).flatMap(s=>s.data).forEach(r=>{if(r.gene_id&&!map.has(r.transcript_id))map.set(r.transcript_id,{transcript_id:r.transcript_id,gene_id:r.gene_id,gene_name:r.gene_name});});if(!map.size){notify('No gene mappings are available from opened datasets yet. Explore a dataset first, then download its mappings.');return;}download(toCSV([...map.values()],['transcript_id','gene_id','gene_name']),'dolly_opened_dataset_gene_map.csv');});
   window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
 }
 
