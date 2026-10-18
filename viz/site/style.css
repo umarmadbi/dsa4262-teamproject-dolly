@@ -148,3 +148,7 @@
 @media(max-width:600px){.site-mean-row{grid-template-columns:65px minmax(60px,1fr) 70px;gap:9px}}
 
 .site-bar-axis{display:flex;justify-content:space-between;margin:14px 106px 4px 101px;font-size:10px;color:#6f8174}@media(max-width:600px){.site-bar-axis{margin-left:74px;margin-right:79px}}
+
+/* Keep both lines of the overlap caption centred inside the donut. */
+.overlap-center{text-align:center}
+.overlap-center>span{display:block;width:100%;max-width:110px;margin:5px auto 0;padding:0 5px;box-sizing:border-box;text-align:center;line-height:1.5}
