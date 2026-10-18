@@ -812,7 +812,7 @@ function renderData() {
   $('catalog-table').innerHTML=state.catalog.filter(s=>cell==='all'||s.cellLine===cell).map(s=>{
     const available=sample(s.id),scored=Boolean(available?.scoredTotal);
     const primary=available?'<button class="text-button" data-explore-sample="'+esc(s.id)+'">Explore →</button>':'<button class="text-button" data-catalog-import="'+esc(s.id)+'">Import coverage →</button>';
-    const extra=available?'<button class="button small catalogue-secondary" title="Import an existing prediction CSV; this does not run a model" data-catalog-import="'+esc(s.id)+'">'+(scored?'↑ Import scores CSV':'＋ Add scores CSV')+'</button>':'';
+    const extra=available?'<button class="text-button catalogue-secondary" title="Import an existing prediction CSV; this does not run a model" data-catalog-import="'+esc(s.id)+'">'+(scored?'Import scores':'Add scores')+'</button>':'';
     return '<tr><td class="transcript">'+esc(s.id)+'</td><td>'+esc(s.cellLine)+'</td><td>'+esc(s.replicate)+'</td><td>'+esc(s.run)+'</td><td><span class="pill '+(scored?'ready':'pending')+'">'+(scored?'Predictions available':available?'Coverage only':'Not added')+'</span></td><td>'+primary+extra+'</td></tr>';
   }).join('');
 }
