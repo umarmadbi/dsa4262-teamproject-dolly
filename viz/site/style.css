@@ -237,3 +237,37 @@
 /* Match Compare samples coverage and site-set controls to white discovery cards. */
 #matrix-panel .coverage-card{background:#fff}
 #matrix-picker summary{background:#fff}
+
+/* Comparison hierarchy: grouped controls and restrained result accents. */
+#matrix-panel .matrix-cell-controls{flex-basis:100%;width:100%}
+#matrix-cells{margin:10px 0 0}
+#matrix-panel .cross-controls{align-items:stretch;gap:20px;margin:24px 0 14px}
+#matrix-panel .cross-status{font-size:13px;font-weight:600;background:#f5f8f6;padding:12px 16px;border-radius:8px}
+.matrix-scale-control{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:12px;color:#36594e;margin:16px 0}
+.matrix-scale-control input{min-height:0;width:16px;height:16px;accent-color:#16735a}
+.matrix-scale-control span{font-size:11px;color:#718078}
+.matrix-scale-note{text-align:center;font-size:11px;color:#66786e;margin-bottom:16px}
+#matrix-panel .cross-stat{background:#fff;border:1px solid #dce5e0;border-top:3px solid #20826c;padding:20px 22px}
+#matrix-panel .cross-stat.furthest{border-top-color:#b3863c}
+#matrix-panel .cross-stat-value{font-size:34px;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1.2;color:#16735a}
+#matrix-panel .furthest .cross-stat-value{color:#946621}
+#matrix-panel .cross-stat-pair{font-size:15px;font-weight:650;color:#294c40}
+.pair-agreement{display:flex;justify-content:space-between;align-items:center;gap:20px;background:#fff;border:1px solid #dce5e0;border-left:4px solid #20826c;border-radius:9px;padding:20px 24px;margin:0 0 22px}
+.pair-agreement[hidden]{display:none}
+.pair-agreement .eyebrow{display:block}
+.pair-agreement p{font-size:11px;margin-top:6px}
+.pair-agreement>strong{font-size:36px;color:#16735a;font-variant-numeric:tabular-nums}
+#rank-panel td{padding-top:9px;padding-bottom:9px}
+#rank-panel td button{margin:1px 0;padding-top:5px;padding-bottom:5px}
+#rank-picker summary{background:#fff}
+/* Chart colours distinguish coverage from prediction scores. */
+#coverage-histogram .hist-fill{background:#638fb8}
+#coverage-histogram .hist-bin:is(:hover,:focus-visible) .hist-fill{background:#376a98}
+#coverage-histogram .hist-count{color:#476b8c}
+.panel:has(#coverage-histogram) .chart-key i{background:#638fb8}
+#score-distribution .hist-fill{background:#9782b5}
+#score-distribution .hist-bin:is(:hover,:focus-visible) .hist-fill{background:#73558f}
+#score-distribution .hist-count{color:#70578b}
+.predictions-panel{background:#faf8fc;border-color:#e5deed}
+.predictions-panel .soft-icon{background:#eee7f5;color:#80619b}
+@media(max-width:600px){.pair-agreement{padding:16px}.pair-agreement>strong{font-size:29px}}
