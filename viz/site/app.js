@@ -152,13 +152,8 @@ function renderCellLines(threshold, selectedSamples) {
   }
   const totalScored = runs.reduce((n, q) => n + q.s.stats.byMinReads[threshold].scored, 0);
   const totalAbove = runs.reduce((n, q) => n + aboveCutoff(q.s.stats.byMinReads[threshold].scoreHist, state.cutoff), 0);
-  const options = Array.from({ length: 9 }, (_, i) => (i + 1) / 10).map(v => `<option value="${v}"${v === state.cutoff ? ' selected' : ''}>${v.toFixed(1)}</option>`).join('');
-  $('cellline-controls').innerHTML = `<div class="score-controls"><label for="score-cutoff">Exploration cutoff</label><select id="score-cutoff" aria-describedby="cellline-control-note">${options}</select><strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} scored observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">Across the selected SG-NEx runs at the selected minimum coverage. This cutoff updates the dot chart; it does not filter the score-distribution histogram.</p>`;
-  $('score-cutoff').addEventListener('change', e => {
-    state.cutoff = Number(e.target.value);
-    renderOverview();
-    $('score-cutoff').focus();
-  });
+  const options = Array.from({length:9},(_,i)=>({value:(i+1)/10,label:((i+1)/10).toFixed(1)}));
+  $('cellline-controls').innerHTML = `<div class="score-controls"><span>Exploration cutoff</span>${singleChoicePicker('cutoff-picker','Exploration cutoff',options,state.cutoff)}<strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} scored observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">Across the selected SG-NEx runs at the selected minimum coverage. This cutoff updates the dot chart; it does not filter the score-distribution histogram.</p>`;
   const lines = [...new Set(runs.map(r => r.s.cellLine))].sort();
   const max = Math.max(0.5, ...runs.map(r => r.pct)) * 1.1;
   const w = 600, l = 78, r = 70, rowH = 30, t = 10, h = t + lines.length * rowH + 30, x = v => l + v / max * (w - l - r);
@@ -177,6 +172,8 @@ function renderCellLines(threshold, selectedSamples) {
 }
 
 function renderOverview() {
+  $('coverage-picker-host').innerHTML=singleChoicePicker('coverage-picker','Minimum coverage',[20,40,80,160].map(v=>({value:v,label:v+' reads'})),$('global-reads').value);
+
   const threshold = Number($('global-reads').value) || readThresholds[0];
   const samples = overviewSamples();
   syncSamplePicker();
@@ -700,7 +697,7 @@ function renderMatrix(){
   const d=crossViews.matrix.data;if(!d)return;
   const pairwise=$('matrix-mode').value==='pairwise',names=d.ids.map(id=>sample(id).cellLine);
   $('matrix-status').textContent=pairwise
-    ? 'Pair-specific shared sites: each box may use a different site set. Counts are shown; closest/furthest pair rankings are disabled in this mode.'
+    ? 'Pair-specific shared sites: closest and most-different pairs are ranked using different site sets. These descriptive rankings are not directly comparable on a common basis; check the site counts.'
     : fmt(d.keys.length)+' identical shared sites across all '+d.ids.length+' selected cell lines, with mean coverage ≥'+d.minReads+' in every cell line.';
   if(!pairwise&&!d.keys.length){$('matrix-output').innerHTML='<p class="empty-chart">No sites meet these criteria in every selected cell line. Lower coverage, select fewer cell lines, or choose pair-specific shared sites.</p>';return;}
   const pairs=[];
@@ -711,12 +708,12 @@ function renderMatrix(){
   }));
   pairs.sort((a,b)=>a.value-b.value||a.i-b.i||a.j-b.j);
   let cards='';
-  if(!pairwise&&pairs.length){
+  if(pairs.length){
     const card=(label,target,tone)=>{
       const tied=pairs.filter(p=>Math.abs(p.value-target.value)<1e-12);
-      return '<div class="cross-stat '+tone+'"><small>'+label+(tied.length>1?' (tie)':'')+'</small><strong class="cross-stat-value">'+target.value.toFixed(3)+'</strong><span class="cross-stat-pair">'+tied.map(p=>esc(names[p.i])+' / '+esc(names[p.j])).join(', ')+'</span><span>Mean absolute score difference</span></div>';
+      return '<div class="cross-stat '+tone+'"><small>'+label+(tied.length>1?' (tie)':'')+'</small><strong class="cross-stat-value">'+target.value.toFixed(3)+'</strong><span class="cross-stat-pair">'+tied.map(p=>esc(names[p.i])+' / '+esc(names[p.j])+(pairwise?' · '+fmt(p.n)+' shared sites':'')).join(', ')+'</span><span>Mean absolute score difference</span></div>';
     };
-    cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0],'closest')+card('Most different predicted score patterns',pairs.at(-1),'furthest')+'</div>';
+    cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0],'closest')+card('Most different predicted score patterns',pairs.at(-1),'furthest')+'</div>'+(pairwise?'<p class="fine-print">Pair-specific ranking: each pair uses its own shared sites. A lower value may partly reflect which sites were measured. Use the common-site mode for a fairer comparison across pairs.</p>':'');
   }
   const emphasise=Boolean(state.matrixEmphasis)&&pairs.length>0;
   const scaleMin=emphasise?pairs[0].value:0,scaleMax=emphasise?pairs.at(-1).value:1;
@@ -963,7 +960,36 @@ function showDotTooltip(dot) {
   const top = rect.top > height + 20 ? rect.top - height - 12 : rect.bottom + 12;
   tip.style.top = `${Math.max(12, Math.min(top, window.innerHeight - height - 12))}px`;
 }
+function singleChoicePicker(id,label,options,value){
+  const selected=options.find(o=>String(o.value)===String(value));
+  return '<details class="single-choice-picker" id="'+id+'"><summary aria-label="'+esc(label)+'"><span>'+esc(selected?.label||String(value))+'</span><span aria-hidden="true">⌄</span></summary><div class="single-choice-menu" role="group" aria-label="'+esc(label)+'">'+options.map(o=>'<button type="button" data-choice="'+esc(o.value)+'" aria-pressed="'+(String(o.value)===String(value))+'">'+esc(o.label)+'</button>').join('')+'</div></details>';
+}
+function bindSingleChoicePickers(){
+  document.addEventListener('click',e=>{
+    const option=e.target.closest('.single-choice-picker [data-choice]');
+    if(option){
+      const id=option.closest('details').id;
+      if(id==='coverage-picker')$('global-reads').value=option.dataset.choice;
+      else if(id==='cutoff-picker')state.cutoff=Number(option.dataset.choice);
+      else return;
+      renderOverview();$(id)?.querySelector('summary').focus();
+      return;
+    }
+    document.querySelectorAll('.single-choice-picker[open]').forEach(p=>{if(!p.contains(e.target))p.open=false;});
+  });
+  document.addEventListener('keydown',e=>{
+    const picker=e.target.closest('.single-choice-picker');if(!picker)return;
+    if(e.key==='Escape'){picker.open=false;picker.querySelector('summary').focus();return;}
+    if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;
+    e.preventDefault();picker.open=true;
+    const options=[...picker.querySelectorAll('[data-choice]')],i=options.indexOf(document.activeElement);
+    const next=e.key==='Home'?0:e.key==='End'?options.length-1:e.key==='ArrowDown'?(i+1)%options.length:(i<=0?options.length-1:i-1);
+    options[next]?.focus();
+  });
+}
+
 function bindOverviewControls() {
+  bindSingleChoicePickers();
   $('global-reads').addEventListener('change', renderOverview);
   $('sample-checkboxes').addEventListener('change', e => {
     const input = e.target.closest('[data-sample-id]');
