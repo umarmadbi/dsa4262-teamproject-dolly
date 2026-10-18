@@ -645,7 +645,7 @@ function bindRankedSites(){
       $('site-reads').value=$('compare-reads').value;
       $('site-score').value='';$('scored-only').checked=false;
       transcriptView.tx=row.a.transcript_id;transcriptView.position=row.a.transcript_position;
-      go('explorer');
+      setExplorerTab('inspect',false);go('explorer');
       notify($('site-sample').value==='cellline_all'?'Showing this site across cell lines; inspect individual runs below the heatmap.':'Showing this site in sample A; use the sample selector to inspect sample B.');
     }
   });
@@ -765,7 +765,7 @@ function bindCrossViews(){
     const r=crossViews.atlas.ranked[Number(button.dataset.atlasOpen)]?.rows[0];if(!r)return;
     $('site-sample').value='cellline_all';$('site-search').value=r.transcript_id;$('site-reads').value=crossViews.atlas.data.minReads;$('site-score').value='';$('scored-only').checked=false;
     transcriptView.tx=r.transcript_id;transcriptView.position=r.transcript_position;
-    renderExplorer();$('transcript-panel-title').scrollIntoView({behavior:'smooth',block:'start'});
+    setExplorerTab('inspect',false);renderExplorer();$('transcript-panel-title').scrollIntoView({behavior:'smooth',block:'start'});
     notify('Inspecting this site across all loaded cell lines; the ranking uses your selected cell lines.');
   });
 }
@@ -783,13 +783,38 @@ function renderData() {
   }).join('');
 }
 
+
+function setExplorerTab(tab,render=true){
+  state.explorerTab=tab==='discover'?'discover':'inspect';
+  for(const name of ['inspect','discover']){
+    const selected=name===state.explorerTab;
+    $('explorer-'+name).hidden=!selected;
+    $('explorer-tab-'+name).setAttribute('aria-selected',String(selected));
+    $('explorer-tab-'+name).tabIndex=selected?0:-1;
+  }
+  $('export-sites').hidden=state.explorerTab!=='inspect';
+  if(render){if(state.explorerTab==='inspect')renderExplorer();else renderCross('atlas');}
+}
+function bindExplorerTabs(){
+  for(const name of ['inspect','discover']){
+    const button=$('explorer-tab-'+name);
+    button.addEventListener('click',()=>setExplorerTab(name));
+    button.addEventListener('keydown',e=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+      e.preventDefault();
+      const next=e.key==='Home'?'inspect':e.key==='End'?'discover':name==='inspect'?'discover':'inspect';
+      setExplorerTab(next);$('explorer-tab-'+next).focus();
+    });
+  }
+}
+
 function go(page) {
   if (!['overview','explorer','compare','data','methods'].includes(page)) page='overview';
   state.page=page;
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
   document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===page);if(el.dataset.nav===page)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Methods & guide'}[page];
-  if(page==='overview')renderOverview();if(page==='explorer'){renderExplorer();renderCross('atlas');}if(page==='compare'){renderComparison();renderCross('matrix');}if(page==='data')renderData();
+  if(page==='overview')renderOverview();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){renderComparison();renderCross('matrix');}if(page==='data')renderData();
   history.replaceState(null,'',`#${page}`);window.scrollTo({top:0,behavior:'auto'});
 }
 
@@ -918,6 +943,7 @@ function bindOverviewControls() {
 }
 
 function bind() {
+  bindExplorerTabs();
   bindCrossViews();
   bindRankedSites();
   document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
@@ -944,7 +970,7 @@ function bind() {
   $('export-comparison').addEventListener('click',()=>{const c=state.comparison;download(toCSV(c.pairs.map(p=>({sample_a:c.a,sample_b:c.b,site:p.key,measure:c.measure,value_a:p.x,value_b:p.y})),['sample_a','sample_b','site','measure','value_a','value_b']),'dolly_shared_sites.csv');});
   $('catalog-cell').addEventListener('change',renderData);
   $('catalog-table').addEventListener('click',e=>{const b=e.target.closest('[data-catalog-import]');if(b){const id=b.dataset.catalogImport;openImport(sample(id)?'predictions':'coverage',id);}});
-  $('loaded-table').addEventListener('click',e=>{const b=e.target.closest('[data-explore-sample]');if(b){$('site-sample').value=b.dataset.exploreSample;go('explorer');}});
+  $('loaded-table').addEventListener('click',e=>{const b=e.target.closest('[data-explore-sample]');if(b){$('site-sample').value=b.dataset.exploreSample;setExplorerTab('inspect',false);go('explorer');}});
   $('annotation-template').addEventListener('click',()=>{const map=new Map();state.samples.filter(s=>s.data).flatMap(s=>s.data).forEach(r=>{if(r.gene_id&&!map.has(r.transcript_id))map.set(r.transcript_id,{transcript_id:r.transcript_id,gene_id:r.gene_id,gene_name:r.gene_name});});download(toCSV([...map.values()],['transcript_id','gene_id','gene_name']),'dolly_transcript_gene_map.csv');});
   window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
 }
