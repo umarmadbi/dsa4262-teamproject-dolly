@@ -233,3 +233,7 @@
 /* White backgrounds for the Site explorer discovery controls. */
 #atlas-panel .coverage-card{background:#fff}
 #atlas-picker summary{background:#fff}
+
+/* Match Compare samples coverage and site-set controls to white discovery cards. */
+#matrix-panel .coverage-card{background:#fff}
+#matrix-picker summary{background:#fff}
