@@ -320,10 +320,8 @@
 .data-catalogue>summary span{font-size:11px;font-weight:400;color:#75877b;margin-left:12px}
 .data-catalogue:not([open]){padding-bottom:0}
 .data-catalogue .catalogue-heading{margin-top:8px}
-.catalogue-secondary{display:block;color:#6c8174;font-size:10px;padding-top:0}
+
 #page-data .import-options{margin-top:18px}
 
-/* Keep score import visibly actionable beside the catalogue Explore link. */
-#catalog-table .catalogue-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;padding:8px 12px;background:#e6f4ec;color:#155b43;border:1px solid #74ab91;border-radius:7px;font-size:12px;font-weight:650;line-height:1.35;white-space:nowrap;cursor:pointer;transition:background .15s ease,border-color .15s ease,box-shadow .15s ease}
-#catalog-table .catalogue-secondary:hover{background:#cfe9db;border-color:#347b5c;color:#104932;box-shadow:0 2px 6px #173f2814}
-#catalog-table .catalogue-secondary:focus-visible{outline:3px solid #267b59;outline-offset:3px}
+/* Match the Explore text action, on its own line. */
+#catalog-table .catalogue-secondary{display:block;margin-top:2px}
