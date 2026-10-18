@@ -276,3 +276,18 @@
 .matrix-scale-toolbar .matrix-scale-control{justify-content:flex-end;margin:0;text-align:right}
 .matrix-scale-toolbar .matrix-scale-control span{flex-basis:100%}
 @media(max-width:600px){#matrix-panel .matrix-cell-controls{flex-basis:100%}.matrix-scale-toolbar .matrix-scale-control{justify-content:flex-start;text-align:left}}
+
+/* Single-choice overview menus match the sample picker, without checkboxes. */
+.overview-single-control{min-width:145px;font-size:10px;color:var(--muted)}
+#coverage-picker-host{margin-top:5px}
+.single-choice-picker{position:relative;z-index:25;min-width:90px}
+.single-choice-picker summary{display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fff;border:1px solid #dce4dc;border-radius:5px;padding:9px 11px;min-height:37px;cursor:pointer;font-size:12px;list-style:none;color:var(--text)}
+.single-choice-picker summary::-webkit-details-marker{display:none}
+.single-choice-picker[open] summary{border-color:var(--teal);box-shadow:0 0 0 3px #21957e14}
+.single-choice-picker summary:focus-visible,.single-choice-menu button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.single-choice-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:100%;padding:6px;background:#fff;border:1px solid #dce4dc;border-radius:9px;box-shadow:0 12px 30px #143b3426;max-height:280px;overflow-y:auto}
+.single-choice-menu button{display:block;width:100%;border:0;background:#fff;text-align:left;white-space:nowrap;padding:9px 13px;border-radius:5px;font-size:12px}
+.single-choice-menu button:hover{background:#f0f6f2}
+.single-choice-menu button[aria-pressed=true]{background:#e3f1e8;color:#143b34;font-weight:700}
+#cellline-panel{overflow:visible}
+#cutoff-picker{min-width:90px}
