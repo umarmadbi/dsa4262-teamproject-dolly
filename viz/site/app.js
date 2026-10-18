@@ -549,7 +549,7 @@ async function renderComparison() {
   let left=sampleRows(a).filter(r=>r.n_reads>=minReads),right=sampleRows(b).filter(r=>r.n_reads>=minReads);
   if(state.crossPairScope){left=left.filter(r=>state.crossPairScope.has(crossKey(r)));right=right.filter(r=>state.crossPairScope.has(crossKey(r)));}
   $('matrix-pair-scope').hidden=!state.crossPairScope;
-  $('matrix-pair-scope-text').textContent=state.crossPairScope?'Pair view restricted to the '+fmt(state.crossPairScope.size)+' shared sites from the selected heatmap box. Both datasets contain this same set, so only-in-one counts are zero.':'';
+  $('matrix-pair-scope-text').textContent=state.crossPairScope?'Inspecting '+shortName(a)+' vs '+shortName(b)+' using the '+fmt(state.crossPairScope.size)+' shared sites from the selected heatmap box. Both selections contain this same site set, so sites found only in A or only in B are zero.':'';
   const sa=sample(a),sb=sample(b), sameModel=Boolean(sa?.model && sa.model===sb?.model);
   const canScore = sameModel && left.some(r=>r.score!==null) && right.some(r=>r.score!==null);
   $('compare-score-option').disabled=!canScore;
@@ -756,7 +756,7 @@ function bindCrossViews(){
     const keys=$('matrix-mode').value==='pairwise'?[...d.maps[i].keys()].filter(k=>d.maps[j].has(k)):d.keys;
     state.crossPairScope=new Set(keys);
     $('compare-a').value=d.ids[i];$('compare-b').value=d.ids[j];$('compare-reads').value=d.minReads;$('compare-metric').value='score';state.compareChosen=true;
-    renderComparison();$('compare-a').scrollIntoView({behavior:'smooth',block:'center'});
+    setComparisonTab('pair');$('compare-tab-pair').focus();$('compare-tab-pair').scrollIntoView({behavior:'smooth',block:'start'});
   });
   $('clear-matrix-scope').addEventListener('click',()=>{state.crossPairScope=null;renderComparison();});
   $('atlas-output').addEventListener('click',e=>{
@@ -808,13 +808,41 @@ function bindExplorerTabs(){
   }
 }
 
+function setComparisonTab(tab,render=true){
+  state.comparisonTab=tab==='pair'?'pair':'across';
+  for(const name of ['across','pair']){
+    const selected=name===state.comparisonTab;
+    $('compare-panel-'+name).hidden=!selected;
+    $('compare-tab-'+name).setAttribute('aria-selected',String(selected));
+    $('compare-tab-'+name).tabIndex=selected?0:-1;
+  }
+  $('export-comparison').hidden=state.comparisonTab!=='pair';
+  if(render){if(state.comparisonTab==='pair')renderComparison();else renderCross('matrix');}
+}
+function bindComparisonTabs(){
+  for(const name of ['across','pair']){
+    const button=$('compare-tab-'+name);
+    button.addEventListener('click',()=>setComparisonTab(name));
+    button.addEventListener('keydown',e=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+      e.preventDefault();
+      const next=e.key==='Home'?'across':e.key==='End'?'pair':name==='across'?'pair':'across';
+      setComparisonTab(next);$('compare-tab-'+next).focus();
+    });
+  }
+  $('back-to-matrix').addEventListener('click',()=>{
+    setComparisonTab('across');$('compare-tab-across').focus();
+    $('compare-tab-across').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
 function go(page) {
   if (!['overview','explorer','compare','data','methods'].includes(page)) page='overview';
   state.page=page;
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
   document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===page);if(el.dataset.nav===page)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Methods & guide'}[page];
-  if(page==='overview')renderOverview();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){renderComparison();renderCross('matrix');}if(page==='data')renderData();
+  if(page==='overview')renderOverview();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){setComparisonTab(state.comparisonTab||'across');}if(page==='data')renderData();
   history.replaceState(null,'',`#${page}`);window.scrollTo({top:0,behavior:'auto'});
 }
 
@@ -944,6 +972,7 @@ function bindOverviewControls() {
 
 function bind() {
   bindExplorerTabs();
+  bindComparisonTabs();
   bindCrossViews();
   bindRankedSites();
   document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
