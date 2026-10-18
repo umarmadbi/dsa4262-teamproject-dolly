@@ -10,6 +10,15 @@ const state = { samples: [], catalog: [], rows: [], page: 'overview', tablePage:
 const loads = new Map();
 let toastTimer, searchTimer;
 
+let exploredSampleTimer;
+function highlightExploredSample(){
+  const selector=$('site-sample');
+  clearTimeout(exploredSampleTimer);
+  selector.classList.add('sample-selection-highlight');
+  selector.focus({preventScroll:true});
+  notify('Now viewing: '+shortName(selector.value)+'. The sample selector has been updated.');
+  exploredSampleTimer=setTimeout(()=>selector.classList.remove('sample-selection-highlight'),5500);
+}
 function notify(text) { $('toast').textContent = text; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 5500); }
 function download(text, filename, type = 'text/csv;charset=utf-8') {
   const url = URL.createObjectURL(new Blob([text], { type })); const a = document.createElement('a');
@@ -999,7 +1008,7 @@ function bind() {
   $('export-comparison').addEventListener('click',()=>{const c=state.comparison;download(toCSV(c.pairs.map(p=>({sample_a:c.a,sample_b:c.b,site:p.key,measure:c.measure,value_a:p.x,value_b:p.y})),['sample_a','sample_b','site','measure','value_a','value_b']),'dolly_shared_sites.csv');});
   $('catalog-cell').addEventListener('change',renderData);
   $('catalog-table').addEventListener('click',e=>{const b=e.target.closest('[data-catalog-import]');if(b){const id=b.dataset.catalogImport;openImport(sample(id)?'predictions':'coverage',id);}});
-  $('loaded-table').addEventListener('click',e=>{const b=e.target.closest('[data-explore-sample]');if(b){$('site-sample').value=b.dataset.exploreSample;setExplorerTab('inspect',false);go('explorer');}});
+  $('loaded-table').addEventListener('click',e=>{const b=e.target.closest('[data-explore-sample]');if(b){$('site-sample').value=b.dataset.exploreSample;setExplorerTab('inspect',false);go('explorer');highlightExploredSample();}});
   $('annotation-template').addEventListener('click',()=>{const map=new Map();state.samples.filter(s=>s.data).flatMap(s=>s.data).forEach(r=>{if(r.gene_id&&!map.has(r.transcript_id))map.set(r.transcript_id,{transcript_id:r.transcript_id,gene_id:r.gene_id,gene_name:r.gene_name});});download(toCSV([...map.values()],['transcript_id','gene_id','gene_name']),'dolly_transcript_gene_map.csv');});
   window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
 }
