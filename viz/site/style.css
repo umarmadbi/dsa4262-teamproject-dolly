@@ -152,3 +152,5 @@
 /* Keep both lines of the overlap caption centred inside the donut. */
 .overlap-center{text-align:center}
 .overlap-center>span{display:block;width:100%;max-width:110px;margin:5px auto 0;padding:0 5px;box-sizing:border-box;text-align:center;line-height:1.5}
+
+.rank-panel{margin-top:24px}.rank-panel[hidden]{display:none}.rank-panel .panel-heading{flex-wrap:wrap;gap:18px}.rank-panel label{display:grid;gap:6px;font-size:11px}.rank-panel select{min-width:220px}.rank-agreement{background:#edf5ee;color:#245b47;padding:14px;border-radius:8px;margin:16px 0;font-size:13px}.rank-panel .fine-print{margin:10px 0;line-height:1.7}.rank-panel .table-scroll{margin-top:20px}.rank-panel td{font-size:11px}.rank-panel td:last-child{min-width:140px}.rank-panel td button{display:block;margin:5px 0}.rank-selected{background:#fff4d9}.rank-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;font-size:11px}
