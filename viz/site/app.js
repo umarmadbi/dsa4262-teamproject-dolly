@@ -548,6 +548,7 @@ function scatter(pairs, log, leftName, rightName, selectedKey = null) {
 }
 
 async function renderComparison() {
+  $('pair-agreement').hidden=true;
   $('rank-panel').hidden=true;
   rankView.selected=null;
   $('rank-selection').textContent='';
@@ -611,6 +612,8 @@ function renderRankedSites(){
   };
   $('rank-help').textContent=explanations[mode]+' Only shared sites with scores from the same model and passing the coverage filter are ranked. Cell-line summaries retain their preselected subset.';
   const mae=rows.length?rows.reduce((n,r)=>n+Math.abs(r.b.score-r.a.score),0)/rows.length:null;
+  $('pair-agreement').hidden=mae===null;
+  $('pair-agreement').innerHTML=mae===null?'':'<div><span class="eyebrow">PREDICTION SCORE AGREEMENT</span><h2>Mean absolute score difference</h2><p>'+fmt(rows.length)+' shared scored sites · 0 means identical scores</p></div><strong>'+mae.toFixed(3)+'</strong>';
   $('rank-agreement').textContent=mae===null?'No paired prediction scores available for this selection.':'Mean absolute score difference: '+mae.toFixed(3)+' across '+fmt(rows.length)+' shared scored sites (0 means identical scores).';
   const shown=rankSites(rows,mode).slice(0,rankView.limit);
   $('rank-count').textContent='Showing '+fmt(shown.length)+' of '+fmt(rows.length)+' ranked sites.';
@@ -709,16 +712,21 @@ function renderMatrix(){
   pairs.sort((a,b)=>a.value-b.value||a.i-b.i||a.j-b.j);
   let cards='';
   if(!pairwise&&pairs.length){
-    const card=(label,target)=>{
+    const card=(label,target,tone)=>{
       const tied=pairs.filter(p=>Math.abs(p.value-target.value)<1e-12);
-      return '<div class="cross-stat"><small>'+label+(tied.length>1?' (tie)':'')+'</small><strong>'+tied.map(p=>esc(names[p.i])+' / '+esc(names[p.j])).join(', ')+'</strong><span>Mean absolute difference '+target.value.toFixed(3)+'</span></div>';
+      return '<div class="cross-stat '+tone+'"><small>'+label+(tied.length>1?' (tie)':'')+'</small><strong class="cross-stat-value">'+target.value.toFixed(3)+'</strong><span class="cross-stat-pair">'+tied.map(p=>esc(names[p.i])+' / '+esc(names[p.j])).join(', ')+'</span><span>Mean absolute score difference</span></div>';
     };
-    cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0])+card('Most different predicted score patterns',pairs.at(-1))+'</div>';
+    cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0],'closest')+card('Most different predicted score patterns',pairs.at(-1),'furthest')+'</div>';
   }
-  $('matrix-output').innerHTML=cards+'<p class="fine-print"><strong>Each box shows the mean absolute score difference.</strong> Lower values mean more similar predictions at the compared sites; the smaller number gives the site count.</p><div class="matrix-key"><span>0 · closer agreement</span><i></i><span>1 · larger difference</span></div><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">Mean absolute prediction score differences between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th scope="col" style="color:'+cellColour(n)+'">'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
-    const bg=p.value===null?'#edf0eb':'hsl(160 40% '+(96-p.value*65)+'%)',fg=p.value!==null&&p.value>.6?'white':'#143b34';
-    return '<td><button type="button" class="matrix-cell" '+(i===j||!p.n?'disabled':'')+' data-matrix-pair="'+i+','+j+'" style="background:'+bg+';color:'+fg+'" aria-label="'+esc(names[i]+' and '+names[j])+': '+(p.n?'mean absolute difference '+p.value.toFixed(4)+' across '+p.n+' sites':'no shared scores')+'"><strong>'+(p.n?p.value.toFixed(3):'—')+'</strong><small>'+fmt(p.n)+' sites</small></button></td>';
-  }).join('')+'</tr>').join('')+'</tbody></table></div><p class="fine-print">Click a non-diagonal box to inspect that pair below. The pair view will use exactly the sites used by the selected box. Values are descriptive prediction differences, not biological distance or statistical significance.</p>';
+  const emphasise=$('matrix-scale').checked&&pairs.length>0;
+  const scaleMin=emphasise?pairs[0].value:0,scaleMax=emphasise?pairs.at(-1).value:1;
+  const scaleLabel=emphasise?'Visible off-diagonal range; colours emphasise relative differences, including small ones.':'Full 0–1 scale; colours show absolute differences.';
+  $('matrix-output').innerHTML=cards+'<p class="fine-print"><strong>Each box shows the mean absolute score difference.</strong> Lower values mean more similar predictions at the compared sites.</p><div class="matrix-key"><span>'+scaleMin.toFixed(3)+' · closer agreement</span><i></i><span>'+scaleMax.toFixed(3)+' · larger difference</span></div><p class="matrix-scale-note">'+scaleLabel+'</p><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">Mean absolute prediction score differences between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th scope="col" style="color:'+cellColour(n)+'">'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
+    const intensity=p.value===null?0:scaleMax===scaleMin ? 0.5 :Math.max(0,Math.min(1,(p.value-scaleMin)/(scaleMax-scaleMin)));
+    const bg=i===j?'#f0f2f3':p.value===null?'#edf0eb':'hsl(160 40% '+(96-intensity*65)+'%)',fg=i!==j&&p.value!==null&&intensity>.6?'white':'#143b34';
+    const description=names[i]+' and '+names[j]+': '+(p.n?'mean absolute score difference '+p.value.toFixed(4)+' across '+fmt(p.n)+' shared sites':'no shared scores');
+    return '<td><button type="button" class="matrix-cell" '+(i===j||!p.n?'disabled':'')+' title="'+esc(description)+'" data-matrix-pair="'+i+','+j+'" style="background:'+bg+';color:'+fg+'" aria-label="'+esc(names[i]+' and '+names[j])+': '+(p.n?'mean absolute difference '+p.value.toFixed(4)+' across '+p.n+' sites':'no shared scores')+'"><strong>'+(p.n?p.value.toFixed(3):'—')+'</strong>'+(i===j?'<small>Same cell line</small>':pairwise?'<small>'+fmt(p.n)+' sites</small>':'')+'</button></td>';
+  }).join('')+'</tr>').join('')+'</tbody></table></div><p class="fine-print">Click a non-diagonal box to open that pair in Compare a pair. The pair view will use exactly the sites used by the selected box. Values are descriptive prediction differences, not biological distance or statistical significance.</p>';
 }
 function atlasRanking(d,mode){
   return d.keys.map(key=>{
@@ -767,6 +775,7 @@ function bindCrossViews(){
     $(kind+'-reads').addEventListener('change',()=>{crossViews[kind].limit=25;renderCross(kind);});
   }
   $('matrix-mode').addEventListener('change',renderMatrix);
+  $('matrix-scale').addEventListener('change',renderMatrix);
   $('atlas-rank').addEventListener('change',()=>{crossViews.atlas.limit=25;renderAtlas();});
   $('matrix-output').addEventListener('click',e=>{
     const button=e.target.closest('[data-matrix-pair]');if(!button)return;
