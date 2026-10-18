@@ -65,7 +65,16 @@
         <div class="notice compact" id="comparison-notice"><span class="notice-icon">i</span><div>Runs and biological replicates are separate. Shared candidate IDs do not establish an independent test or a biological difference.</div></div>
         <div class="metrics three" id="compare-metrics"></div>
         <div class="chart-grid compare-grid"><article class="panel"><div class="panel-heading"><div><span class="eyebrow">PAIRED MEASUREMENTS</span><h2 id="scatter-title">Coverage at shared sites</h2></div></div><div id="scatter-plot" class="scatter-area"></div><p class="panel-note" id="scatter-note"></p></article><article class="panel overlap-panel"><div class="panel-heading"><div><span class="eyebrow">SITE OVERLAP</span><h2>Measured together</h2></div></div><div id="overlap-chart"></div><div id="overlap-legend"></div><p class="panel-note">A missing site means it was not measured under the current coverage filter. It does not mean the site is unmodified.</p></article></div>
-      </section>
+      
+        <article class="panel rank-panel" id="rank-panel" hidden>
+          <div class="panel-heading"><div><span class="eyebrow">FOLLOW THE SHARED SITES</span><h2>Explore paired prediction scores</h2></div><label>Rank sites by<select id="rank-mode"><option value="both">High scores in both</option><option value="difference">Largest score differences</option><option value="similar">Most similar scores</option><option value="mean">Highest mean score</option></select></label></div>
+          <p id="rank-agreement" class="rank-agreement"></p><p id="rank-help" class="fine-print"></p>
+          <p class="fine-print">A and B refer to the selections above. Coverage is mean coverage for cell-line summaries. “Inspect site / runs” opens Site explorer to examine individual-run consistency.</p>
+          <p id="rank-selection" class="fine-print" aria-live="polite"></p>
+          <div class="table-scroll"><table><thead><tr><th>Rank</th><th>Gene ID</th><th>Transcript ID</th><th>Position</th><th>7-mer</th><th>Score A</th><th>Score B</th><th>B − A</th><th>Coverage A / B</th><th>Explore</th></tr></thead><tbody id="rank-table-body"></tbody></table></div>
+          <div class="rank-footer"><span id="rank-count"></span><button class="button small" id="rank-more">Show 25 more</button></div>
+        </article>
+</section>
 
       <section class="page" id="page-data" aria-labelledby="data-title">
         <div class="page-heading"><div><div class="eyebrow">DATA WORKSPACE</div><h1 id="data-title">Bring your research together.</h1><p class="intro">Add sample coverage now. Add scores when your model is ready.</p></div><button class="button primary" id="data-import">＋ Import CSV</button></div>
