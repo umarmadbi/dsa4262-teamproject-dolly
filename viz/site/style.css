@@ -229,3 +229,7 @@
 #matrix-picker-title{font-size:14px;font-weight:650;color:#143b34}
 .matrix-picker summary>span:first-child{min-width:0}
 @media(max-width:600px){.matrix-picker{width:100%;max-width:none;min-width:0}}
+
+/* White backgrounds for the Site explorer discovery controls. */
+#atlas-panel .coverage-card{background:#fff}
+#atlas-picker summary{background:#fff}
