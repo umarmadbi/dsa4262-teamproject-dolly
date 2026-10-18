@@ -514,7 +514,7 @@ function showDetail(row) {
   $('site-dialog').showModal();
 }
 
-function scatter(pairs, log, leftName, rightName) {
+function scatter(pairs, log, leftName, rightName, selectedKey = null) {
   if (!pairs.length) return '<div class="empty-chart">No paired measurements match this comparison.</div>';
   const w=600,h=335,l=60,r=20,t=18,b=55;
   const transform = v => log ? Math.log10(Math.max(1,v)) : v;
@@ -530,11 +530,16 @@ function scatter(pairs, log, leftName, rightName) {
   }
   content+=`<line x1="${l}" y1="${h-b}" x2="${w-r}" y2="${t}" stroke="#b7cabc" stroke-dasharray="4 5"/>`;
   content+=dots.map(p=>`<circle cx="${scaleX(p.x).toFixed(2)}" cy="${scaleY(p.y).toFixed(2)}" r="2.4" fill="#178c70" opacity=".25"><title>${esc(p.key)} · A ${p.x} · B ${p.y}</title></circle>`).join('');
+  const selected = pairs.find(p=>p.key===selectedKey);
+  if(selected) content += `<circle cx="${scaleX(selected.x)}" cy="${scaleY(selected.y)}" r="7" fill="#e7ad43" stroke="#143b34" stroke-width="2"><title>${esc(selected.key)} · A ${selected.x} · B ${selected.y}</title></circle>`;
   content+=`<text class="axis-label" x="${(l+w-r)/2}" y="${h-9}" text-anchor="middle">${esc(leftName)}${log?' · reads (log scale)':' · score'}</text><text class="axis-label" transform="translate(15 ${(t+h-b)/2}) rotate(-90)" text-anchor="middle">${esc(rightName)}${log?' · reads (log scale)':' · score'}</text>`;
   return `<svg class="scatter-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(log?'Read coverage':'Prediction score')} at ${fmt(pairs.length)} shared sites">${content}</svg>`;
 }
 
 async function renderComparison() {
+  $('rank-panel').hidden=true;
+  rankView.selected=null;
+  $('rank-selection').textContent='';
   const a=$('compare-a').value,b=$('compare-b').value, minReads=Math.max(1,Number($('compare-reads').value)||1), token=++state.tokens.compare;
   if (!sample(a)?.data || !sample(b)?.data) $('compare-metrics').innerHTML=metric('Loading','…','Fetching site data for both samples');
   try { await ensureLoaded([a,b]); } catch (error) { if (token===state.tokens.compare) notify(error.message); return; }
@@ -560,6 +565,74 @@ async function renderComparison() {
   $('overlap-chart').innerHTML=`<div class="overlap-ring"><svg viewBox="0 0 200 200" aria-hidden="true">${arcs}</svg><div class="overlap-center"><strong>${total?(fractions[0]*100).toFixed(1)+'%':'—'}</strong><span>of the site union is shared</span></div></div>`;
   $('overlap-legend').innerHTML=[['Shared',result.shared],['Sites in sample A but not in sample B',result.onlyLeft],['Sites in sample B but not in sample A',result.onlyRight]].map(([name,n],i)=>`<div class="legend-row"><span class="legend-swatch" style="background:${colors[i]}"></span>${name}<strong>${fmt(n)}</strong></div>`).join('');
   $('export-comparison').disabled=!result.pairs.length;
+  const rightMap = new Map(right.map(r=>[r.transcript_id+':'+r.transcript_position,r]));
+  rankView.rows = canScore ? left.flatMap(r=>{
+    const other=rightMap.get(r.transcript_id+':'+r.transcript_position);
+    return other && r.score!=null && other.score!=null ? [{key:r.transcript_id+':'+r.transcript_position,a:r,b:other}] : [];
+  }) : [];
+  rankView.limit=25;
+  renderRankedSites();
+}
+
+
+const rankView = {rows:[],selected:null,limit:25};
+function rankSites(rows,mode) {
+  const value = r => {
+    const a=r.a.score,b=r.b.score;
+    if(mode==='difference') return Math.abs(b-a);
+    if(mode==='similar') return -Math.abs(b-a);
+    if(mode==='mean') return (a+b)/2;
+    return Math.min(a,b);
+  };
+  return [...rows].sort((a,b)=>value(b)-value(a)||a.key.localeCompare(b.key));
+}
+function renderRankedSites(){
+  $('rank-panel').hidden=false;
+  const rows=rankView.rows, mode=$('rank-mode').value;
+  const explanations={
+    both:'Ranked by min(score A, score B), highest first. This favours sites with high predictions in both; it is a ranking, not a modification call.',
+    difference:'Ranked by |score B − score A|, largest first. These are prediction differences, not confirmed biological changes.',
+    similar:'Ranked by |score B − score A|, smallest first. Both low–low and high–high pairs can be similar.',
+    mean:'Ranked by (score A + score B) / 2, highest first. A high mean can still hide disagreement.'
+  };
+  $('rank-help').textContent=explanations[mode]+' Only shared sites with scores from the same model and passing the coverage filter are ranked. Cell-line summaries retain their preselected subset.';
+  const mae=rows.length?rows.reduce((n,r)=>n+Math.abs(r.b.score-r.a.score),0)/rows.length:null;
+  $('rank-agreement').textContent=mae===null?'No paired prediction scores available for this selection.':'Mean absolute score difference: '+mae.toFixed(3)+' across '+fmt(rows.length)+' shared scored sites (0 means identical scores).';
+  const shown=rankSites(rows,mode).slice(0,rankView.limit);
+  $('rank-count').textContent='Showing '+fmt(shown.length)+' of '+fmt(rows.length)+' ranked sites.';
+  $('rank-more').hidden=shown.length>=rows.length;
+  $('rank-table-body').innerHTML=shown.length?shown.map((r,i)=>{
+    const delta=r.b.score-r.a.score;
+    const gene=[...new Set([r.a.gene_id,r.b.gene_id].filter(Boolean))].join(' / ')||'—';
+    const seq=[...new Set([r.a.sequence,r.b.sequence].filter(Boolean))].join(' / ')||'—';
+    return '<tr class="'+(r.key===rankView.selected?'rank-selected':'')+'"><td>'+(i+1)+'</td><td>'+esc(gene)+'</td><td>'+esc(r.a.transcript_id)+'</td><td>'+fmt(r.a.transcript_position)+'</td><td class="sequence">'+esc(seq)+'</td><td>'+r.a.score.toFixed(3)+'</td><td>'+r.b.score.toFixed(3)+'</td><td>'+(delta>0?'+':'')+delta.toFixed(3)+'</td><td>'+fmt(r.a.n_reads)+' / '+fmt(r.b.n_reads)+'</td><td><button class="text-button" data-rank-highlight="'+esc(r.key)+'">Highlight dot</button><button class="text-button" data-rank-open="'+esc(r.key)+'">Inspect site / runs →</button></td></tr>';
+  }).join(''):'<tr><td colspan="10">Choose two datasets with prediction scores from the same model.</td></tr>';
+}
+function bindRankedSites(){
+  $('rank-mode').addEventListener('change',()=>{rankView.limit=25;renderRankedSites();});
+  $('rank-more').addEventListener('click',()=>{rankView.limit+=25;renderRankedSites();});
+  $('rank-table-body').addEventListener('click',e=>{
+    const highlight=e.target.closest('[data-rank-highlight]'),open=e.target.closest('[data-rank-open]');
+    const key=highlight?.dataset.rankHighlight||open?.dataset.rankOpen;
+    if(!key)return;
+    const row=rankView.rows.find(r=>r.key===key);if(!row)return;
+    if(highlight){
+      rankView.selected=key;renderRankedSites();
+      const c=state.comparison;
+      $('scatter-plot').innerHTML=scatter(c.pairs,c.measure==='n_reads',shortName(c.a),shortName(c.b),key);
+      $('rank-selection').textContent='Highlighted '+row.a.transcript_id+' · position '+fmt(row.a.transcript_position)+' · score A '+row.a.score.toFixed(3)+' · score B '+row.b.score.toFixed(3)+'. Gold marks the selected site, including when it was omitted from the background display subset.';
+      $('scatter-plot').scrollIntoView({behavior:'smooth',block:'center'});
+    }else{
+      const c=state.comparison;
+      $('site-sample').value=sample(c.a)?.group==='cellline'&&sample(c.b)?.group==='cellline'?'cellline_all':c.a;
+      $('site-search').value=row.a.transcript_id;
+      $('site-reads').value=$('compare-reads').value;
+      $('site-score').value='';$('scored-only').checked=false;
+      transcriptView.tx=row.a.transcript_id;transcriptView.position=row.a.transcript_position;
+      go('explorer');
+      notify($('site-sample').value==='cellline_all'?'Showing this site across cell lines; inspect individual runs below the heatmap.':'Showing this site in sample A; use the sample selector to inspect sample B.');
+    }
+  });
 }
 
 function renderData() {
@@ -710,6 +783,7 @@ function bindOverviewControls() {
 }
 
 function bind() {
+  bindRankedSites();
   document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
   document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
   document.querySelectorAll('.close-dialog').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
