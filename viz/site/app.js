@@ -4,7 +4,7 @@ import { parseCSV, validateCoverage, attachPredictions, decodeDataset, decodeCel
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Number(n).toLocaleString('en-US');
-const state = { samples: [], catalog: [], rows: [], page: 'overview', tablePage: 0,
+const state = { samples: [], catalog: [], rows: [], page: 'methods', tablePage: 0,
   sort: 'n_reads', descending: true, filtered: [], comparison: null, cutoff: .5,
   selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0, genes: 0 } };
 const loads = new Map();
@@ -870,11 +870,11 @@ function bindComparisonTabs(){
 }
 
 function go(page) {
-  if (!['overview','explorer','compare','data','methods'].includes(page)) page='overview';
+  if (!['overview','explorer','compare','data','methods'].includes(page)) page='methods';
   state.page=page;
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
   document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===page);if(el.dataset.nav===page)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
-  $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Methods & guide'}[page];
+  $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Home & guide'}[page];
   if(page==='overview')renderOverview();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){setComparisonTab(state.comparisonTab||'across');}if(page==='data')renderData();
   history.replaceState(null,'',`#${page}`);window.scrollTo({top:0,behavior:'auto'});
 }
@@ -1108,7 +1108,7 @@ async function start() {
     const response=await fetch('data/manifest.json');if(!response.ok)throw new Error('Could not load the dataset manifest.');
     const manifest=await response.json();state.catalog=manifest.catalog;
     state.samples=manifest.datasets.map(s=>({...s,data:null,scoredTotal:s.stats.byMinReads[readThresholds[0]].scored}));
-    bind();refreshOptions();go(location.hash.slice(1)||'overview');$('loading').hidden=true;
+    bind();refreshOptions();go(location.hash.slice(1)||'methods');$('loading').hidden=true;
   }catch(error){$('loading').innerHTML=`<div class="error-page"><h2>The workspace couldn’t load</h2><p>${esc(error.message)}</p><p>Refresh to try again. For a local copy, serve the folder over HTTP rather than opening index.html directly.</p></div>`;}
 }
 start();
