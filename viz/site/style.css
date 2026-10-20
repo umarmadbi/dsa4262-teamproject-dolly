@@ -338,3 +338,18 @@
 .home-start-card:hover{border-color:#6eac92;box-shadow:0 4px 14px #143b340c}
 .home-start-card:focus-visible{outline:3px solid #267b59;outline-offset:3px}
 @media(max-width:1000px){.home-start-grid{grid-template-columns:1fr}.home-heading h1 br{display:none}}
+
+/* Full-width top navigation; keep workspace routes and keyboard controls intact. */
+.shell{display:block;min-height:100vh}
+.site-header{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:18px max(24px,calc((100vw - 1370px)/2 + 40px));background:#143b34;color:#d7e9de}
+.site-header .brand{padding:0;flex-shrink:0}
+.site-header nav{display:flex;gap:6px;margin:0;min-width:0;overflow-x:auto;padding:5px}
+.site-header .nav-item{white-space:nowrap;padding:11px 14px}
+.topbar{height:60px}
+.cellline-legend{font-size:11px;line-height:1.7;color:var(--muted);text-align:right}
+#cellline-note:empty{display:none}
+.table-score-filter{display:flex;align-items:center;margin:16px 0}
+.table-score-filter label{display:flex;gap:12px;align-items:center;font-size:12px;color:var(--muted)}
+.table-score-filter input{width:110px}
+@media(max-width:1000px){.site-header{flex-wrap:wrap;gap:12px;padding:16px 24px}.site-header nav{width:100%}.site-header .nav-item{flex:0 0 auto}.cellline-legend{max-width:220px}}
+@media(max-width:640px){.site-header{padding:15px 17px}.site-header .nav-item{font-size:11px;padding:9px 11px}.cellline-legend{text-align:left;max-width:none}#cellline-panel>.panel-heading{flex-wrap:wrap}}
