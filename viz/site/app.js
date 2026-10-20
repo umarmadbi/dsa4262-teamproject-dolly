@@ -180,8 +180,7 @@ function renderOverview() {
   if (!samples.length) {
     $('overview-metrics').innerHTML = metric('Site observations', '0', 'No samples selected')
       + metric('Median read coverage', '—', 'Select at least one sample')
-      + geneMetric()
-      + metric('Observations with predictions', '0', 'No samples selected');
+      + geneMetric();
     $('filter-caption').textContent = '0 observations · 0 samples';
     updateUniqueGenes([], threshold);
     const empty = '<div class="empty-chart">Choose samples from the checkbox list above.</div>';
@@ -194,11 +193,10 @@ function renderOverview() {
     renderCellLines(threshold, []);
     return;
   }
-  const s = combineStats(samples.map(a => a.stats), threshold), above = aboveCutoff(s.scoreHist, state.cutoff), one = samples.length === 1;
+  const s = combineStats(samples.map(a => a.stats), threshold), one = samples.length === 1;
   $('overview-metrics').innerHTML = metric('Site observations', fmt(s.sites), one ? `${fmt(s.transcripts)} transcripts` : `Across ${samples.length} samples; shared sites count once per sample`)
     + metric('Median read coverage', s.medianReads === null ? '—' : fmt(s.medianReads), one ? 'Reads at a candidate site' : 'Median of per-sample medians')
-    + geneMetric()
-    + metric('Observations with predictions', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
+    + geneMetric();
   updateUniqueGenes(samples, threshold);
   $('filter-caption').textContent = `${fmt(s.sites)} observations · ${samples.length} ${one ? 'sample' : 'samples'}`;
   $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites, cellLine: a.cellLine, group: a.group })));
