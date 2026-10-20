@@ -368,8 +368,9 @@
 .guide-section>summary:hover{background:#f3f7f2}
 .guide-section>summary strong{display:block;font-size:15px;color:var(--ink)}
 .guide-section>summary small{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
-.guide-chevron{color:var(--teal);font-size:22px;transition:transform .15s}
-.guide-section[open] .guide-chevron{transform:rotate(45deg)}
+.guide-chevron{color:var(--teal);font-size:0;flex-shrink:0}
+.guide-chevron::before{content:"+";font-size:22px}
+.guide-section[open] .guide-chevron::before{content:"−"}
 .guide-section[open]>summary{border-bottom:1px solid var(--line)}
 .guide-body{padding:22px 24px;max-width:100%}
 .guide-body h3{margin:18px 0 8px}.guide-body h3:first-child{margin-top:0}
