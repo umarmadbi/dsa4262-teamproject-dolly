@@ -1,6 +1,6 @@
 import { chatConfig } from './chat-config.js';
 const root=document.createElement('div');root.id='dolly-assistant';
-root.innerHTML=`<button class="chat-launch" aria-expanded="false" aria-controls="chat-panel">✦ Ask Dolly</button>
+root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly — open or close the research guide" title="Ask Dolly" aria-expanded="false" aria-controls="chat-panel"><svg class="chat-sheep" viewBox="0 0 64 56" aria-hidden="true" focusable="false"><g stroke="#143b34" stroke-width="1.6" stroke-linejoin="round"><path d="M17 35h6v16h-6zm13 2h5v14h-5zm14-2h6v16h-6z" fill="#087d68"/><path d="M13 33C4 33 3 24 8 20 3 12 11 6 17 9 20 1 30 1 34 7 41 3 49 7 49 14 57 15 59 23 54 28 58 36 50 42 44 39 39 45 31 43 28 39 20 43 13 41 13 33z" fill="#b5ddc5"/><path d="M49 18c3-6 9-6 12-2l-4 5c4 9 1 17-5 17-7 0-9-8-6-15l-6-5c3-4 7-3 9 0z" fill="#e3f2ea"/></g><path d="M48 25c-1 4 0 7 4 9" fill="none" stroke="#143b34" stroke-width="1.8" stroke-linecap="round"/><circle cx="55" cy="24" r="1.4" fill="#143b34"/></svg></button>
 <section id="chat-panel" class="chat-panel" aria-label="Dolly research guide" hidden>
 <header class="chat-header"><div><strong>Dolly research guide</strong><span>Methods, findings & website help</span></div><button type="button" class="chat-close" aria-label="Close assistant">×</button></header>
 <div class="chat-intro">Answers use reviewed project documentation, not live chart data. AI can make mistakes—check the cited sources.</div>
