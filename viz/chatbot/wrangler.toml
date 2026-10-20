@@ -1,0 +1,19 @@
+name = "dolly-guide"
+main = "worker.mjs"
+compatibility_date = "2026-10-20"
+workers_dev = true
+
+[vars]
+# Exact origins only, comma-separated. No path or trailing slash. No wildcard.
+ALLOWED_ORIGINS = "http://127.0.0.1:8000,http://localhost:8000"
+# Choose an available text model in YOUR Gemini API project; verify free-tier eligibility first.
+GEMINI_MODEL = "SET_GEMINI_MODEL"
+
+# Global-per-location throttle, not a billing cap. Keep the Gemini project on its free tier.
+[[ratelimits]]
+name = "CHAT_RATE_LIMITER"
+namespace_id = "21001"
+simple = { limit = 10, period = 60 }
+
+[observability]
+enabled = false
