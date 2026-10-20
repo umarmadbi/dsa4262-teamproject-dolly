@@ -4,7 +4,7 @@ import { parseCSV, validateCoverage, attachPredictions, decodeDataset, decodeCel
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Number(n).toLocaleString('en-US');
-const state = { samples: [], catalog: [], rows: [], page: 'overview', tablePage: 0,
+const state = { samples: [], catalog: [], rows: [], page: 'methods', tablePage: 0,
   sort: 'n_reads', descending: true, filtered: [], comparison: null, cutoff: .5,
   selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0, genes: 0 } };
 const loads = new Map();
@@ -30,7 +30,7 @@ function shortName(id) { const s = sample(id); return s?.name ?? id; }
 function sampleRows(id) { return sample(id)?.data ?? []; }
 function cellLineIds() { return state.samples.filter(s => s.group === 'cellline').map(s => s.id); }
 function scoreCount() { return state.samples.filter(s => s.group !== 'cellline').reduce((n, s) => n + s.scoredTotal, 0); }
-function sourceTag(s) { return { development: 'Development data', sgnex: 'SG-NEx run', cellline: 'Cell-line summary' }[s.group] ?? 'Imported sample'; }
+function sourceTag(s) { return { sgnex: 'SG-NEx run', cellline: 'Cell-line summary' }[s.group] ?? 'Imported sample'; }
 function setStats(s) { s.stats = sampleStats(s.data); s.rows = s.data.length; s.scoredTotal = s.data.reduce((n, r) => n + (r.score !== null), 0); }
 
 // Site rows are fetched only when a view needs them, then kept. All cell-line summaries share one file.
@@ -58,7 +58,7 @@ function metric(label, value, foot, pending = false) {
   return `<div class="metric${pending ? ' pending' : ''}"><div class="metric-label">${esc(label)}</div><div class="metric-value">${esc(value)}</div><div class="metric-foot">${esc(foot)}</div></div>`;
 }
 
-const groupNames = [['cellline', 'Cell-line summaries'], ['sgnex', 'SG-NEx runs'], ['development', 'Development data'], ['imported', 'Imported samples']];
+const groupNames = [['cellline', 'Cell-line summaries'], ['sgnex', 'SG-NEx runs'], ['imported', 'Imported samples']];
 function sampleOptions(groups) {
   return groupNames.filter(([g]) => groups.includes(g)).map(([g, label]) => {
     const items = state.samples.filter(s => s.group === g);
@@ -66,7 +66,7 @@ function sampleOptions(groups) {
   }).join('');
 }
 function refreshOptions() {
-  const all = ['cellline', 'sgnex', 'development', 'imported'], noSummaries = all.slice(1);
+  const all = ['cellline', 'sgnex', 'imported'], noSummaries = all.slice(1);
   const lists = { 'site-sample': [cellLineIds().length ? '<option value="cellline_all">All cell lines · summary</option>' : '', all],
     'compare-a': ['', all], 'compare-b': ['', all], 'prediction-sample': ['', noSummaries] };
   for (const [id, [extra, groups]] of Object.entries(lists)) {
@@ -87,7 +87,7 @@ function refreshOptions() {
   $('sidebar-status').textContent = scored ? 'Prediction scores loaded' : 'Coverage workspace';
 }
 
-// Stable cell-line colours; run shades distinguish samples within each family.
+// Stable cell-line colours shared by every run in a cell line.
 const cellHues = { A549: 240, H9: 213, HEYA8: 274, Hct116: 25, HepG2: 338, K562: 185, MCF7: 46 };
 function cellColour(cell, lightness = 38) {
   return `hsl(${cellHues[cell] ?? 160} 52% ${lightness}%)`;
@@ -100,7 +100,7 @@ function overviewSamples() {
 function renderSamplePicker() {
   const groups = new Map();
   for (const s of state.samples.filter(s => s.group !== 'cellline')) {
-    const key = s.group === 'development' ? 'Development datasets' : (s.cellLine || 'Other samples');
+    const key = s.cellLine || 'Other samples';
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(s);
   }
@@ -112,7 +112,7 @@ function renderSamplePicker() {
 function syncSamplePicker() {
   const available = state.samples.filter(s => s.group !== 'cellline'), selected = overviewSamples();
   $('sample-picker-label').textContent = selected.length === available.length && available.length
-    ? 'All runs and datasets' : selected.length === 1 ? selected[0].name : `${selected.length} samples selected`;
+    ? 'All samples' : selected.length === 1 ? selected[0].name : `${selected.length} samples selected`;
   $('sample-selection-count').textContent = `${selected.length} of ${available.length} selected`;
   $('sample-checkboxes').querySelectorAll('[data-sample-id]').forEach(input => {
     input.checked = state.selectedSamples === null || state.selectedSamples.has(input.dataset.sampleId);
@@ -122,7 +122,7 @@ function syncSamplePicker() {
 function hBars(entries) {
   const max = Math.max(1, ...entries.map(e => e.value));
   if (!entries.length) return '<div class="empty-chart">No sites match these filters.</div>';
-  return '<div class="hbars">' + entries.map(e => `<div class="bar-row" tabindex="0" aria-label="${esc(e.name)}: ${fmt(e.value)} candidate sites"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%;--sample-colour:${e.group === 'development' ? '#21957e' : cellColour(e.cellLine)}"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
+  return '<div class="hbars">' + entries.map(e => `<div class="bar-row" tabindex="0" aria-label="${esc(e.name)}: ${fmt(e.value)} candidate sites"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%;--sample-colour:${cellColour(e.cellLine)}"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
 }
 
 function histogram(counts, labels, scored = false) {
@@ -164,12 +164,11 @@ function renderCellLines(threshold, selectedSamples) {
     const y = t + i * rowH + rowH / 2, mine = runs.filter(q => q.s.cellLine === c), mean = mine.reduce((a, q) => a + q.pct, 0) / mine.length;
     svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label" style="fill:${cellColour(c)}">${esc(c)}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
     svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="${cellColour(c, 30)}" stroke-width="2"/>`;
-    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" data-run-id="${esc(q.s.id)}" r="5" fill="${cellColour(c, 34 + state.samples.filter(s => s.group === 'sgnex' && s.cellLine === c).sort((a,b) => a.id.localeCompare(b.id)).findIndex(s => s.id === q.s.id) * 6)}" stroke="white" stroke-width=".7"></circle>`).join('');
+    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" data-run-id="${esc(q.s.id)}" r="5" fill="${cellColour(c)}" stroke="white" stroke-width=".7"></circle>`).join('');
     svg += `<text x="${w - r + 8}" y="${y + 4}" style="fill:${cellColour(c)};font-weight:600">${mean.toFixed(2)}%</text>`;
   });
   $('cellline-chart').innerHTML = `<svg class="scatter-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
-  const rho = runs.length > 2 ? pearson(runs.map(q => Math.log10(q.sites)), runs.map(q => q.pct)) : null;
-  $('cellline-note').textContent = `Each colour family represents a cell line, with different shades for its runs. Each dot represents one SG-NEx run; the vertical mark and right-hand percentage show the unweighted mean across the selected runs for that cell line. Only selected SG-NEx runs with scores are shown, using the selected minimum coverage. ${rho === null || !Number.isFinite(rho) ? '' : `Across runs, log candidate-site count and the percentage scoring at least ${state.cutoff} have Pearson r = ${rho.toFixed(2)}. `}Site count is an imperfect proxy for sequencing depth; this association does not establish a cause. Compare shared sites and check replicate consistency before interpreting cell-line differences. Cell-line summaries include only sites averaging at least 0.5 in one or more cell lines.`;
+  $('cellline-note').textContent = '';
 }
 
 function renderOverview() {
@@ -181,8 +180,7 @@ function renderOverview() {
   if (!samples.length) {
     $('overview-metrics').innerHTML = metric('Site observations', '0', 'No samples selected')
       + metric('Median read coverage', '—', 'Select at least one sample')
-      + geneMetric()
-      + metric('Observations with predictions', '0', 'No samples selected');
+      + geneMetric();
     $('filter-caption').textContent = '0 observations · 0 samples';
     updateUniqueGenes([], threshold);
     const empty = '<div class="empty-chart">Choose samples from the checkbox list above.</div>';
@@ -195,11 +193,10 @@ function renderOverview() {
     renderCellLines(threshold, []);
     return;
   }
-  const s = combineStats(samples.map(a => a.stats), threshold), above = aboveCutoff(s.scoreHist, state.cutoff), one = samples.length === 1;
+  const s = combineStats(samples.map(a => a.stats), threshold), one = samples.length === 1;
   $('overview-metrics').innerHTML = metric('Site observations', fmt(s.sites), one ? `${fmt(s.transcripts)} transcripts` : `Across ${samples.length} samples; shared sites count once per sample`)
     + metric('Median read coverage', s.medianReads === null ? '—' : fmt(s.medianReads), one ? 'Reads at a candidate site' : 'Median of per-sample medians')
-    + geneMetric()
-    + metric('Observations with predictions', s.scored ? fmt(s.scored) : 'Awaiting model', s.scored ? `${fmt(above)} at or above ${state.cutoff} · not experimental calls` : 'Coverage exploration is available', !s.scored);
+    + geneMetric();
   updateUniqueGenes(samples, threshold);
   $('filter-caption').textContent = `${fmt(s.sites)} observations · ${samples.length} ${one ? 'sample' : 'samples'}`;
   $('sample-bars').innerHTML = hBars(samples.map(a => ({ name: a.name, value: a.stats.byMinReads[threshold].sites, cellLine: a.cellLine, group: a.group })));
@@ -228,19 +225,16 @@ const cellDescriptions = {
 function renderSampleGroups(samples, threshold) {
   const groups = new Map();
   for (const s of samples) {
-    const key = s.group === 'development' ? 'Development datasets' : (s.cellLine || 'Other samples');
+    const key = s.cellLine || 'Other samples';
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(s);
   }
   $('sample-cards').innerHTML = [...groups].map(([name, members]) => {
-    const development = name === 'Development datasets';
-    const description = development
-      ? 'Training and development datasets supplied for the project.'
-      : (cellDescriptions[name]?.[0] ?? 'User-supplied samples.');
-    const source = !development && cellDescriptions[name]?.[1];
-    const colour = development ? '#21957e' : cellColour(name);
+    const description = cellDescriptions[name]?.[0] ?? 'User-supplied samples.';
+    const source = cellDescriptions[name]?.[1];
+    const colour = cellColour(name);
     return `<section class="sample-group" style="--group-colour:${colour}" aria-label="${esc(name)} samples">
-      <div class="sample-group-heading"><div><h3>${esc(name)}</h3><p>${esc(description)}${source ? ` <a href="https://www.cellosaurus.org/${source}" target="_blank" rel="noopener" aria-label="Cellosaurus information about ${esc(name)}">About this cell line ↗</a>` : ''}</p></div><span class="sample-group-count">${members.length} ${development ? 'datasets' : 'samples'}</span></div>
+      <div class="sample-group-heading"><div><h3>${esc(name)}</h3><p>${esc(description)}${source ? ` <a href="https://www.cellosaurus.org/${source}" target="_blank" rel="noopener" aria-label="Cellosaurus information about ${esc(name)}">About this cell line ↗</a>` : ''}</p></div><span class="sample-group-count">${members.length} samples</span></div>
       <div class="sample-group-grid">${members.map(a => {
     const st = a.stats.byMinReads[threshold];
     return `<article class="sample-card"><div class="tag">${esc(sourceTag(a))}</div><h3>${esc(a.name)}</h3><p>${esc(a.cellLine)} · ${fmt(st.sites)} candidate sites</p><div class="card-bottom"><span>Median ${st.medianReads === null ? '—' : fmt(st.medianReads)} reads</span><span class="pill ${st.scored ? 'ready' : 'pending'}">${st.scored ? 'Scores loaded' : 'Scores pending'}</span></div></article>`;
@@ -450,7 +444,7 @@ function showSiteRunTooltip(dot) {
   if (activeDot) activeDot.removeAttribute('aria-describedby');
   activeDot=dot;
   const tip=$('run-tooltip');
-  tip.innerHTML=`<div class="run-tooltip-kicker">${esc(q.s.cellLine)} · Individual run</div><strong class="run-tooltip-name">${esc(q.s.name)}</strong><div class="run-tooltip-value">${q.row.score.toFixed(3)}<span>prediction score</span></div><p>${fmt(q.row.n_reads)} reads · position ${fmt(transcriptView.position)}</p><div class="run-tooltip-foot">${esc(transcriptView.tx)}<br>Not the fraction of modified reads</div>`;
+  tip.innerHTML=`<div class="run-tooltip-kicker">${esc(q.s.cellLine)} · Individual run</div><strong class="run-tooltip-name">${esc(q.s.name)}</strong><div class="run-tooltip-value">${q.row.score.toFixed(3)}<span>prediction score</span></div><p>${fmt(q.row.n_reads)} reads · position ${fmt(transcriptView.position)}</p><div class="run-tooltip-foot">${esc(transcriptView.tx)}</div>`;
   tip.style.setProperty('--tooltip-colour',cellColour(q.s.cellLine,60));tip.hidden=false;
   dot.setAttribute('aria-describedby','run-tooltip');
   const rect=dot.getBoundingClientRect(),width=tip.offsetWidth,height=tip.offsetHeight;
@@ -517,9 +511,12 @@ function showDetail(row) {
   $('site-dialog-title').textContent = `${row.transcript_id} : ${fmt(pos)}`;
   const sequence = row.sequence ? `<div class="detail-sequence">${[...row.sequence].map((b,i)=>`<span${row.sequence.length===7&&i===3?' class="candidate-base"':''}>${esc(b)}</span>`).join('')}</div>` : '';
   const runsNote = row.runs ? `<dt>Runs measuring this site</dt><dd>${fmt(row.runs)} of ${fmt(s.runs)}</dd>` : '';
-  const labelNote = row.label === null ? 'Not supplied' : `${row.label}${row.label !== 0 && row.label !== 1 ? ' · intermediate value; meaning unconfirmed' : ' · provided site annotation'}`;
-  const transcriptLink = /^ENST\d+/.test(row.transcript_id) ? `<a href="https://www.ensembl.org/Homo_sapiens/Transcript/Summary?t=${encodeURIComponent(row.transcript_id)}" target="_blank" rel="noopener">${esc(row.transcript_id)} ↗</a>` : esc(row.transcript_id);
-  $('site-details').innerHTML = sequence + `<div class="detail-grid"><div class="detail-box"><span>${row.runs ? 'Mean read coverage' : 'Read coverage'}</span><strong>${fmt(row.n_reads)}</strong></div><div class="detail-box"><span>${row.runs ? 'Mean prediction score' : 'Prediction score'}</span><strong>${row.score===null?'Pending':row.score.toFixed(4)}</strong></div></div><dl class="detail-list"><dt>Sample</dt><dd>${esc(s.name)}</dd><dt>Cell line</dt><dd>${esc(s.cellLine)}</dd>${s.group === 'cellline' ? runsNote : `<dt>Replicate / run</dt><dd>${esc(s.replicate ?? 'Not supplied')} / ${esc(s.run ?? 'Not supplied')}</dd>`}<dt>Transcript</dt><dd>${transcriptLink}</dd><dt>Gene</dt><dd>${esc(row.gene_name || row.gene_id || 'Unmapped')}</dd><dt>Provided label</dt><dd>${esc(labelNote)}</dd><dt>Model / version</dt><dd>${esc(s.model || 'No predictions imported')}</dd></dl><p class="fine-print">${esc(s.annotationNote || 'Annotations and model labels are supplied at import.')} Position is a transcript coordinate. A model score is not the fraction of modified reads.</p>`;
+  const browserLink = (id, kind) => id && /^ENS[GT]\d+(?:\.\d+)?$/.test(id)
+    ? `<a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=${encodeURIComponent(id)}" target="_blank" rel="noopener" title="Find this ${kind} in UCSC Genome Browser (GRCh38/hg38)">${esc(id)} ↗</a>`
+    : esc(id || 'Unmapped');
+  const transcriptLink = browserLink(row.transcript_id, 'transcript');
+  const geneLink = browserLink(row.gene_id, 'gene');
+  $('site-details').innerHTML = sequence + `<div class="detail-grid"><div class="detail-box"><span>${row.runs ? 'Mean read coverage' : 'Read coverage'}</span><strong>${fmt(row.n_reads)}</strong></div><div class="detail-box"><span>${row.runs ? 'Mean prediction score' : 'Prediction score'}</span><strong>${row.score===null?'Pending':row.score.toFixed(4)}</strong></div></div><dl class="detail-list"><dt>Sample</dt><dd>${esc(s.name)}</dd><dt>Cell line</dt><dd>${esc(s.cellLine)}</dd>${s.group === 'cellline' ? runsNote : `<dt>Replicate / run</dt><dd>${esc(s.replicate ?? 'Not supplied')} / ${esc(s.run ?? 'Not supplied')}</dd>`}<dt>Transcript</dt><dd>${transcriptLink}</dd><dt>Gene</dt><dd>${geneLink}</dd><dt>Model / version</dt><dd>${esc(s.model || 'No predictions imported')}</dd></dl>`;
   $('site-dialog').showModal();
 }
 
@@ -568,7 +565,7 @@ async function renderComparison() {
   $('scatter-title').textContent=measure==='score'?'Prediction scores at shared sites':'Coverage at shared sites';
   $('scatter-plot').innerHTML=scatter(result.pairs,measure==='n_reads',shortName(a),shortName(b));
   $('scatter-note').textContent=result.pairs.length ? `${fmt(result.pairs.length)} paired measurements; the plot shows up to 1,600 evenly spaced points for readability. The dashed line marks equal values.` : 'No sites with both measurements are available.';
-  let note=a===b?'You are comparing a sample with itself. Select two different samples to inspect overlap.': sa?.group==='development'||sb?.group==='development'?'Development datasets can share training-site IDs. Treat this as descriptive exploration, not independent model validation.': sa?.group==='cellline'||sb?.group==='cellline'?'Cell-line summaries hold only sites whose mean score reaches the summary threshold in at least one cell line; values are means over each cell line’s runs. Only-in-one-sample sites were not measured with enough reads in the other cell line, which does not make them unmodified.':'Replicate numbers and runs are taken from imported metadata. Check replicate consistency before interpreting cell-line differences.';
+  let note=a===b?'You are comparing a sample with itself. Select two different samples to inspect overlap.':  sa?.group==='cellline'||sb?.group==='cellline'?'Cell-line summaries hold only sites whose mean score reaches the summary threshold in at least one cell line; values are means over each cell line’s runs. Only-in-one-sample sites were not measured with enough reads in the other cell line, which does not make them unmodified.':'Replicate numbers and runs are taken from imported metadata. Check replicate consistency before interpreting cell-line differences.';
   if (sa?.model && sb?.model && !sameModel) note+=' Prediction score comparison is disabled because the model/version labels differ.';
   $('comparison-notice').innerHTML=`<span class="notice-icon">i</span><div>${esc(note)}</div>`;
   const total=result.shared+result.onlyLeft+result.onlyRight;
@@ -802,7 +799,7 @@ function bindCrossViews(){
 function renderData() {
   const listed=state.samples.filter(s=>s.group!=='cellline'),summaries=state.samples.filter(s=>s.group==='cellline');
   $('loaded-count').textContent=listed.length+' sample datasets · '+summaries.length+' derived cell-line summaries';
-  const groups=[['Development datasets',listed.filter(s=>s.group==='development')]];
+  const groups=[];
   const runs=listed.filter(s=>s.group==='sgnex');
   for(const cell of [...new Set(runs.map(s=>s.cellLine))].sort())groups.push([cell+' · SG-NEx runs',runs.filter(s=>s.cellLine===cell)]);
   groups.push(['Imported samples',listed.filter(s=>s.group==='imported')],['Derived cell-line summaries',summaries]);
@@ -870,11 +867,11 @@ function bindComparisonTabs(){
 }
 
 function go(page) {
-  if (!['overview','explorer','compare','data','methods'].includes(page)) page='overview';
+  if (!['overview','explorer','compare','data','methods'].includes(page)) page='methods';
   state.page=page;
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
   document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===page);if(el.dataset.nav===page)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
-  $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Methods & guide'}[page];
+  $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Home & guide'}[page];
   if(page==='overview')renderOverview();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){setComparisonTab(state.comparisonTab||'across');}if(page==='data')renderData();
   history.replaceState(null,'',`#${page}`);window.scrollTo({top:0,behavior:'auto'});
 }
@@ -1107,8 +1104,8 @@ async function start() {
   try {
     const response=await fetch('data/manifest.json');if(!response.ok)throw new Error('Could not load the dataset manifest.');
     const manifest=await response.json();state.catalog=manifest.catalog;
-    state.samples=manifest.datasets.map(s=>({...s,data:null,scoredTotal:s.stats.byMinReads[readThresholds[0]].scored}));
-    bind();refreshOptions();go(location.hash.slice(1)||'overview');$('loading').hidden=true;
+    state.samples=manifest.datasets.filter(s=>s.group!=='development').map(s=>({...s,data:null,scoredTotal:s.stats.byMinReads[readThresholds[0]].scored}));
+    bind();refreshOptions();go(location.hash.slice(1)||'methods');$('loading').hidden=true;
   }catch(error){$('loading').innerHTML=`<div class="error-page"><h2>The workspace couldn’t load</h2><p>${esc(error.message)}</p><p>Refresh to try again. For a local copy, serve the folder over HTTP rather than opening index.html directly.</p></div>`;}
 }
 start();

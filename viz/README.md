@@ -1,6 +1,6 @@
 # Dolly RNA Modification Explorer
 
-Interactive dashboard for m6A prediction scores, read coverage and shared-site comparisons across SG-NEx direct RNA-seq runs. Plain HTML/JS with no build step and no external frontend dependencies; the deployed site is exactly the contents of `site/`.
+Interactive dashboard for m6A prediction scores, read coverage and shared-site comparisons across SG-NEx direct RNA-seq runs. Plain HTML/JS with no build step; the optional AI guide loads Cloudflare Turnstile only when configured and opened; the deployed site is exactly the contents of `site/`.
 
 ## View it
 
@@ -52,7 +52,7 @@ The page fetches only `manifest.json` at startup. The overview (metrics, histogr
 - `site/` — the published page (`index.html`, `app.js`, `core.js`, `style.css`), `export_coverage.py` helper, and `data/` (manifest with precomputed statistics, one compact JSON file per dataset, and `cell_lines.json`).
 - `tests/core.test.mjs` — data, parsing, import and join checks; also checks that every dataset's precomputed statistics equal what the browser computes from its rows.
 
-The development datasets (dataset0-2) carry coverage only. SG-NEx runs carry site-level model scores. Browser imports (Data & imports) are kept in the browser only and are cleared on refresh; to add data permanently, use the build script above.
+The development datasets (dataset0-2) are excluded from the current interface. SG-NEx runs carry site-level model scores. Browser imports (Data & imports) are kept in the browser only and are cleared on refresh; to add data permanently, use the build script above.
 
 ## Prediction contract
 
@@ -75,3 +75,8 @@ Run node tests/core.test.mjs. Tests check real data counts and overlap, CSV roun
 https://github.com/GoekeLab/sg-nex-data
 https://github.com/GoekeLab/sg-nex-data/blob/master/docs/AWS_data_access_tutorial.md
 https://github.com/GoekeLab/sg-nex-data/blob/master/docs/SG-NEx_m6Anet_tutorial.md
+
+## Optional AI research guide
+
+The floating **Ask Dolly** guide explains reviewed methods, results and website use. It is not connected by default and does not inspect live chart data or run predictions. Deployment, secrets, costs and privacy are documented in [chatbot/README.md](chatbot/README.md). Run its mock-only checks with `node --test viz/chatbot/worker.test.mjs`.
+
