@@ -1,12 +1,33 @@
 import { parseCSV, validateCoverage, attachPredictions, decodeDataset, decodeCellLines, filterRows,
   compareSamples, toCSV, sampleStats, combineStats, aboveCutoff, readThresholds } from './core.js';
+import { cellColour, thresholdIndex, calibrationView, expressionView, metageneView, stopView, junctionView, motifView,
+  m6anetView, reproView, fairView, diffView, diffKeys, transcriptMap, atlasRows, atlasTable, setGeneNames, geneName, geneCell, tip } from './views.js';
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Number(n).toLocaleString('en-US');
 const state = { samples: [], catalog: [], rows: [], page: 'methods', tablePage: 0,
   sort: 'n_reads', descending: true, filtered: [], comparison: null, cutoff: .5,
-  selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0, genes: 0 } };
+  selectedSamples: null, annotations: new Map(), tokens: { explorer: 0, compare: 0, genes: 0, insights: 0, landscape: 0, repro: 0, hc: 0 },
+  scoreScale: 'linear', celllineSet: 'all', landscape: { cells: null, set: 'all' },
+  repro: { metric: 'spearman', depth: 20, showExcluded: false }, hc: { set: 'robust', region: 'all', motif: 'all', limit: 50 } };
+
+// Derived data from scripts/build_viz_insights.py, fetched once on first use.
+const jsonCache = {};
+function loadJSON(name) {
+  jsonCache[name] ??= fetch(`data/${name}.json`).then(r => { if (!r.ok) throw new Error(`Could not load ${name}.json`); return r.json(); })
+    .catch(error => { delete jsonCache[name]; throw error; });
+  return jsonCache[name];
+}
+// Limitation flags written into manifest.json by build_viz_insights.py.
+const isExcluded = s => Boolean(s?.limitations?.includes('v1Fallback'));
+const hasTrainingOverlap = s => Boolean(s?.limitations?.includes('trainingOverlap'));
+const TRAINING_LINE = 'Hct116';
+function limitationBadges(s) {
+  return (isExcluded(s) ? '<span class="pill warning" title="Scored without transcript-structure features; excluded from summaries">Excluded from summaries</span>' : '')
+    + (hasTrainingOverlap(s) ? '<span class="pill caution" title="May share reads with the training data">Possible training overlap</span>' : '');
+}
+const stripVersion = tx => String(tx).split('.')[0];
 const loads = new Map();
 let toastTimer, searchTimer;
 
@@ -35,6 +56,8 @@ function setStats(s) { s.stats = sampleStats(s.data); s.rows = s.data.length; s.
 
 // Site rows are fetched only when a view needs them, then kept. All cell-line summaries share one file.
 function annotate(rows) {
+  // Gene symbols from data/gene_names.json fill rows that have a gene ID but no name (in place: rows can be large).
+  for (const r of rows) if (!r.gene_name && r.gene_id) r.gene_name = geneName(r.gene_id);
   if (!state.annotations.size) return rows;
   return rows.map(r => { const a = state.annotations.get(r.transcript_id); return a ? { ...r, gene_id: a[0], gene_name: a[1] || r.gene_name } : r; });
 }
@@ -87,11 +110,7 @@ function refreshOptions() {
   $('sidebar-status').textContent = scored ? 'Prediction scores loaded' : 'Coverage workspace';
 }
 
-// Stable cell-line colours shared by every run in a cell line.
-const cellHues = { A549: 240, H9: 213, HEYA8: 274, Hct116: 25, HepG2: 338, K562: 185, MCF7: 46 };
-function cellColour(cell, lightness = 38) {
-  return `hsl(${cellHues[cell] ?? 160} 52% ${lightness}%)`;
-}
+// Stable cell-line colours (cellColour) are shared with views.js.
 
 function overviewSamples() {
   return state.samples.filter(s => s.group !== 'cellline' &&
@@ -125,9 +144,9 @@ function hBars(entries) {
   return '<div class="hbars">' + entries.map(e => `<div class="bar-row" tabindex="0" aria-label="${esc(e.name)}: ${fmt(e.value)} candidate sites"><span class="bar-name" title="${esc(e.name)}">${esc(e.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0, e.value / max * 100)}%;--sample-colour:${cellColour(e.cellLine)}"></div></div><span class="bar-count">${fmt(e.value)}</span></div>`).join('') + '</div>';
 }
 
-function histogram(counts, labels, scored = false) {
-  const max = Math.max(1, ...counts);
-  return `<div class="histogram${scored ? ' scored' : ''}" role="group" aria-label="${scored ? 'Prediction score distribution' : 'Read coverage distribution'}">` + counts.map((n,i) => `<div class="hist-bin" tabindex="0" role="img" aria-label="${esc(labels[i])}: ${fmt(n)} site observations"><div class="hist-fill" style="height:${n / max * 86}%"><span class="hist-count">${fmt(n)}</span></div><span class="hist-label">${esc(labels[i])}</span></div>`).join('') + '</div>';
+function histogram(counts, labels, scored = false, log = false) {
+  const max = Math.max(1, ...counts), height = n => log ? Math.log10(n + 1) / Math.log10(max + 1) : n / max;
+  return `<div class="histogram${scored ? ' scored' : ''}" role="group" aria-label="${scored ? 'Prediction score distribution' : 'Read coverage distribution'}${log ? ' (log scale)' : ''}">` + counts.map((n,i) => `<div class="hist-bin" tabindex="0" role="img" aria-label="${esc(labels[i])}: ${fmt(n)} site observations"><div class="hist-fill" style="height:${height(n) * 86}%"><span class="hist-count">${fmt(n)}</span></div><span class="hist-label">${esc(labels[i])}</span></div>`).join('') + '</div>';
 }
 
 function pearson(xs, ys) {
@@ -138,37 +157,58 @@ function pearson(xs, ys) {
 }
 
 // One row per cell line; each dot is a run's share of scored sites at or above the cutoff.
+// Site set "shared" uses the sites measured in all seven cell lines (insights.json), so runs are compared on the same sites.
+function runCallRate(s, threshold) {
+  if (state.celllineSet === 'shared') {
+    const r = state.insights?.perRun.find(q => q.id === s.id);
+    return r && r.commonSites ? { pct: r.commonCalls[thresholdIndex(state.cutoff)] / r.commonSites * 100, n: r.commonSites, high: r.commonCalls[thresholdIndex(state.cutoff)] } : null;
+  }
+  const st = s.stats.byMinReads[threshold];
+  if (!st.scored) return null;
+  const high = aboveCutoff(st.scoreHist, state.cutoff);
+  return { pct: high / st.scored * 100, n: st.scored, high };
+}
 function renderCellLines(threshold, selectedSamples) {
   hideDotTooltip();
-  const runs = selectedSamples.filter(s => s.group === 'sgnex').map(s => {
-    const st = s.stats.byMinReads[threshold];
-    return { s, sites: st.sites, pct: st.scored ? aboveCutoff(st.scoreHist, state.cutoff) / st.scored * 100 : 0 };
-  }).filter(q => q.s.stats.byMinReads[threshold].scored > 0);
-  $('cellline-panel').hidden = !runs.length;
+  if (state.celllineSet === 'shared' && !state.insights) {
+    loadJSON('insights').then(ins => { state.insights = ins; if (state.page === 'overview') renderOverview(); }).catch(e => notify(e.message));
+  }
+  const runs = selectedSamples.filter(s => s.group === 'sgnex').map(s => ({ s, ...runCallRate(s, threshold) })).filter(q => q.pct !== undefined);
+  $('cellline-panel').hidden = !selectedSamples.some(s => s.group === 'sgnex');
   if (!runs.length) {
-    $('cellline-chart').innerHTML = '';
-    $('cellline-controls').innerHTML = '';
+    $('cellline-chart').innerHTML = state.celllineSet === 'shared' ? '<p class="cross-status">Loading shared-site rates…</p>' : '';
+    $('cellline-controls').innerHTML = $('cellline-panel').hidden ? '' : $('cellline-controls').innerHTML;
     $('cellline-note').textContent = '';
     return;
   }
-  const totalScored = runs.reduce((n, q) => n + q.s.stats.byMinReads[threshold].scored, 0);
-  const totalAbove = runs.reduce((n, q) => n + aboveCutoff(q.s.stats.byMinReads[threshold].scoreHist, state.cutoff), 0);
+  const counted = runs.filter(q => !isExcluded(q.s));
+  const totalScored = counted.reduce((n, q) => n + q.n, 0), totalAbove = counted.reduce((n, q) => n + q.high, 0);
   const options = Array.from({length:9},(_,i)=>({value:(i+1)/10,label:((i+1)/10).toFixed(1)}));
-  $('cellline-controls').innerHTML = `<div class="score-controls"><span>Exploration cutoff</span>${singleChoicePicker('cutoff-picker','Exploration cutoff',options,state.cutoff)}<strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} scored observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">Across the selected SG-NEx runs at the selected minimum coverage. This cutoff updates the dot chart; it does not filter the score-distribution histogram.</p>`;
+  const sets = [{ value: 'all', label: 'All measured sites' }, { value: 'shared', label: 'Sites measured in every run' }];
+  $('cellline-controls').innerHTML = `<div class="score-controls"><span>Exploration cutoff</span>${singleChoicePicker('cutoff-picker','Exploration cutoff',options,state.cutoff)}<span>Site set</span>${singleChoicePicker('cellline-set-picker','Site set',sets,state.celllineSet)}<strong aria-live="polite">${fmt(totalAbove)} / ${fmt(totalScored)} ${state.celllineSet === 'shared' ? 'shared-site' : 'scored'} observations at or above ${state.cutoff}</strong></div><p id="cellline-control-note" class="fine-print">${state.celllineSet === 'shared' ? `Every run is scored on the same ${fmt(state.insights?.totals.commonSites ?? 0)} sites, the ones measured with ≥20 reads in every run used for summaries. The coverage filter above does not apply. These are mostly highly expressed transcripts, so rates are lower than for all sites, but runs and cell lines are compared like for like.` : 'Across the selected SG-NEx runs at the selected minimum coverage. Raw rates rise with run size (see “Why raw call rates mislead” below); switch the site set to compare runs on the same sites.'} The cutoff also drives the calibration and call-rate panels below; it does not filter the score-distribution histogram.</p>`;
   const lines = [...new Set(runs.map(r => r.s.cellLine))].sort();
   const max = Math.max(0.5, ...runs.map(r => r.pct)) * 1.1;
   const w = 600, l = 78, r = 70, rowH = 30, t = 10, h = t + lines.length * rowH + 30, x = v => l + v / max * (w - l - r);
   const ticks = Array.from({ length: 5 }, (_, i) => max / 1.1 * i / 4);
   let svg = ticks.map(v => `<line x1="${x(v)}" y1="${t}" x2="${x(v)}" y2="${h - 26}" stroke="#edf1e8"/><text x="${x(v)}" y="${h - 10}" text-anchor="middle">${v.toFixed(1)}%</text>`).join('');
   lines.forEach((c, i) => {
-    const y = t + i * rowH + rowH / 2, mine = runs.filter(q => q.s.cellLine === c), mean = mine.reduce((a, q) => a + q.pct, 0) / mine.length;
-    svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label" style="fill:${cellColour(c)}">${esc(c)}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
-    svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="${cellColour(c, 30)}" stroke-width="2"/>`;
-    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map((q, runIndex) => `<circle class="run-dot" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%" cx="${x(q.pct).toFixed(1)}" cy="${y}" data-run-id="${esc(q.s.id)}" r="5" fill="${cellColour(c)}" stroke="white" stroke-width=".7"></circle>`).join('');
-    svg += `<text x="${w - r + 8}" y="${y + 4}" style="fill:${cellColour(c)};font-weight:600">${mean.toFixed(2)}%</text>`;
+    const y = t + i * rowH + rowH / 2, mine = runs.filter(q => q.s.cellLine === c), used = mine.filter(q => !isExcluded(q.s));
+    svg += `<text x="${l - 10}" y="${y + 4}" text-anchor="end" class="axis-label" style="fill:${cellColour(c)}">${esc(c)}${c === TRAINING_LINE ? ' †' : ''}</text><line x1="${l}" y1="${y}" x2="${w - r}" y2="${y}" stroke="#f3f5ef"/>`;
+    if (used.length) {
+      const mean = used.reduce((a, q) => a + q.pct, 0) / used.length;
+      svg += `<line x1="${x(mean)}" y1="${y - 9}" x2="${x(mean)}" y2="${y + 9}" stroke="${cellColour(c, 30)}" stroke-width="2"/><text x="${w - r + 8}" y="${y + 4}" style="fill:${cellColour(c)};font-weight:600">${mean.toFixed(2)}%</text>`;
+    } else svg += `<text x="${w - r + 8}" y="${y + 4}">—</text>`;
+    svg += mine.sort((a, b) => a.s.id.localeCompare(b.s.id)).map(q => {
+      const excluded = isExcluded(q.s), ring = q.s.id === state.highlightRun ? `<circle cx="${x(q.pct).toFixed(1)}" cy="${y}" r="10" fill="none" stroke="#e7ad43" stroke-width="2.5" pointer-events="none"/>` : '';
+      return `<circle class="run-dot${excluded ? ' excluded' : ''}" tabindex="0" aria-label="${esc(q.s.name)}: ${q.pct.toFixed(2)}%${excluded ? ', excluded from the mean' : ''}" cx="${x(q.pct).toFixed(1)}" cy="${y}" data-run-id="${esc(q.s.id)}" r="5" fill="${excluded ? 'white' : cellColour(c)}" stroke="${excluded ? cellColour(c) : 'white'}" stroke-width="${excluded ? 1.6 : .7}" ${excluded ? 'stroke-dasharray="2 2"' : ''}></circle>${ring}`;
+    }).join('');
   });
   $('cellline-chart').innerHTML = `<svg class="scatter-svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="group" aria-label="Share of sites scoring at least ${state.cutoff} per run, grouped by cell line">${svg}</svg>`;
-  $('cellline-note').textContent = '';
+  const notes = [];
+  if (runs.some(q => isExcluded(q.s))) notes.push('Hollow dashed dot: MCF7 rep 3 · run 1, scored without transcript-structure features and excluded from the mean.');
+  if (lines.includes(TRAINING_LINE)) notes.push('† Hct116 is the training cell line; its scores run about 20% higher on shared sites, most likely a calibration shift rather than more m6A.');
+  if (state.highlightRun) notes.push(`Gold ring: ${shortName(state.highlightRun)}, highlighted from the call-rate panel below (click it there again to clear).`);
+  $('cellline-note').textContent = notes.join(' ');
 }
 
 function renderOverview() {
@@ -204,20 +244,64 @@ function renderOverview() {
   $('prediction-heading').textContent = s.scored ? 'Distribution of predicted m6A scores' : 'Ready for your predictions';
   $('prediction-copy').textContent = s.scored ? 'Each bar counts site observations in a score range. Higher scores indicate stronger model evidence for m6A, not the fraction of modified reads. The full distribution is shown; use the cutoff in the cell-line panel below to explore high-scoring predictions.' : 'Attach a CSV with transcript ID, position and score. Coverage and predictions will be joined by site, with unmatched IDs checked.';
   $('overview-predictions').textContent = s.scored ? 'Add more scores' : 'Add predictions';
-  $('score-distribution').hidden = !s.scored;
+  $('score-distribution').hidden = $('score-scale-host').hidden = $('score-scale-note').hidden = !s.scored;
   if (s.scored) {
-    $('score-distribution').innerHTML = histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true);
+    const log = state.scoreScale === 'log';
+    $('score-scale-host').innerHTML = '<span>Bar height</span>' + singleChoicePicker('score-scale-picker', 'Bar height', [{ value: 'linear', label: 'Linear' }, { value: 'log', label: 'Log scale' }], state.scoreScale);
+    $('score-distribution').innerHTML = histogram(s.scoreHist, Array.from({length:10},(_,i)=>`${(i/10).toFixed(1)}–${((i+1)/10).toFixed(1)}`),true,log);
+    const low = s.scoreHist[0] / s.scored * 100;
+    $('score-scale-note').textContent = `${low.toFixed(1)}% of observations score below 0.1, so on a linear scale the rest of the distribution is hard to see. ${log ? 'Log scale: bar height is log10(count + 1); read exact counts from the labels.' : 'Switch to the log scale to compare the higher bins.'}`;
   }
   renderCellLines(threshold, samples);
+  renderInsightPanels(samples);
   renderSampleGroups(samples, threshold);
 }
 
+
+// Overview panels driven by insights.json; they follow the exploration cutoff and the sample filter.
+async function renderInsightPanels(samples) {
+  const token = ++state.tokens.insights;
+  let ins;
+  try { ins = state.insights ?? (state.insights = await loadJSON('insights')); }
+  catch (error) { $('calibration-output').innerHTML = $('expression-output').innerHTML = `<p class="cross-status">${esc(error.message)}</p>`; return; }
+  if (token !== state.tokens.insights) return;
+  $('calibration-output').innerHTML = calibrationView(ins.calibration, state.cutoff);
+  const ids = new Set(samples.filter(s => s.group === 'sgnex').map(s => s.id));
+  $('expression-panel').hidden = ids.size < 2;
+  if (ids.size >= 2) $('expression-output').innerHTML = expressionView(ins, state.cutoff, ids, state.highlightRun);
+}
+
+// Landscape page.
+async function renderLandscape() {
+  const token = ++state.tokens.landscape;
+  let ins;
+  try { ins = state.insights ?? (state.insights = await loadJSON('insights')); }
+  catch (error) { $('landscape-metagene').innerHTML = `<p class="cross-status">${esc(error.message)}</p>`; return; }
+  if (token !== state.tokens.landscape) return;
+  const L = state.landscape;
+  L.cells ??= new Set(ins.cellLines);
+  $('landscape-cells').innerHTML = ins.cellLines.map(c => `<label class="cross-cell"><input type="checkbox" value="${esc(c)}" ${L.cells.has(c) ? 'checked' : ''}><span style="color:${cellColour(c)}">${esc(c)}${c === TRAINING_LINE ? ' †' : ''}</span></label>`).join('');
+  $('landscape-cutoff-host').innerHTML = singleChoicePicker('landscape-cutoff-picker', 'Score cutoff', Array.from({length:9},(_,i)=>({value:(i+1)/10,label:((i+1)/10).toFixed(1)})), state.cutoff);
+  $('landscape-set-host').innerHTML = singleChoicePicker('landscape-set-picker', 'Site set', [{ value: 'all', label: 'All measured sites' }, { value: 'shared', label: 'Sites in all 7 lines' }], L.set);
+  $('landscape-badge').innerHTML = `<i></i> ${ins.perRun.length - ins.excludedRuns.length} runs · ${ins.cellLines.length} cell lines · ${fmt(ins.totals.cleanObservations)} observations`;
+  const cells = ins.cellLines.filter(c => L.cells.has(c));
+  if (!cells.length) { for (const id of ['landscape-metagene','landscape-stop','landscape-junction','landscape-motifs']) $(id).innerHTML = '<p class="empty-chart">Select at least one cell line.</p>'; }
+  else {
+    if (L.focus && !cells.includes(L.focus)) L.focus = null;
+    const opts = { cells, set: L.set, cutoff: state.cutoff, focus: L.focus };
+    $('landscape-metagene').innerHTML = metageneView(ins, opts);
+    $('landscape-stop').innerHTML = stopView(ins, opts);
+    $('landscape-junction').innerHTML = junctionView(ins, opts);
+    $('landscape-motifs').innerHTML = motifView(ins, opts);
+  }
+  $('landscape-m6anet').innerHTML = m6anetView(ins.m6anet);
+}
 
 const cellDescriptions = {
   A549: ['Lung cancer cells (adenocarcinoma).', 'CVCL_0023'],
   H9: ['Human embryonic stem cells (WA09); not a cancer-derived cell line.', 'CVCL_9773'],
   HEYA8: ['Ovarian cancer cells.', 'CVCL_8878'],
-  Hct116: ['Colon cancer cells.', 'CVCL_0291'],
+  Hct116: ['Colon cancer cells. Training cell line for Dolly, so its scores run slightly higher.', 'CVCL_0291'],
   HepG2: ['Liver cancer cells derived from hepatoblastoma.', 'CVCL_0027'],
   K562: ['Blood cancer cells derived from chronic myeloid leukaemia.', 'CVCL_0004'],
   MCF7: ['Breast cancer cells.', 'CVCL_0031']
@@ -237,7 +321,7 @@ function renderSampleGroups(samples, threshold) {
       <div class="sample-group-heading"><div><h3>${esc(name)}</h3><p>${esc(description)}${source ? ` <a href="https://www.cellosaurus.org/${source}" target="_blank" rel="noopener" aria-label="Cellosaurus information about ${esc(name)}">About this cell line ↗</a>` : ''}</p></div><span class="sample-group-count">${members.length} samples</span></div>
       <div class="sample-group-grid">${members.map(a => {
     const st = a.stats.byMinReads[threshold];
-    return `<article class="sample-card"><div class="tag">${esc(sourceTag(a))}</div><h3>${esc(a.name)}</h3><p>${esc(a.cellLine)} · ${fmt(st.sites)} candidate sites</p><div class="card-bottom"><span>Median ${st.medianReads === null ? '—' : fmt(st.medianReads)} reads</span><span class="pill ${st.scored ? 'ready' : 'pending'}">${st.scored ? 'Scores loaded' : 'Scores pending'}</span></div></article>`;
+    return `<article class="sample-card${isExcluded(a) ? ' flagged' : ''}"><div class="tag">${esc(sourceTag(a))}</div><h3>${esc(a.name)}</h3><p>${esc(a.cellLine)} · ${fmt(st.sites)} candidate sites</p>${limitationBadges(a) ? `<div class="card-flags">${limitationBadges(a)}</div>` : ''}<div class="card-bottom"><span>Median ${st.medianReads === null ? '—' : fmt(st.medianReads)} reads</span><span class="pill ${st.scored ? 'ready' : 'pending'}">${st.scored ? 'Scores loaded' : 'Scores pending'}</span></div></article>`;
 
       }).join('')}</div></section>`;
   }).join('');
@@ -343,7 +427,7 @@ function prepareTranscriptView(ids, allRows) {
   const summaries = ids.every(id => sample(id)?.group === 'cellline');
   const annotations = transcriptView.rows.map(r => state.annotations.get(r.transcript_id) || [r.gene_id, r.gene_name]);
   const geneIds = [...new Set(annotations.map(a=>a[0]).filter(Boolean))];
-  $('transcript-meta').textContent = `Transcript: ${transcriptView.tx} · Gene ID: ${geneIds.join(' / ') || 'not supplied'} · ${positions.length} measured positions · ${summaries ? 'cell-line mean scores' : 'sample scores'}`;
+  $('transcript-meta').textContent = `Transcript: ${transcriptView.tx} · Gene: ${geneIds.map(g => geneName(g) ? `${geneName(g)} (${g})` : g).join(' / ') || 'not supplied'} · ${positions.length} measured positions · ${summaries ? 'cell-line mean scores' : 'sample scores'}`;
   const sequenceAt = p => [...new Set(transcriptView.rows.filter(r=>r.transcript_position===p).map(r=>r.sequence).filter(Boolean))].join(' / ') || 'not supplied';
   $('transcript-scope-note').textContent = summaries
     ? 'Summary subset: sites qualify only if the mean score is ≥0.5 in at least one cell line. Reads are rounded mean coverage. Visuals use the coverage filter; minimum-score and scored-only filters affect the table only.'
@@ -368,9 +452,12 @@ async function rowsForTranscript(s, tx) {
   if (s.data) return s.data.filter(r => r.transcript_id === tx);
   const key = s.id + ':' + tx;
   if (transcriptRunRows.has(key)) return transcriptRunRows.get(key);
-  const data = await compactSource(s), index = data.transcripts.indexOf(tx);
+  // Exact ID first; fall back to the unversioned ID (MCF7 rep 3 uses versioned transcript IDs).
+  const data = await compactSource(s);
+  let index = data.transcripts.indexOf(tx);
+  if (index < 0) index = data.transcripts.findIndex(id => stripVersion(id) === stripVersion(tx));
   const rows = index < 0 ? [] : data.sites.filter(r=>r[0]===index).map(([,pos,reads,seq,label,score]) => ({
-    transcript_id:tx, transcript_position:pos, n_reads:reads, sequence:data.sequences[seq], score:score??null, sample_id:s.id
+    transcript_id:data.transcripts[index], transcript_position:pos, n_reads:reads, sequence:data.sequences[seq], score:score??null, sample_id:s.id
   }));
   transcriptRunRows.set(key, rows);
   // Small per-transcript extracts, not whole decoded sample datasets.
@@ -388,30 +475,66 @@ async function renderTranscriptRuns() {
   $('transcript-run-values').innerHTML = '';
   transcriptView.runPoints = [];
   $('transcript-run-status').textContent = 'Loading individual-run measurements…';
-  const result = [];
+  $('transcript-map').innerHTML = '<p class="fine-print">Loading run-level measurements…</p>';
+  const collected = [];
   for (const s of runs) {
     if (token !== transcriptView.runToken) return;
     try {
       const rows = await rowsForTranscript(s, tx);
       if (token !== transcriptView.runToken) return;
-      const row = rows.find(r => r.transcript_position === pos && r.n_reads >= minReads);
-      result.push({ s, row: row ?? null, error: false });
+      collected.push({ s, rows, error: false });
     } catch {
       if (token !== transcriptView.runToken) return;
-      result.push({ s, row:null, error:true });
+      collected.push({ s, rows: [], error: true });
     }
-    $('transcript-run-status').textContent = `Checking runs · ${result.length}/${runs.length}`;
+    $('transcript-run-status').textContent = `Checking runs · ${collected.length}/${runs.length}`;
   }
   if (token !== transcriptView.runToken) return;
+  transcriptView.runRows = { tx, minReads, list: collected };
+  showRunsAtPosition(pos);
+}
+// Per-run scores at one position, from the rows already loaded for this transcript.
+function showRunsAtPosition(pos) {
+  const loaded = transcriptView.runRows;
+  if (!loaded || loaded.tx !== transcriptView.tx) return;
+  transcriptView.position = pos;
+  $('transcript-run-heading').textContent = `Within-cell-line variation at transcript position ${fmt(pos)}`;
+  const result = loaded.list.map(q => ({ s: q.s, error: q.error, row: q.rows.find(r => r.transcript_position === pos && r.n_reads >= loaded.minReads) ?? null }));
   transcriptView.runPoints = result;
   renderTranscriptRunPlot(result);
+  renderTranscriptMap();
+}
+// Lollipop map of every site in the transcript, by cell line (mean over runs; bar = run range). Flagged run omitted.
+async function renderTranscriptMap() {
+  const loaded = transcriptView.runRows, tx = transcriptView.tx;
+  if (!loaded || loaded.tx !== tx) return;
+  let tables;
+  try { tables = await loadJSON('transcripts'); } catch { tables = null; }
+  if (transcriptView.runRows !== loaded) return;
+  const byCell = new Map(), flagged = loaded.list.filter(q => isExcluded(q.s) && q.rows.length).length;
+  for (const q of loaded.list) {
+    if (q.error || isExcluded(q.s)) continue;
+    for (const r of q.rows) {
+      if (r.n_reads < loaded.minReads || r.score === null) continue;
+      if (!byCell.has(q.s.cellLine)) byCell.set(q.s.cellLine, new Map());
+      const m = byCell.get(q.s.cellLine), cur = m.get(r.transcript_position) ?? { sum: 0, n: 0, min: 1, max: 0, seq: r.sequence };
+      cur.sum += r.score; cur.n++; cur.min = Math.min(cur.min, r.score); cur.max = Math.max(cur.max, r.score);
+      m.set(r.transcript_position, cur);
+    }
+  }
+  for (const m of byCell.values()) for (const q of m.values()) q.mean = q.sum / q.n;
+  if (!byCell.size) { $('transcript-map').innerHTML = '<p class="empty-chart">No run-level scores at this coverage for this transcript.</p>'; $('transcript-map-note').textContent = ''; return; }
+  const ann = tables?.transcripts[stripVersion(tx)] ?? null;
+  $('transcript-map').innerHTML = transcriptMap(tx, ann, byCell, transcriptView.position);
+  const sites = new Set([...byCell.values()].flatMap(m => [...m.keys()])).size;
+  $('transcript-map-note').textContent = `${fmt(sites)} measured positions with ≥${loaded.minReads} reads in at least one run. Each stem shows a cell line's mean score over its runs; the faint bar shows the range across runs. Thick box = CDS, thin = UTRs, black ticks = exon–exon junctions, amber dashed line = stop codon.${ann ? '' : ' No Ensembl 91 annotation for this transcript, so its structure is not drawn.'}${flagged ? ' MCF7 rep 3 · run 1 is omitted (scored without transcript-structure features).' : ''} Click a dot to inspect its runs below.`;
 }
 function renderTranscriptRunPlot(result) {
   const groups = [...new Set(result.map(q => q.s.cellLine))].sort();
   const scored = result.filter(q => q.row?.score !== null && q.row?.score !== undefined);
-  const errors = result.filter(q=>q.error).length;
-  $('transcript-run-status').textContent = `${scored.length}/${result.length} runs have a score at this exact transcript ID and position with ≥${explorerFilter().minReads} reads.${errors ? ' ' + errors + ' run files could not load; these are not missing measurements.' : ''} Dots show runs; vertical marks show unweighted means. A missing score does not mean unmodified.`;
-  $('transcript-run-values').innerHTML = `<table><thead><tr><th>Cell line</th><th>Sample / run</th><th>Score</th><th>Read coverage</th></tr></thead><tbody>${result.map(q=>`<tr><td style="color:${cellColour(q.s.cellLine)}">${esc(q.s.cellLine)}</td><td>${esc(q.s.name)}</td><td>${q.error?'Could not load':q.row?.score==null?'No score at this coverage':q.row.score.toFixed(3)}</td><td>${q.row?fmt(q.row.n_reads):'—'}</td></tr>`).join('')}</tbody></table>`;
+  const errors = result.filter(q=>q.error).length, flagged = scored.filter(q => isExcluded(q.s)).length;
+  $('transcript-run-status').textContent = `${scored.length}/${result.length} runs have a score at this transcript and position with ≥${explorerFilter().minReads} reads.${errors ? ' ' + errors + ' run files could not load; these are not missing measurements.' : ''} Dots show runs; vertical marks show unweighted means. A missing score does not mean unmodified.${flagged ? ' The hollow dashed dot is MCF7 rep 3 · run 1, scored without transcript-structure features; it is not included in the MCF7 mean.' : ''}`;
+  $('transcript-run-values').innerHTML = `<table><thead><tr><th>Cell line</th><th>Sample / run</th><th>Score</th><th>Read coverage</th></tr></thead><tbody>${result.map(q=>`<tr><td style="color:${cellColour(q.s.cellLine)}">${esc(q.s.cellLine)}</td><td>${esc(q.s.name)} ${limitationBadges(q.s)}</td><td>${q.error?'Could not load':q.row?.score==null?'No score at this coverage':q.row.score.toFixed(3)}</td><td>${q.row?fmt(q.row.n_reads):'—'}</td></tr>`).join('')}</tbody></table>`;
   const w=760,l=100,r=130,t=22,rowH=44,h=t+groups.length*rowH+44,x=v=>l+v*(w-l-r);
   let svg = [0,.25,.5,.75,1].map(v=>`<line x1="${x(v)}" y1="${t-8}" x2="${x(v)}" y2="${h-36}" stroke="#e5ece5"/><text x="${x(v)}" y="${h-14}" text-anchor="middle">${v.toFixed(2)}</text>`).join('');
   groups.forEach((cell,i)=>{
@@ -419,12 +542,13 @@ function renderTranscriptRunPlot(result) {
     const y=t+i*rowH+20, colour=cellColour(cell);
     svg += `<text x="${l-14}" y="${y+4}" text-anchor="end" style="fill:${colour};font-weight:600">${esc(cell)}</text>`;
     measured.forEach((q,j)=>{
-      const ri=result.indexOf(q), offset=(j-(measured.length-1)/2)*3;
-      svg += `<circle class="site-run-dot" role="img" tabindex="0" data-site-run="${ri}" aria-label="${esc(q.s.name)}: score ${q.row.score.toFixed(3)}, ${q.row.n_reads} reads" cx="${x(q.row.score)}" cy="${y+offset}" r="5" fill="${colour}" stroke="white" stroke-width="1"/>`;
+      const ri=result.indexOf(q), offset=(j-(measured.length-1)/2)*3, excluded=isExcluded(q.s);
+      svg += `<circle class="site-run-dot${excluded ? ' excluded' : ''}" role="img" tabindex="0" data-site-run="${ri}" aria-label="${esc(q.s.name)}: score ${q.row.score.toFixed(3)}, ${q.row.n_reads} reads${excluded ? ', flagged run not included in the mean' : ''}" cx="${x(q.row.score)}" cy="${y+offset}" r="5" fill="${excluded ? 'white' : colour}" stroke="${excluded ? colour : 'white'}" stroke-width="${excluded ? 1.6 : 1}" ${excluded ? 'stroke-dasharray="2 2"' : ''}/>`;
     });
-    if (measured.length) {
-      const mean=measured.reduce((n,q)=>n+q.row.score,0)/measured.length;
-      svg += `<line x1="${x(mean)}" x2="${x(mean)}" y1="${y-12}" y2="${y+12}" stroke="${colour}" stroke-width="2"/><text x="${w-r+12}" y="${y+4}" style="fill:${colour}">${mean.toFixed(3)} · ${measured.length}/${mine.length} runs</text>`;
+    const used = measured.filter(q => !isExcluded(q.s)), usable = mine.filter(q => !isExcluded(q.s)).length;
+    if (used.length) {
+      const mean=used.reduce((n,q)=>n+q.row.score,0)/used.length;
+      svg += `<line x1="${x(mean)}" x2="${x(mean)}" y1="${y-12}" y2="${y+12}" stroke="${colour}" stroke-width="2"/><text x="${w-r+12}" y="${y+4}" style="fill:${colour}">${mean.toFixed(3)} · ${used.length}/${usable} runs</text>`;
     } else svg += `<text x="${w-r+12}" y="${y+4}">No scored runs</text>`;
   });
   $('transcript-run-chart').innerHTML = groups.length
@@ -444,7 +568,7 @@ function showSiteRunTooltip(dot) {
   if (activeDot) activeDot.removeAttribute('aria-describedby');
   activeDot=dot;
   const tip=$('run-tooltip');
-  tip.innerHTML=`<div class="run-tooltip-kicker">${esc(q.s.cellLine)} · Individual run</div><strong class="run-tooltip-name">${esc(q.s.name)}</strong><div class="run-tooltip-value">${q.row.score.toFixed(3)}<span>prediction score</span></div><p>${fmt(q.row.n_reads)} reads · position ${fmt(transcriptView.position)}</p><div class="run-tooltip-foot">${esc(transcriptView.tx)}</div>`;
+  tip.innerHTML=`<div class="run-tooltip-kicker">${esc(q.s.cellLine)} · Individual run</div><strong class="run-tooltip-name">${esc(q.s.name)}</strong><div class="run-tooltip-value">${q.row.score.toFixed(3)}<span>prediction score</span></div><p>${fmt(q.row.n_reads)} reads · position ${fmt(transcriptView.position)}</p>${isExcluded(q.s)?'<p class="run-tooltip-warning">Scored without transcript-structure features · not in the mean</p>':''}${hasTrainingOverlap(q.s)?'<p class="run-tooltip-warning">May share reads with the training data</p>':''}<div class="run-tooltip-foot">${esc(transcriptView.tx)}</div>`;
   tip.style.setProperty('--tooltip-colour',cellColour(q.s.cellLine,60));tip.hidden=false;
   dot.setAttribute('aria-describedby','run-tooltip');
   const rect=dot.getBoundingClientRect(),width=tip.offsetWidth,height=tip.offsetHeight;
@@ -458,6 +582,16 @@ function bindTranscriptView() {
     renderExplorer();
   });
   $('transcript-position').addEventListener('change',e=>selectTranscriptPosition(e.target.value));
+  const map=$('transcript-map');
+  const pickMapDot=dot=>{
+    const pos=Number(dot.dataset.mapPos);
+    // Positions in the summary heatmap go through the full view; others (below the summary threshold) update the run plot only.
+    if([...$('transcript-position').options].some(o=>Number(o.value)===pos))selectTranscriptPosition(pos);
+    else{showRunsAtPosition(pos);$('transcript-site-context').textContent=`Position ${fmt(pos)} · below the cell-line summary threshold, so it is not a heatmap column · runs shown below`;}
+    $('transcript-run-heading').scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+  map.addEventListener('click',e=>{const dot=e.target.closest('[data-map-pos]');if(dot)pickMapDot(dot);});
+  map.addEventListener('keydown',e=>{const dot=e.target.closest('[data-map-pos]');if(dot&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pickMapDot(dot);}});
   const chart=$('transcript-run-chart');
   chart.addEventListener('pointerover',e=>{const dot=e.target.closest('.site-run-dot');if(dot)showSiteRunTooltip(dot);});
   chart.addEventListener('pointerout',e=>{if(e.target.closest('.site-run-dot'))scheduleHideDotTooltip();});
@@ -515,12 +649,12 @@ function showDetail(row) {
     ? `<a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&amp;position=${encodeURIComponent(id)}" target="_blank" rel="noopener" title="Find this ${kind} in UCSC Genome Browser (GRCh38/hg38)">${esc(id)} ↗</a>`
     : esc(id || 'Unmapped');
   const transcriptLink = browserLink(row.transcript_id, 'transcript');
-  const geneLink = browserLink(row.gene_id, 'gene');
+  const geneLink = (geneName(row.gene_id) ? `<strong>${esc(geneName(row.gene_id))}</strong> · ` : '') + browserLink(row.gene_id, 'gene');
   $('site-details').innerHTML = sequence + `<div class="detail-grid"><div class="detail-box"><span>${row.runs ? 'Mean read coverage' : 'Read coverage'}</span><strong>${fmt(row.n_reads)}</strong></div><div class="detail-box"><span>${row.runs ? 'Mean prediction score' : 'Prediction score'}</span><strong>${row.score===null?'Pending':row.score.toFixed(4)}</strong></div></div><dl class="detail-list"><dt>Sample</dt><dd>${esc(s.name)}</dd><dt>Cell line</dt><dd>${esc(s.cellLine)}</dd>${s.group === 'cellline' ? runsNote : `<dt>Replicate / run</dt><dd>${esc(s.replicate ?? 'Not supplied')} / ${esc(s.run ?? 'Not supplied')}</dd>`}<dt>Transcript</dt><dd>${transcriptLink}</dd><dt>Gene</dt><dd>${geneLink}</dd><dt>Model / version</dt><dd>${esc(s.model || 'No predictions imported')}</dd></dl>`;
   $('site-dialog').showModal();
 }
 
-function scatter(pairs, log, leftName, rightName, selectedKey = null) {
+function scatter(pairs, log, leftName, rightName, selectedKey = null, marks = null) {
   if (!pairs.length) return '<div class="empty-chart">No paired measurements match this comparison.</div>';
   const w=600,h=335,l=60,r=20,t=18,b=55;
   const transform = v => log ? Math.log10(Math.max(1,v)) : v;
@@ -535,9 +669,11 @@ function scatter(pairs, log, leftName, rightName, selectedKey = null) {
     content+=`<line x1="${l}" y1="${y}" x2="${w-r}" y2="${y}" stroke="#edf1e8"/><line x1="${x}" y1="${t}" x2="${x}" y2="${h-b}" stroke="#edf1e8"/><text x="${l-11}" y="${y+3}" text-anchor="end">${label}</text><text x="${x}" y="${h-b+19}" text-anchor="middle">${label}</text>`;
   }
   content+=`<line x1="${l}" y1="${h-b}" x2="${w-r}" y2="${t}" stroke="#b7cabc" stroke-dasharray="4 5"/>`;
-  content+=dots.map(p=>`<circle cx="${scaleX(p.x).toFixed(2)}" cy="${scaleY(p.y).toFixed(2)}" r="2.4" fill="#178c70" opacity=".25"><title>${esc(p.key)} · A ${p.x} · B ${p.y}</title></circle>`).join('');
+  const unit=log?'reads':'score',tipFor=p=>{const [tx,pos]=p.key.split(':');return tip({kicker:`${leftName} vs ${rightName}`,name:`${tx} · position ${fmt(Number(pos))}`,lines:[`A: ${log?fmt(p.x):Number(p.x).toFixed(3)} ${unit}`,`B: ${log?fmt(p.y):Number(p.y).toFixed(3)} ${unit}`]});};
+  content+=dots.map(p=>`<circle cx="${scaleX(p.x).toFixed(2)}" cy="${scaleY(p.y).toFixed(2)}" r="2.6" fill="#178c70" opacity=".3"${tipFor(p)}/>`).join('');
+  if (marks?.size && !log) for (const p of pairs) if (marks.has(p.key)) content += `<circle cx="${scaleX(p.x).toFixed(2)}" cy="${scaleY(p.y).toFixed(2)}" r="5.5" fill="white" fill-opacity=".01" stroke="#c98a1c" stroke-width="1.8"${tipFor(p).replace('data-tip="','data-tip="&lt;p class=&quot;run-tooltip-warning&quot;&gt;Candidate cell-line difference&lt;/p&gt;')}/>`;
   const selected = pairs.find(p=>p.key===selectedKey);
-  if(selected) content += `<circle cx="${scaleX(selected.x)}" cy="${scaleY(selected.y)}" r="7" fill="#e7ad43" stroke="#143b34" stroke-width="2"><title>${esc(selected.key)} · A ${selected.x} · B ${selected.y}</title></circle>`;
+  if(selected) content += `<circle cx="${scaleX(selected.x)}" cy="${scaleY(selected.y)}" r="7" fill="#e7ad43" stroke="#143b34" stroke-width="2"${tipFor(selected)}/>`;
   content+=`<text class="axis-label" x="${(l+w-r)/2}" y="${h-9}" text-anchor="middle">${esc(leftName)}${log?' · reads (log scale)':' · score'}</text><text class="axis-label" transform="translate(15 ${(t+h-b)/2}) rotate(-90)" text-anchor="middle">${esc(rightName)}${log?' · reads (log scale)':' · score'}</text>`;
   return `<svg class="scatter-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(log?'Read coverage':'Prediction score')} at ${fmt(pairs.length)} shared sites">${content}</svg>`;
 }
@@ -567,6 +703,8 @@ async function renderComparison() {
   $('scatter-note').textContent=result.pairs.length ? `${fmt(result.pairs.length)} paired measurements; the plot shows up to 1,600 evenly spaced points for readability. The dashed line marks equal values.` : 'No sites with both measurements are available.';
   let note=a===b?'You are comparing a sample with itself. Select two different samples to inspect overlap.':  sa?.group==='cellline'||sb?.group==='cellline'?'Cell-line summaries hold only sites whose mean score reaches the summary threshold in at least one cell line; values are means over each cell line’s runs. Only-in-one-sample sites were not measured with enough reads in the other cell line, which does not make them unmodified.':'Replicate numbers and runs are taken from imported metadata. Check replicate consistency before interpreting cell-line differences.';
   if (sa?.model && sb?.model && !sameModel) note+=' Prediction score comparison is disabled because the model/version labels differ.';
+  if (isExcluded(sa)||isExcluded(sb)) note+=' Caution: MCF7 rep 3 · run 1 was scored without transcript-structure features, so its scores are not comparable with other runs. Its transcript IDs carry version suffixes and will not match other runs’ IDs.';
+  if (sa?.cellLine===TRAINING_LINE||sb?.cellLine===TRAINING_LINE) note+=' Hct116 is the training cell line; its scores run about 20% higher, so a higher Hct116 score is not by itself evidence of more m6A.';
   $('comparison-notice').innerHTML=`<span class="notice-icon">i</span><div>${esc(note)}</div>`;
   const total=result.shared+result.onlyLeft+result.onlyRight;
   const fractions=total?[result.shared,result.onlyLeft,result.onlyRight].map(n=>n/total):[0,0,0];
@@ -582,7 +720,72 @@ async function renderComparison() {
   }) : [];
   rankView.limit=25;
   renderRankedSites();
+  renderDiff(token);
 }
+// Candidate differences between two cell-line summaries, with the permutation FDR (insights.json).
+async function renderDiff(token){
+  const a=sample($('compare-a').value),b=sample($('compare-b').value);
+  state.diffMarks=null;
+  const both=a?.group==='cellline'&&b?.group==='cellline'&&a.cellLine!==b.cellLine;
+  $('diff-panel').hidden=!both;
+  if(!both)return;
+  $('diff-output').innerHTML='<p class="cross-status">Loading run-level tests…</p>';
+  let ins;try{ins=state.insights??(state.insights=await loadJSON('insights'));}catch(e){$('diff-output').innerHTML='<p class="cross-status">'+esc(e.message)+'</p>';return;}
+  if(token!==state.tokens.compare)return;
+  $('diff-output').innerHTML=diffView(ins,a.cellLine,b.cellLine);
+  state.diffMarks=diffKeys(ins,a.cellLine,b.cellLine);
+  const c=state.comparison;
+  if(c&&c.measure==='score')$('scatter-plot').innerHTML=scatter(c.pairs,false,shortName(c.a),shortName(c.b),rankView.selected,state.diffMarks);
+}
+// Compare › Across cell lines: shared-site comparison and run-level reproducibility (insights.json).
+const runLabel=id=>{const m=/^SGNex_([^_]+)_directRNA_replicate(\d+)_run(\d+)$/.exec(id);return m?`${m[1]} r${m[2]}.${m[3]}`:id;};
+async function renderFairAndRepro(){
+  const token=++state.tokens.repro;
+  let ins;try{ins=state.insights??(state.insights=await loadJSON('insights'));}catch(e){$('fair-output').innerHTML=$('repro-output').innerHTML='<p class="cross-status">'+esc(e.message)+'</p>';return;}
+  if(token!==state.tokens.repro)return;
+  $('fair-cutoff-host').innerHTML=singleChoicePicker('fair-cutoff-picker','Score cutoff',Array.from({length:9},(_,i)=>({value:(i+1)/10,label:((i+1)/10).toFixed(1)})),state.cutoff);
+  $('repro-metric-host').innerHTML=singleChoicePicker('repro-metric-picker','Measure',[{value:'spearman',label:'Spearman of scores'},{value:'jaccard',label:'Jaccard of calls'}],state.repro.metric);
+  $('repro-depth-host').innerHTML=singleChoicePicker('repro-depth-picker','Reads in both',[{value:20,label:'≥20 reads'},{value:40,label:'≥40 reads'}],state.repro.depth);
+  $('repro-excluded').checked=state.repro.showExcluded;
+  $('fair-output').innerHTML=fairView(ins,state.cutoff);
+  $('repro-output').innerHTML=reproView(ins,{...state.repro,runName:runLabel});
+}
+// Site explorer › High-confidence atlas (atlas.json).
+async function renderHC(){
+  const token=++state.tokens.hc,h=state.hc;
+  let atlas;try{atlas=state.atlas??(state.atlas=await loadJSON('atlas'));}catch(e){$('hc-status').textContent=e.message;return;}
+  if(token!==state.tokens.hc)return;
+  const regions=[...new Set(atlas.rows.map(r=>r[4]))].sort(),motifs=[...new Set(atlas.rows.map(r=>r[3].slice(1,6)))].sort();
+  $('hc-set-host').innerHTML=singleChoicePicker('hc-set-picker','Site set',[{value:'robust',label:`All robust sites (${fmt(atlas.robust)})`},{value:'all7',label:`Called in all 7 lines (${fmt(atlas.all7)})`}],h.set);
+  $('hc-region-host').innerHTML=singleChoicePicker('hc-region-picker','Region',[{value:'all',label:'Any region'},...regions.map(r=>({value:r,label:r}))],h.region);
+  $('hc-motif-host').innerHTML=singleChoicePicker('hc-motif-picker','Motif',[{value:'all',label:'Any DRACH motif'},...motifs.map(m=>({value:m,label:m}))],h.motif);
+  const rows=atlasRows(atlas,{...h,search:$('hc-search').value});
+  state.hcRows=rows;
+  const genes=new Set(rows.map(r=>r[2]).filter(Boolean)).size;
+  $('hc-status').textContent=`${fmt(rows.length)} sites in ${fmt(genes)} genes match. Sorted by the highest score in any run. Runs called = runs with score ≥ ${atlas.callThreshold} / runs that measured the site.`;
+  $('hc-output').innerHTML=atlasTable(atlas,rows,h.limit);
+  $('hc-count').textContent=`Showing ${fmt(Math.min(h.limit,rows.length))} of ${fmt(rows.length)}`;
+  $('hc-more').hidden=h.limit>=rows.length;
+}
+function openSiteInExplorer(tx,pos,reads=20){
+  $('site-sample').value='cellline_all';$('site-search').value=tx;$('site-reads').value=reads;$('site-score').value='';$('scored-only').checked=false;
+  transcriptView.tx=tx;transcriptView.position=Number(pos);
+  setExplorerTab('inspect',false);go('explorer');
+}
+function bindInsightControls(){
+  $('repro-excluded').addEventListener('change',e=>{state.repro.showExcluded=e.target.checked;renderFairAndRepro();});
+  $('diff-output').addEventListener('click',e=>{const b=e.target.closest('[data-diff-open]');if(!b)return;const [tx,pos]=b.dataset.diffOpen.split(':');openSiteInExplorer(tx,pos,$('compare-reads').value);notify('Showing this site across cell lines; check whether every run supports the difference.');});
+  $('hc-output').addEventListener('click',e=>{const b=e.target.closest('[data-hc-open]');if(!b)return;const [tx,pos]=b.dataset.hcOpen.split(':');openSiteInExplorer(tx,pos);});
+  $('hc-search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.hc.limit=50;renderHC();},180);});
+  $('hc-more').addEventListener('click',()=>{state.hc.limit+=50;renderHC();});
+  $('hc-export').addEventListener('click',()=>{
+    const a=state.atlas,rows=state.hcRows||[];if(!a)return;
+    download(toCSV(rows.map(r=>({transcript_id:r[0],transcript_position:r[1],gene_id:r[2],sequence:r[3],region:r[4],dist_to_stop:r[5],runs_measured:r[6],runs_called:r[7],called_all_7_lines:r[9],...Object.fromEntries(a.cellLines.map((c,i)=>['mean_'+c,r[8][i]]))})),['transcript_id','transcript_position','gene_id','sequence','region','dist_to_stop','runs_measured','runs_called','called_all_7_lines',...a.cellLines.map(c=>'mean_'+c)]),'dolly_high_confidence_atlas.csv');
+    notify(`Exported ${fmt(rows.length)} atlas sites.`);
+  });
+  $('atlas-status').addEventListener('click',e=>{if(!e.target.closest('[data-go-pair]'))return;e.preventDefault();setComparisonTab('pair',false);go('compare');});
+}
+
 
 
 const rankView = {rows:[],selected:null,limit:25};
@@ -615,9 +818,9 @@ function renderRankedSites(){
   $('rank-more').hidden=shown.length>=rows.length;
   $('rank-table-body').innerHTML=shown.length?shown.map((r,i)=>{
     const delta=r.b.score-r.a.score;
-    const gene=[...new Set([r.a.gene_id,r.b.gene_id].filter(Boolean))].join(' / ')||'—';
+    const gene=[...new Set([r.a.gene_id,r.b.gene_id].filter(Boolean))].map(geneCell).join(' / ')||'—';
     const seq=[...new Set([r.a.sequence,r.b.sequence].filter(Boolean))].join(' / ')||'—';
-    return '<tr class="'+(r.key===rankView.selected?'rank-selected':'')+'"><td>'+(i+1)+'</td><td>'+esc(gene)+'</td><td>'+esc(r.a.transcript_id)+'</td><td>'+fmt(r.a.transcript_position)+'</td><td class="sequence">'+esc(seq)+'</td><td>'+r.a.score.toFixed(3)+'</td><td>'+r.b.score.toFixed(3)+'</td><td>'+(delta>0?'+':'')+delta.toFixed(3)+'</td><td>'+fmt(r.a.n_reads)+' / '+fmt(r.b.n_reads)+'</td><td><button class="text-button" data-rank-highlight="'+esc(r.key)+'">Highlight dot</button><button class="text-button" data-rank-open="'+esc(r.key)+'">Inspect site / runs →</button></td></tr>';
+    return '<tr class="'+(r.key===rankView.selected?'rank-selected':'')+'"><td>'+(i+1)+'</td><td>'+gene+'</td><td>'+esc(r.a.transcript_id)+'</td><td>'+fmt(r.a.transcript_position)+'</td><td class="sequence">'+esc(seq)+'</td><td>'+r.a.score.toFixed(3)+'</td><td>'+r.b.score.toFixed(3)+'</td><td>'+(delta>0?'+':'')+delta.toFixed(3)+'</td><td>'+fmt(r.a.n_reads)+' / '+fmt(r.b.n_reads)+'</td><td><button class="text-button" data-rank-highlight="'+esc(r.key)+'">Highlight dot</button><button class="text-button" data-rank-open="'+esc(r.key)+'">Inspect site / runs →</button></td></tr>';
   }).join(''):'<tr><td colspan="10">Choose two datasets with prediction scores from the same model.</td></tr>';
 }
 function bindRankedSites(){
@@ -642,7 +845,7 @@ function bindRankedSites(){
     if(highlight){
       rankView.selected=key;renderRankedSites();
       const c=state.comparison;
-      $('scatter-plot').innerHTML=scatter(c.pairs,c.measure==='n_reads',shortName(c.a),shortName(c.b),key);
+      $('scatter-plot').innerHTML=scatter(c.pairs,c.measure==='n_reads',shortName(c.a),shortName(c.b),key,state.diffMarks);
       $('rank-selection').textContent='Highlighted '+row.a.transcript_id+' · position '+fmt(row.a.transcript_position)+' · score A '+row.a.score.toFixed(3)+' · score B '+row.b.score.toFixed(3)+'. Gold marks the selected site, including when it was omitted from the background display subset.';
       $('scatter-plot').scrollIntoView({behavior:'smooth',block:'center'});
     }else{
@@ -734,12 +937,12 @@ function renderAtlas(){
   const v=crossViews.atlas,d=v.data;if(!d)return;
   const range=$('atlas-rank').value==='range',ranked=atlasRanking(d,range?'range':'high');
   v.ranked=ranked;
-  $('atlas-status').textContent=fmt(d.keys.length)+' sites have scores and mean coverage ≥'+d.minReads+' in every one of the '+d.ids.length+' selected cell lines. '+(range?'Ranked by maximum − minimum score, largest first.':'Ranked by minimum score across selected cell lines, highest first.');
+  $('atlas-status').innerHTML=esc(fmt(d.keys.length)+' sites have scores and mean coverage ≥'+d.minReads+' in every one of the '+d.ids.length+' selected cell lines. '+(range?'Ranked by maximum − minimum score, largest first.':'Ranked by minimum score across selected cell lines, highest first.'))+(range?' <span class="inline-caution">Caution: many large ranges are within run-to-run noise. When run labels are shuffled between cell lines, a third to a half as many “differences” still appear (estimated FDR about 30–50%). Hct116 is usually the high line because of its calibration shift. Check individual runs, or use <a href="#compare" data-go-pair>Compare › Compare a pair</a> for run-level tests.</span>':'');
   const shown=ranked.slice(0,v.limit);
-  $('atlas-output').innerHTML='<div class="table-scroll"><table><thead><tr><th>Rank</th><th>Gene ID</th><th>Transcript / position</th><th>7-mer</th><th>Lowest score · cell line(s)</th><th>Highest score · cell line(s)</th><th>Range</th><th>Explore</th></tr></thead><tbody>'+shown.map((r,i)=>{
+  $('atlas-output').innerHTML='<div class="table-scroll"><table><thead><tr><th>Rank</th><th>Gene</th><th>Transcript / position</th><th>7-mer</th><th>Lowest score · cell line(s)</th><th>Highest score · cell line(s)</th><th>Range</th><th>Explore</th></tr></thead><tbody>'+shown.map((r,i)=>{
     const extreme=value=>r.rows.flatMap((row,j)=>Math.abs(row.score-value)<1e-12?[sample(d.ids[j]).cellLine]:[]).join(', ');
-    const first=r.rows[0],genes=[...new Set(r.rows.map(x=>x.gene_id).filter(Boolean))].join(' / '),seq=[...new Set(r.rows.map(x=>x.sequence).filter(Boolean))].join(' / ');
-    return '<tr><td>'+(i+1)+'</td><td>'+esc(genes||'—')+'</td><td>'+esc(first.transcript_id)+'<br>Position '+fmt(first.transcript_position)+'</td><td class="sequence">'+esc(seq||'—')+'</td><td>'+r.min.toFixed(3)+'<small>'+esc(extreme(r.min))+'</small></td><td>'+r.max.toFixed(3)+'<small>'+esc(extreme(r.max))+'</small></td><td>'+r.range.toFixed(3)+'</td><td><button class="text-button" data-atlas-open="'+i+'">Inspect site / runs →</button></td></tr>';
+    const first=r.rows[0],genes=[...new Set(r.rows.map(x=>x.gene_id).filter(Boolean))].map(geneCell).join(' / '),seq=[...new Set(r.rows.map(x=>x.sequence).filter(Boolean))].join(' / ');
+    return '<tr><td>'+(i+1)+'</td><td>'+(genes||'—')+'</td><td>'+esc(first.transcript_id)+'<br>Position '+fmt(first.transcript_position)+'</td><td class="sequence">'+esc(seq||'—')+'</td><td>'+r.min.toFixed(3)+'<small>'+esc(extreme(r.min))+'</small></td><td>'+r.max.toFixed(3)+'<small>'+esc(extreme(r.max))+'</small></td><td>'+r.range.toFixed(3)+'</td><td><button class="text-button" data-atlas-open="'+i+'">Inspect site / runs →</button></td></tr>';
   }).join('')+(shown.length?'':'<tr><td colspan="8">No sites qualify in every selected cell line. Try fewer cell lines or lower coverage.</td></tr>')+'</tbody></table></div><div class="rank-footer"><span>Showing '+shown.length+' of '+fmt(ranked.length)+'</span><button class="button small" data-atlas-more '+(shown.length>=ranked.length?'hidden':'')+'>Show 25 more</button></div>';
 }
 function bindCrossViews(){
@@ -803,7 +1006,7 @@ function renderData() {
   const runs=listed.filter(s=>s.group==='sgnex');
   for(const cell of [...new Set(runs.map(s=>s.cellLine))].sort())groups.push([cell+' · SG-NEx runs',runs.filter(s=>s.cellLine===cell)]);
   groups.push(['Imported samples',listed.filter(s=>s.group==='imported')],['Derived cell-line summaries',summaries]);
-  const table=items=>'<div class="table-scroll"><table><thead><tr><th>Dataset</th><th>Cell line</th><th>Site observations</th><th>Predictions</th><th>Model</th><th>Actions</th></tr></thead><tbody>'+items.map(s=>'<tr><td><strong>'+esc(s.name)+'</strong><div class="muted">'+esc(sourceTag(s))+'</div></td><td>'+esc(s.cellLine)+'</td><td>'+fmt(s.rows)+'</td><td><span class="pill '+(s.scoredTotal?'ready':'pending')+'">'+(s.scoredTotal?fmt(s.scoredTotal)+' scores':'Coverage only')+'</span></td><td class="model-label" title="'+esc(s.model||'')+'">'+esc(s.model||'—')+'</td><td><button class="text-button" data-explore-sample="'+esc(s.id)+'">Explore →</button></td></tr>').join('')+'</tbody></table></div>';
+  const table=items=>'<div class="table-scroll"><table><thead><tr><th>Dataset</th><th>Cell line</th><th>Site observations</th><th>Predictions</th><th>Model</th><th>Actions</th></tr></thead><tbody>'+items.map(s=>'<tr><td><strong>'+esc(s.name)+'</strong><div class="muted">'+esc(sourceTag(s))+'</div>'+limitationBadges(s)+(s.excludedRuns?.length?'<div class="muted">Excludes MCF7 rep 3 · run 1</div>':'')+'</td><td>'+esc(s.cellLine)+'</td><td>'+fmt(s.rows)+'</td><td><span class="pill '+(s.scoredTotal?'ready':'pending')+'">'+(s.scoredTotal?fmt(s.scoredTotal)+' scores':'Coverage only')+'</span></td><td class="model-label" title="'+esc(s.model||'')+'">'+esc(s.model||'—')+'</td><td><button class="text-button" data-explore-sample="'+esc(s.id)+'">Explore →</button></td></tr>').join('')+'</tbody></table></div>';
   $('loaded-table').innerHTML=groups.filter(([,items])=>items.length).map(([title,items])=>'<section class="dataset-group"><div class="dataset-group-heading"><h3>'+esc(title)+'</h3><span>'+items.length+' datasets</span></div>'+(title==='Derived cell-line summaries'?'<p class="dataset-group-note">Derived from the runs above, not additional independent samples. These summaries retain the preselected site subset.</p>':'')+table(items)+'</section>').join('');
   const cell=$('catalog-cell').value;
   $('catalog-table').innerHTML=state.catalog.filter(s=>cell==='all'||s.cellLine===cell).map(s=>{
@@ -814,25 +1017,27 @@ function renderData() {
   }).join('');
 }
 
+const explorerTabs=['inspect','discover','hc'];
 function setExplorerTab(tab,render=true){
-  state.explorerTab=tab==='discover'?'discover':'inspect';
-  for(const name of ['inspect','discover']){
+  state.explorerTab=explorerTabs.includes(tab)?tab:'inspect';
+  for(const name of explorerTabs){
     const selected=name===state.explorerTab;
     $('explorer-'+name).hidden=!selected;
     $('explorer-tab-'+name).setAttribute('aria-selected',String(selected));
     $('explorer-tab-'+name).tabIndex=selected?0:-1;
   }
   $('export-sites').hidden=state.explorerTab!=='inspect';
-  if(render){if(state.explorerTab==='inspect')renderExplorer();else renderCross('atlas');}
+  if(render){if(state.explorerTab==='inspect')renderExplorer();else if(state.explorerTab==='hc')renderHC();else renderCross('atlas');}
 }
 function bindExplorerTabs(){
-  for(const name of ['inspect','discover']){
+  for(const name of explorerTabs){
     const button=$('explorer-tab-'+name);
     button.addEventListener('click',()=>setExplorerTab(name));
     button.addEventListener('keydown',e=>{
       if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
       e.preventDefault();
-      const next=e.key==='Home'?'inspect':e.key==='End'?'discover':name==='inspect'?'discover':'inspect';
+      const i=explorerTabs.indexOf(name),n=explorerTabs.length;
+      const next=e.key==='Home'?explorerTabs[0]:e.key==='End'?explorerTabs[n-1]:explorerTabs[(i+(e.key==='ArrowRight'?1:n-1))%n];
       setExplorerTab(next);$('explorer-tab-'+next).focus();
     });
   }
@@ -847,7 +1052,7 @@ function setComparisonTab(tab,render=true){
     $('compare-tab-'+name).tabIndex=selected?0:-1;
   }
   $('export-comparison').hidden=state.comparisonTab!=='pair';
-  if(render){if(state.comparisonTab==='pair')renderComparison();else renderCross('matrix');}
+  if(render){if(state.comparisonTab==='pair')renderComparison();else{renderCross('matrix');renderFairAndRepro();}}
 }
 function bindComparisonTabs(){
   for(const name of ['across','pair']){
@@ -867,12 +1072,12 @@ function bindComparisonTabs(){
 }
 
 function go(page) {
-  if (!['overview','explorer','compare','data','methods'].includes(page)) page='methods';
+  if (!['overview','landscape','explorer','compare','data','methods'].includes(page)) page='methods';
   state.page=page;
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===`page-${page}`));
   document.querySelectorAll('[data-nav]').forEach(el=>{el.classList.toggle('active',el.dataset.nav===page);if(el.dataset.nav===page)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
-  $('breadcrumb').textContent={overview:'Overview',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Home & guide'}[page];
-  if(page==='overview')renderOverview();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){setComparisonTab(state.comparisonTab||'across');}if(page==='data')renderData();
+  $('breadcrumb').textContent={overview:'Overview',landscape:'Landscape',explorer:'Site explorer',compare:'Compare samples',data:'Data & imports',methods:'Home & guide'}[page];
+  if(page==='overview')renderOverview();if(page==='landscape')renderLandscape();if(page==='explorer'){setExplorerTab(state.explorerTab||'inspect');}if(page==='compare'){setComparisonTab(state.comparisonTab||'across');}if(page==='data')renderData();
   history.replaceState(null,'',`#${page}`);window.scrollTo({top:0,behavior:'auto'});
 }
 
@@ -950,9 +1155,11 @@ function showDotTooltip(dot) {
   activeDot = dot;
   const s = sample(dot.dataset.runId);
   const threshold = Number($('global-reads').value) || readThresholds[0];
-  const st = s.stats.byMinReads[threshold], high = aboveCutoff(st.scoreHist, state.cutoff);
+  const q = runCallRate(s, threshold);
+  if (!q) return;
+  const flags = [isExcluded(s) ? '<p class="run-tooltip-warning">Scored without transcript-structure features · excluded from the mean</p>' : '', hasTrainingOverlap(s) ? '<p class="run-tooltip-warning">May share reads with the training data</p>' : ''].join('');
   const tip = $('run-tooltip');
-  tip.innerHTML = `<div class="run-tooltip-kicker">${esc(s.cellLine)} · SG-NEx run</div><strong class="run-tooltip-name">${esc(s.name)}</strong><div class="run-tooltip-value">${(high / st.scored * 100).toFixed(2)}%<span>score ≥ ${state.cutoff}</span></div><p>${fmt(high)} of ${fmt(st.scored)} scored observations</p><div class="run-tooltip-foot">Minimum coverage: ${threshold} reads · Model predictions</div>`;
+  tip.innerHTML = `<div class="run-tooltip-kicker">${esc(s.cellLine)} · SG-NEx run</div><strong class="run-tooltip-name">${esc(s.name)}</strong><div class="run-tooltip-value">${q.pct.toFixed(2)}%<span>score ≥ ${state.cutoff}</span></div><p>${fmt(q.high)} of ${fmt(q.n)} ${state.celllineSet === 'shared' ? 'shared-site' : 'scored'} observations</p>${flags}<div class="run-tooltip-foot">${state.celllineSet === 'shared' ? 'Sites measured in every run' : `Minimum coverage: ${threshold} reads`} · Model predictions</div>`;
   tip.style.setProperty('--tooltip-colour', cellColour(s.cellLine, 60));
   tip.hidden = false;
   dot.setAttribute('aria-describedby', 'run-tooltip');
@@ -961,6 +1168,66 @@ function showDotTooltip(dot) {
   tip.style.left = `${Math.max(12, Math.min(rect.left + rect.width / 2 - width / 2, window.innerWidth - width - 12))}px`;
   const top = rect.top > height + 20 ? rect.top - height - 12 : rect.bottom + 12;
   tip.style.top = `${Math.max(12, Math.min(top, window.innerHeight - height - 12))}px`;
+}
+// Styled tooltips for every chart mark carrying data-tip (views.js): hover, keyboard focus or tap.
+function showDataTip(el, event) {
+  clearTimeout(dotTooltipTimer);
+  if (activeDot && activeDot !== el) activeDot.removeAttribute('aria-describedby');
+  activeDot = el;
+  const tipEl = $('run-tooltip');
+  tipEl.innerHTML = el.dataset.tip;
+  tipEl.style.setProperty('--tooltip-colour', el.dataset.tipColour || '#b5ddc5');
+  tipEl.hidden = false;
+  el.setAttribute('aria-describedby', 'run-tooltip');
+  const r = el.getBoundingClientRect(), width = tipEl.offsetWidth, height = tipEl.offsetHeight;
+  // Crosshair columns are tall: follow the pointer; other marks: anchor to the mark.
+  const cx = el.classList.contains('hover-col') && event?.clientX ? event.clientX : r.left + r.width / 2;
+  const top = el.classList.contains('hover-col') && event?.clientY ? event.clientY - height - 16 : (r.top > height + 20 ? r.top - height - 12 : r.bottom + 12);
+  tipEl.style.left = `${Math.max(12, Math.min(cx - width / 2, window.innerWidth - width - 12))}px`;
+  tipEl.style.top = `${Math.max(12, Math.min(top < 12 ? (event?.clientY ?? r.bottom) + 16 : top, window.innerHeight - height - 12))}px`;
+}
+function openPair(a, b, note) {
+  if (!sample(a) || !sample(b)) { notify('That sample is not available.'); return; }
+  state.crossPairScope = null; state.compareChosen = true; state.compareMeasurePreference = 'score';
+  $('compare-a').value = a; $('compare-b').value = b; $('compare-reads').value = 20;
+  setComparisonTab('pair', false); go('compare'); notify(note);
+}
+function bindChartInteractions() {
+  let lastCol = null;
+  document.addEventListener('pointerover', e => { const el = e.target.closest?.('[data-tip]'); if (el) showDataTip(el, e); });
+  document.addEventListener('pointermove', e => { const el = e.target.closest?.('.hover-col[data-tip]'); if (el && el === lastCol) showDataTip(el, e); lastCol = el; });
+  document.addEventListener('pointerout', e => { if (e.target.closest?.('[data-tip]')) scheduleHideDotTooltip(); });
+  document.addEventListener('focusin', e => { const el = e.target.closest?.('[data-tip]'); if (el) showDataTip(el); });
+  document.addEventListener('focusout', e => { if (e.target.closest?.('[data-tip]')) scheduleHideDotTooltip(); });
+  document.addEventListener('click', e => {
+    const el = e.target.closest?.('[data-set-cutoff],[data-motif-open],[data-pair-runs],[data-pair-lines],[data-highlight-run],[data-focus-line]');
+    if (!el) return;
+    hideDotTooltip();
+    const d = el.dataset;
+    if (d.setCutoff !== undefined) {
+      state.cutoff = Number(d.setCutoff); renderOverview();
+      notify(`Cutoff set to ${state.cutoff}. The cell-line chart, calibration and call-rate panels now use it.`);
+    } else if (d.motifOpen !== undefined) {
+      Object.assign(state.hc, { motif: d.motifOpen, set: 'robust', region: 'all', limit: 50 }); $('hc-search').value = '';
+      setExplorerTab('hc', false); go('explorer'); notify(`High-confidence atlas filtered to ${d.motifOpen} sites.`);
+    } else if (d.pairRuns !== undefined) {
+      const [a, b] = d.pairRuns.split('|'); openPair(a, b, `Comparing ${shortName(a)} with ${shortName(b)} on the sites both runs measured.`);
+    } else if (d.pairLines !== undefined) {
+      const [a, b] = d.pairLines.split('|'); openPair('cellline_' + a, 'cellline_' + b, `Comparing the ${a} and ${b} cell-line summaries.`);
+    } else if (d.highlightRun !== undefined) {
+      state.highlightRun = state.highlightRun === d.highlightRun ? null : d.highlightRun; renderOverview();
+      if (state.highlightRun) $('cellline-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (d.focusLine !== undefined) {
+      state.landscape.focus = d.focusLine && state.landscape.focus !== d.focusLine ? d.focusLine : null; renderLandscape();
+    }
+  });
+  // Keyboard: Enter or Space activates focusable chart marks that are not native buttons.
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target.closest?.('[data-set-cutoff],[data-pair-runs],[data-highlight-run]');
+    if (!el || el.tagName === 'BUTTON') return;
+    e.preventDefault(); el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
 }
 function singleChoicePicker(id,label,options,value){
   const selected=options.find(o=>String(o.value)===String(value));
@@ -1007,10 +1274,23 @@ function bindSingleChoicePickers(){
         picker.open=false;select.dispatchEvent(new Event('change',{bubbles:true}));
         picker.querySelector('summary').focus({preventScroll:true});return;
       }
-      if(id==='coverage-picker')$('global-reads').value=option.dataset.choice;
-      else if(id==='cutoff-picker')state.cutoff=Number(option.dataset.choice);
-      else return;
-      renderOverview();$(id)?.querySelector('summary').focus();
+      const v=option.dataset.choice;
+      const handlers={
+        'coverage-picker':()=>{$('global-reads').value=v;renderOverview();},
+        'cutoff-picker':()=>{state.cutoff=Number(v);renderOverview();},
+        'cellline-set-picker':()=>{state.celllineSet=v;renderOverview();},
+        'score-scale-picker':()=>{state.scoreScale=v;renderOverview();},
+        'landscape-cutoff-picker':()=>{state.cutoff=Number(v);renderLandscape();},
+        'landscape-set-picker':()=>{state.landscape.set=v;renderLandscape();},
+        'fair-cutoff-picker':()=>{state.cutoff=Number(v);renderFairAndRepro();},
+        'repro-metric-picker':()=>{state.repro.metric=v;renderFairAndRepro();},
+        'repro-depth-picker':()=>{state.repro.depth=Number(v);renderFairAndRepro();},
+        'hc-set-picker':()=>{state.hc.set=v;state.hc.limit=50;renderHC();},
+        'hc-region-picker':()=>{state.hc.region=v;state.hc.limit=50;renderHC();},
+        'hc-motif-picker':()=>{state.hc.motif=v;state.hc.limit=50;renderHC();}
+      };
+      if(!handlers[id])return;
+      picker.open=false;handlers[id]();$(id)?.querySelector('summary').focus({preventScroll:true});
       return;
     }
     document.querySelectorAll('.single-choice-picker[open]').forEach(p=>{if(!p.contains(e.target))p.open=false;});
@@ -1098,12 +1378,20 @@ function bind() {
   $('loaded-table').addEventListener('click',e=>{const b=e.target.closest('[data-explore-sample]');if(b){$('site-sample').value=b.dataset.exploreSample;setExplorerTab('inspect',false);go('explorer');highlightExploredSample();}});
   $('annotation-template').addEventListener('click',()=>{const map=new Map();state.samples.filter(s=>s.data).flatMap(s=>s.data).forEach(r=>{if(r.gene_id&&!map.has(r.transcript_id))map.set(r.transcript_id,{transcript_id:r.transcript_id,gene_id:r.gene_id,gene_name:r.gene_name});});if(!map.size){notify('No gene mappings are available from opened datasets yet. Explore a dataset first, then download its mappings.');return;}download(toCSV([...map.values()],['transcript_id','gene_id','gene_name']),'dolly_opened_dataset_gene_map.csv');});
   window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
+  $('landscape-cells').addEventListener('change',e=>{if(e.target.type!=='checkbox')return;const s=state.landscape.cells;e.target.checked?s.add(e.target.value):s.delete(e.target.value);renderLandscape();});
+  document.addEventListener('click',e=>{
+    const link=e.target.closest('[data-open-guide]');if(!link)return;
+    e.preventDefault();go('methods');const d=$('guide-'+link.dataset.openGuide);if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),50);}
+  });
+  bindInsightControls();
+  bindChartInteractions();
 }
 
 async function start() {
   try {
     const response=await fetch('data/manifest.json');if(!response.ok)throw new Error('Could not load the dataset manifest.');
     const manifest=await response.json();state.catalog=manifest.catalog;
+    try{const names=await loadJSON('gene_names');setGeneNames(new Map(Object.entries(names.genes)));}catch{/* symbols are optional; IDs still work */}
     state.samples=manifest.datasets.filter(s=>s.group!=='development').map(s=>({...s,data:null,scoredTotal:s.stats.byMinReads[readThresholds[0]].scored}));
     bind();refreshOptions();go(location.hash.slice(1)||'methods');$('loading').hidden=true;
   }catch(error){$('loading').innerHTML=`<div class="error-page"><h2>The workspace couldn’t load</h2><p>${esc(error.message)}</p><p>Refresh to try again. For a local copy, serve the folder over HTTP rather than opening index.html directly.</p></div>`;}

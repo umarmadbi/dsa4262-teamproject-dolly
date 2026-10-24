@@ -28,6 +28,7 @@ jobs:
         with:
           node-version: 20
       - run: node viz/tests/core.test.mjs
+      - run: node viz/tests/insights.test.mjs
 
   deploy:
     if: github.event_name != 'pull_request'

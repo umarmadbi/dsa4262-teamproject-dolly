@@ -17,6 +17,10 @@ data/*
 *.parquet
 cache/
 
+# --- reference annotation downloads (large; only the derived viz/site/data/gene_names.json is committed) ---
+*.gtf
+*.gtf.gz
+
 # --- outputs ---
 results/*
 !results/.gitkeep

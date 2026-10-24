@@ -31,6 +31,40 @@ Pull requests run the tests only.
    This keeps sites with at least 20 reads (`--min-reads`), excludes SIRV/ERCC spike-ins, adds Ensembl 91 gene IDs from `resources/ensembl91_transcripts.csv.gz`, writes the cell-line summary `site/data/cell_lines.json`, and rewrites `site/data/manifest.json` with precomputed statistics for every dataset. The model label includes a hash of the model file so scores from different models are never silently mixed.
 3. Commit `viz/site/data/` and open a pull request to `main`.
 
+## Rebuild the insight views (Landscape, calibration, reproducibility, atlas)
+
+After `build_viz_data.py`, from the repo root:
+
+```bash
+python scripts/build_viz_insights.py --labels-d0 data/data0/data.info.labelled --labels-d1 data/data1/data.info
+```
+
+This reads only the run files in `site/data/` and `resources/ensembl91_transcripts.csv.gz` (about 3 minutes) and writes:
+
+| File | Used by |
+|---|---|
+| `site/data/insights.json` | Overview (calibration, call-rate panels, shared-site mode), Landscape, Compare (fair comparison, reproducibility, candidate differences) |
+| `site/data/atlas.json` | Site explorer › High-confidence atlas |
+| `site/data/transcripts.json` | Site explorer transcript map (CDS, UTRs, exon junctions) |
+| `site/data/cell_lines.json`, `manifest.json` | Rebuilt cell-line summaries without excluded runs, plus limitation flags per run |
+| `site/data/gene_names.json` | Gene symbols (built separately by `scripts/build_gene_names.py`, see below) |
+
+Without the two label files, the calibration block of the existing `insights.json` is kept. The Dolly v2 vs m6Anet panel shows the summary numbers of `experiments/12_sgnex_m6anet_compare.py` and its figure (`site/data/sgnex_m6anet_comparison.png`). Per-site m6Anet scores are on the AWS machine. Every number is explained in `docs/sgnex_task2_findings.md`.
+
+### Gene symbols
+
+`site/data/gene_names.json` maps Ensembl gene IDs to symbols for every gene in the site. The site loads it at startup, shows symbols next to gene IDs and lets users search by symbol. IDs stay the join keys. To rebuild it, download the Ensembl 91 GTF ([Homo_sapiens.GRCh38.91.chr_patch_hapl_scaff.gtf.gz](https://ftp.ensembl.org/pub/release-91/gtf/homo_sapiens/), about 45 MB, git-ignored) into the repo root and run:
+
+```bash
+python scripts/build_gene_names.py --gtf Homo_sapiens.GRCh38.91.chr_patch_hapl_scaff.gtf.gz
+```
+
+### Known limitation: MCF7 replicate 3 run 1
+
+`SGNex_MCF7_directRNA_replicate3_run1` uses versioned transcript IDs (`ENST….7`). `predict.py` matches the Ensembl 91 annotation by exact ID, so every site in this run was scored by v2's fallback model (equivalent to v1, without transcript-structure features). The team decided not to re-score it and to report it as a dataset limitation. `build_viz_insights.py` therefore flags it (`limitations: ["v1Fallback"]` in `manifest.json`) and leaves it out of every summary (`--exclude-from-summaries`). The site keeps it visible with a hollow, dashed marker and a warning badge. `Hct116 rep 3 run 1` is flagged `trainingOverlap` (it may share reads with the training data).
+
+Run both test files after rebuilding: `node viz/tests/core.test.mjs && node viz/tests/insights.test.mjs`.
+
 ## Change the site
 
 Edit files in `site/`, then preview locally:
@@ -49,8 +83,9 @@ The page fetches only `manifest.json` at startup. The overview (metrics, histogr
 
 ## Contents
 
-- `site/` — the published page (`index.html`, `app.js`, `core.js`, `style.css`), `export_coverage.py` helper, and `data/` (manifest with precomputed statistics, one compact JSON file per dataset, and `cell_lines.json`).
+- `site/` — the published page (`index.html`, `app.js`, `views.js` for the insight charts, `core.js`, `style.css`), `export_coverage.py` helper, and `data/` (manifest with precomputed statistics, one compact JSON file per dataset, and `cell_lines.json`).
 - `tests/core.test.mjs` — data, parsing, import and join checks; also checks that every dataset's precomputed statistics equal what the browser computes from its rows.
+- `tests/insights.test.mjs` — checks `insights.json`, `atlas.json` and the rebuilt cell-line summaries against the run files, including that the excluded run is absent from every summary.
 
 The development datasets (dataset0-2) are excluded from the current interface. SG-NEx runs carry site-level model scores. Browser imports (Data & imports) are kept in the browser only and are cleared on refresh; to add data permanently, use the build script above.
 
@@ -68,7 +103,7 @@ Prediction scores are not read modification fractions. Calibration and cutoff se
 
 ## Validation
 
-Run node tests/core.test.mjs. Tests check real data counts and overlap, CSV round trips and quotes, invalid data rejection and prediction joins. Browser layout QA is unavailable in the managed environment used for this build; test interactive rendering on your target browser.
+Run node tests/core.test.mjs and node tests/insights.test.mjs. Tests check real data counts and overlap, CSV round trips and quotes, invalid data rejection and prediction joins. Browser layout QA is unavailable in the managed environment used for this build; test interactive rendering on your target browser.
 
 ## Source
 
