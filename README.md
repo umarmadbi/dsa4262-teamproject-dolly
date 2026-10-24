@@ -16,7 +16,7 @@ default of both scripts.
 |---|---|---|---|
 | **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (final model: v2; intermediate leaderboard was submitted with Nitish's model, see [section 5](#alternative-pipeline)) |
 | **Task 2** | Predict m6A on all SG-NEx direct RNA-Seq runs, compare cell lines | `experiments/12_sgnex_m6anet_compare.py`, [docs/sgnex_task2.md](docs/sgnex_task2.md) | Done (23 runs, 7 cell lines) |
-| **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; run it locally on your laptop ([section 7](#7-the-interactive-visualisation)), not hosted online |
+| **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; [open the public dashboard](https://umarmadbi.github.io/dsa4262-teamproject-dolly/) or run locally ([section 7](#7-the-interactive-visualisation)) |
 
 ---
 
@@ -47,6 +47,7 @@ default of both scripts.
 | See what the data looks like and its pitfalls | [docs/eda_findings.md](docs/eda_findings.md), `notebooks/01_EDA.ipynb` |
 | See the SG-NEx / cell-line results (Task 2) | [docs/sgnex_task2.md](docs/sgnex_task2.md) |
 | Open the dashboard | [Section 7](#7-the-interactive-visualisation) |
+| Use or maintain Dolly, the chatbot | [Dolly research guide](#dolly-research-guide), [backend guide](viz/chatbot/README.md) |
 | Find which script wrote a result file | [results/README.md](results/README.md) |
 | Re-run an experiment | [experiments/README.md](experiments/README.md) |
 | Log in to the team AWS machine | [docs/connect_to_server.md](docs/connect_to_server.md) |
@@ -264,14 +265,33 @@ Main findings (23 runs, 7 cell lines: A549, H9, HEYA8, Hct116, HepG2, K562, MCF7
 
 ## 7. The interactive visualisation
 
-A plain HTML/JS dashboard in `viz/site/` (no build step, no frontend dependencies). It shows per-run score
+A plain HTML/JS dashboard in `viz/site/` (no build step; the optional AI guide loads Cloudflare Turnstile when opened). It shows per-run score
 distributions, call rates and read depth; a **Site explorer** to look up a gene or transcript; and **Compare samples**
 for shared sites between two runs or two cell lines. Full documentation: [viz/README.md](viz/README.md).
 
-The dashboard is **not hosted online** (see "Publishing" below). Everyone runs it on their own laptop: it is a folder
-of static files plus a tiny local web server, so it works offline once downloaded and needs nothing but Python.
+Open the public **[Dolly RNA Explorer](https://umarmadbi.github.io/dsa4262-teamproject-dolly/)** in a browser; no local installation or AWS machine is required. You can also serve the dashboard locally for development. Local dashboard exploration uses the downloaded files; Dolly requires an internet connection and its deployed backend.
 
-### View it on your own laptop (recommended)
+### Dolly research guide
+
+The dashboard includes **Dolly**, a chatbot that helps researchers understand the project's methods, documented findings and website features.
+
+Open the **[Dolly RNA Explorer](https://umarmadbi.github.io/dsa4262-teamproject-dolly/)** and click the sheep button in the bottom-right corner.
+
+Example questions:
+
+- "What does an m6A prediction score mean?"
+- "How does the v2 model work?"
+- "How should I compare cell lines?"
+
+Dolly answers using reviewed project documentation and includes source references. It currently **cannot read live charts, access selected samples or filters, run analyses, or generate new m6A predictions**. Answers may contain mistakes and should be checked against the cited sources.
+
+The website is hosted on **GitHub Pages**, while a **Cloudflare Worker** connects the chatbot to **Google Gemini**. API credentials are stored as Cloudflare secrets and are not included in the website code.
+
+Questions and recent conversation history are sent to Cloudflare and Google Gemini. Chat history is kept in the browser tab and cleared on refresh or when the user selects **Clear chat**. Users should not enter credentials or private data.
+
+For backend setup, configuration, testing and maintenance, see **[the chatbot guide](viz/chatbot/README.md)**.
+
+### View it on your own laptop (for development)
 
 **What you need:** Python 3.7 or newer and a web browser. Check with `python3 --version` (macOS / Linux) or
 `py --version` (Windows). If it is missing, install it from https://www.python.org/downloads/ (on Windows, tick
@@ -329,12 +349,13 @@ ssh -i <key.pem> -L 8000:localhost:8000 ubuntu@dsa4262-2610-teamproject-dolly.nu
 ```
 The machine must be running, which costs budget: stop it in Ronin afterwards.
 
-### Publishing (not available for now)
-`.github/workflows/pages.yml` runs the tests and tries to publish `viz/site` to GitHub Pages on every push to `main`
-that touches `viz/`. Pages is not enabled for this repo and we do not have access to the repo settings, so the
-**deploy job fails; this is expected and harmless** (the test job still checks the dashboard). If the repo owner
-enables Pages later (Settings -> Pages -> Source: "GitHub Actions"), re-running the workflow will publish it. Other
-hosts that need no repo settings: the Vercel CLI (`cd viz/site && vercel deploy --prod`) or Netlify Drop.
+### Publishing and updates
+
+The dashboard is hosted on **[GitHub Pages](https://umarmadbi.github.io/dsa4262-teamproject-dolly/)**. The workflow in `.github/workflows/pages.yml` tests the dashboard and publishes `viz/site` after successful checks on pushes to `main` that touch `viz/` or the workflow file. Pull requests run the tests without publishing. The workflow can also be started manually from **Actions → Visualisation → Run workflow** on `main`.
+
+Develop changes on a feature branch and open a pull request. Once reviewed and merged, eligible changes deploy to the same public URL. Documentation-only changes outside the workflow's path filters do not trigger deployment.
+
+Dolly's Cloudflare Worker is deployed separately: after changing `viz/chatbot/`, run its tests and redeploy the Worker with Wrangler. Publishing the static website does not update the backend or its reviewed knowledge. See [the chatbot guide](viz/chatbot/README.md).
 
 ### Tests
 `node viz/tests/core.test.mjs` (needs Node.js; not installed on the server, but GitHub Actions runs it).
@@ -427,7 +448,7 @@ shared files. Use separate ports when serving the dashboard.
 - [x] Intermediate leaderboard: submitted with Nitish's model (`alternatives/sklearn_comparison/`)
 - [x] Decide the final model: v2 (default of `train.py` / `predict.py`)
 - [x] Step-by-step run guide for evaluators ([HOW_TO_RUN.md](HOW_TO_RUN.md))
-- [ ] Optional: host the visualisation online (see [Section 7](#publishing-not-available-for-now))
+- [x] Host the visualisation online (see [Section 7](#publishing-and-updates))
 - [ ] Final leaderboard predictions
 - [ ] Report (use [docs/ai_use_log.md](docs/ai_use_log.md) for the AI-use section)
 - [ ] Make the repo **public** (evaluators and markers cannot clone it while it is private)

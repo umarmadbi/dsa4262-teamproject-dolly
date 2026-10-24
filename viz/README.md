@@ -4,7 +4,7 @@ Interactive dashboard for m6A prediction scores, read coverage and shared-site c
 
 ## View it
 
-The dashboard is not hosted online for now: run it on your own laptop. From the repo folder:
+Open the public [Dolly RNA Explorer](https://umarmadbi.github.io/dsa4262-teamproject-dolly/). No local installation is needed. For local development, run this from the repo folder:
 
 ```bash
 python3 -m http.server 8000 --directory viz/site     # Windows: py -m http.server 8000 --directory viz/site
@@ -15,9 +15,7 @@ troubleshooting are in section 7 of the [main README](../README.md#7-the-interac
 
 ## How updates are published
 
-Every push to `main` that touches `viz/` runs the tests (`.github/workflows/pages.yml`). The workflow also tries to
-publish `viz/site` to GitHub Pages, but Pages is not enabled for this repo, so that deploy job fails; this is expected.
-Pull requests run the tests only.
+Pushes to `main` that touch `viz/` or `.github/workflows/pages.yml` run the dashboard tests and publish `viz/site` to GitHub Pages after they pass. Pull requests run tests only. The Visualisation workflow also supports manual runs. The chatbot Worker is deployed separately through Wrangler; a Pages deployment does not update its code or knowledge.
 
 ## Add or refresh SG-NEx predictions
 
@@ -78,5 +76,5 @@ https://github.com/GoekeLab/sg-nex-data/blob/master/docs/SG-NEx_m6Anet_tutorial.
 
 ## Optional AI research guide
 
-The floating **Ask Dolly** guide explains reviewed methods, results and website use. It is not connected by default and does not inspect live chart data or run predictions. Deployment, secrets, costs and privacy are documented in [chatbot/README.md](chatbot/README.md). Run its mock-only checks with `node --test viz/chatbot/worker.test.mjs`.
+The floating **Ask Dolly** guide explains reviewed methods, results and website use. It is configured to use the deployed Cloudflare Worker and Gemini. It does not inspect live chart data or run predictions. Deployment, secrets, costs and privacy are documented in [chatbot/README.md](chatbot/README.md). Run its mock-only checks with `node --test viz/chatbot/worker.test.mjs`.
 
