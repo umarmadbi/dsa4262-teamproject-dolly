@@ -1,7 +1,13 @@
 # Dolly research guide: Gemini + Cloudflare Worker
 
-Status: implemented, not deployed or connected to a live model. No paid service is enabled by this code.
-The static site stays where it is (local HTTP or GitHub Pages). The Worker runs separately. The repo can stay private. Do not change repo visibility just to add chat.
+Status: the Worker has been deployed and the public connection configuration is committed. Nitish ran all 9 mock backend tests successfully and reported local verification working. Recheck a complete answer on the public site after deployment; mock tests do not establish live model availability or response quality.
+
+- Website: [Dolly RNA Explorer](https://umarmadbi.github.io/dsa4262-teamproject-dolly/).
+- Chat endpoint: `https://dolly-guide.nitish-dolly.workers.dev/chat` (called by the website, not a standalone chat page).
+- Public endpoint and Turnstile site key: `../site/chat-config.js`.
+- Model and allowed origins: `wrangler.toml`; API credentials remain in Cloudflare secrets.
+
+GitHub Pages serves the static site. The Worker runs separately. The repo can stay private. Do not change repo visibility just to add chat. Provider quotas and billing depend on the accounts' settings.
 
 ## Included
 
@@ -13,7 +19,7 @@ The static site stays where it is (local HTTP or GitHub Pages). The Worker runs 
 
 The assistant explains documented findings; it has NO live chart access, data-query tools, arbitrary URL fetch, file access, code execution, model training or new predictions. It must direct live numerical questions to charts/tables. This is separate from the m6A prediction model.
 
-## Before deployment
+## Reproduce or reconfigure the deployment
 
 Use Node 22+ and a current Wrangler 4 CLI (>=4.36 for rate-limit bindings). From the repository root:
 
@@ -22,6 +28,8 @@ node --test viz/chatbot/worker.test.mjs
 cd viz/chatbot
 npx wrangler@4 login
 ```
+
+On Windows PowerShell, if script execution blocks `npx.ps1`, use `npx.cmd` in place of `npx` below. No execution-policy change is needed.
 
 1. Create a Gemini API project/key in https://aistudio.google.com/apikey. Select an available text model with `generateContent` support and check its actual free-tier allowance in your account. Do not enable paid billing if the aim is a zero-charge pilot. No model is silently selected for you.
 2. In Cloudflare, create a Turnstile widget. Allow your website hostname and `localhost` / `127.0.0.1` if testing locally. The site key is public; the secret key is private. Use managed mode. The UI passes action `dolly-chat`; Worker verifies it and the hostname.
@@ -44,6 +52,14 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory viz/site
 ```
 
 Open http://127.0.0.1:8000, click Ask Dolly, complete verification and send a question. This uses the deployed backend even though the website is local. No need to deploy the website publicly to test it. For Pages publishing, use the project's existing deployment workflow after branch review.
+
+## Updating the deployed assistant
+
+1. Review changes to `knowledge.mjs` when project methods or findings change; source documents are not imported automatically.
+2. From the repository root, run `node --test viz/chatbot/worker.test.mjs`.
+3. From `viz/chatbot/`, run `npx wrangler@4 deploy` (Windows: `npx.cmd wrangler@4 deploy`). Use the Cloudflare account that owns the deployed Worker.
+4. For frontend changes, open a pull request and merge after review; the Pages workflow publishes eligible changes to `main`.
+5. Keep Turnstile hostname settings aligned with the website: `umarmadbi.github.io`, plus `localhost` and `127.0.0.1` for local testing. Origins in `wrangler.toml` include protocol and local port, but no repository path.
 
 ## Verify before release
 
