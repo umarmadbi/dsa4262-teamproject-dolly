@@ -445,7 +445,6 @@ From the git history; please correct or add to it.
 | Area | Who |
 |---|---|
 | Repo setup, EDA, setup docs, shared helpers, v1 model (read-stack), train/predict scripts | Umar |
-| Alternative scikit-learn/XGBoost pipeline (`alternatives/sklearn_comparison/`), model used for the intermediate leaderboard | Nitish |
-| Deployment and local integration of the existing Dolly chatbot: Cloudflare Worker, Gemini and Turnstile configuration; 9 backend tests passed; local verification troubleshooting (24 Oct). Chatbot code pre-existed; live-data assistant extension pending. | Nitish |
+| Alternative scikit-learn/XGBoost pipeline (`alternatives/sklearn_comparison/`), model used for the intermediate leaderboard; deployment and integration of the existing Dolly chatbot using Cloudflare Workers, Gemini and Turnstile, including backend tests and local verification | Nitish |
 | m6Anet benchmark, v2 model, SG-NEx analysis (Task 2), visualisation and its hosting | Hamzah |
 | ... | Joshua: please add |
