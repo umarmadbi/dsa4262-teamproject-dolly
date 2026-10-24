@@ -16,7 +16,7 @@ default of both scripts.
 |---|---|---|---|
 | **Task 1** | A training script and a prediction script that output `transcript_id,transcript_position,score` | `scripts/train.py`, `scripts/predict.py`, `src/m6a/` | Done (final model: v2; intermediate leaderboard was submitted with Nitish's model, see [section 5](#alternative-pipeline)) |
 | **Task 2** | Predict m6A on all SG-NEx direct RNA-Seq runs, compare cell lines | `experiments/12_sgnex_m6anet_compare.py`, [docs/sgnex_task2.md](docs/sgnex_task2.md) | Done (23 runs, 7 cell lines) |
-| **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; run it locally on your laptop ([section 7](#7-the-interactive-visualisation)), not hosted online |
+| **Task 2** | Interactive visualisation | `viz/` ([viz/README.md](viz/README.md)) | Done; [open the public dashboard](https://umarmadbi.github.io/dsa4262-teamproject-dolly/) or run locally ([section 7](#7-the-interactive-visualisation)) |
 
 ---
 
