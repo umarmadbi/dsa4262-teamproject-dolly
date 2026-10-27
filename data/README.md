@@ -9,7 +9,7 @@ Input data. Only the small test set in `sample/` is committed. The course datase
 | `sample/sample.info` | yes | Labels for those 500 sites (`gene_id,transcript_id,transcript_position,label`), for a quick training test |
 | `data0/` | no | Course training data (Hct116): `dataset0.json.gz` + `data.info.labelled` |
 | `data1/`, `data2/` | no | Second labelled run, and the synthetic dataset with known modification fractions |
-| `sgnex/` | no | Optional: a full SG-NEx run to test `predict.py` on (see [docs/HOW_TO_RUN.md](../docs/HOW_TO_RUN.md#4-optional-predict-on-a-full-sg-nex-run)) |
+| `sgnex/` | no | SG-NEx runs for Task 2 (see [docs/HOW_TO_RUN.md](../docs/HOW_TO_RUN.md#4-optional-predict-on-a-full-sg-nex-run)) |
 
 To use the full datasets, place them here so the folder looks like this:
 

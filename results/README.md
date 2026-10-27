@@ -2,7 +2,7 @@
 
 Metrics, logs and predictions written by the scripts in `experiments/` and `scripts/`. Every file lists the script
 that writes it, so you can regenerate it. The write-up that interprets these numbers is
-[docs/model_development.md](../docs/model_development.md).
+[docs/model_development.md](../docs/model_development.md) (Task 1) and [docs/sgnex_task2.md](../docs/sgnex_task2.md) (Task 2).
 
 `.gitignore` ignores `results/*`, so only the small files below are committed (added with `git add -f`). Large outputs
 (SG-NEx predictions, parquet files) live only on the AWS machine; see "Not committed" at the end.
@@ -63,3 +63,6 @@ These are under `~/hamzah/dsa4262-teamproject-dolly/results/` on the server.
 | `preds_*.parquet`, `preds_v2_*.parquet`, `preds_m6anet_*.parquet` | `05`, `08`, `11` | Per-site test-set predictions used for figures and bootstrap CIs |
 | `threshold_recall_v2_vs_m6anet.csv` | not recorded (no script in the repo) | Precision/recall/call rate of v2 and m6Anet at several thresholds on d0 test; motivates the 0.5 / 0.9 cut-offs in experiment 12 |
 | `d2_depth/` | not recorded (no script in the repo) | Predictions on dataset2 at different read depths (`pred_k20.csv`, `pred_k200.csv`, `depth_ablation.csv`) |
+| `sgnex_v2/<run>.csv` (1.2 GB) | `scripts/predict.py --model models/m6a_model_v2.joblib` | v2 predictions for each of the 23 SG-NEx runs (input to the visualisation) |
+| `sgnex_m6anet/<cell>_rep<r>_run<n>/` (9.9 GB) | `m6anet inference` | m6Anet predictions for the same runs |
+| `sgnex_compare_{runs,regions,motifs,pairs}.csv` | `12_sgnex_m6anet_compare.py` | Task 2 comparison tables, summarised in [docs/sgnex_task2.md](../docs/sgnex_task2.md) |

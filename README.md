@@ -6,7 +6,7 @@ The input is Oxford Nanopore direct RNA-Seq data processed by m6Anet's `dataprep
 with `transcript_id,transcript_position,score`. The final model (**v2**) beats simple baselines and the published
 tool m6Anet on held-out data.
 
-**[Step-by-step guide for student evaluation (HOW_TO_RUN)](docs/HOW_TO_RUN.md)** · **[How the model was built](docs/model_development.md)**
+**[Step-by-step guide for student evaluation (HOW_TO_RUN)](docs/HOW_TO_RUN.md)** · **[Interactive dashboard](https://umarmadbi.github.io/dsa4262-teamproject-dolly/)** · **[How the model was built](docs/model_development.md)**
 
 ---
 
@@ -84,6 +84,12 @@ pooled per site. A site-level LightGBM combines them with summaries of the signa
 the 7-mer sequence and the scores of neighbouring sites. v2 adds transcript-structure features from Ensembl 91 (e.g.
 distance to the stop codon) and averages three seeds.
 
+### Task 2: SG-NEx cell lines
+
+We scored 23 SG-NEx direct RNA-Seq runs from 7 human cell lines with v2 and with m6Anet. Explore the predictions in
+the **[Dolly RNA Explorer](https://umarmadbi.github.io/dsa4262-teamproject-dolly/)** dashboard; the analysis is in
+[docs/sgnex_task2.md](docs/sgnex_task2.md).
+
 ---
 
 ## Repository layout
@@ -98,10 +104,11 @@ Every folder has a README that explains each file.
 | [`models/`](models/) | The trained models (v2 final, v1 earlier) |
 | [`data/`](data/) | **`data/sample/`**: the small test data set; the full datasets are not committed |
 | [`resources/`](resources/) | Ensembl 91 transcript annotation used by v2 |
-| [`experiments/`](experiments/) | The numbered studies (01-11) behind every result |
+| [`experiments/`](experiments/) | The numbered studies (01-12) behind every result |
 | [`results/`](results/) | Metrics, logs and example predictions |
 | [`notebooks/`](notebooks/) | Exploratory data analysis |
 | [`docs/`](docs/) | Run guide, write-ups and figures |
+| [`viz/`](viz/) | The interactive dashboard and its chatbot |
 
 ---
 

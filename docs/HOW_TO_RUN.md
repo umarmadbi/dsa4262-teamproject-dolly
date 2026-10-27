@@ -1,4 +1,4 @@
-# How to run: install, predict and train
+# How to run: install, predict, train and visualise
 
 Step-by-step instructions for running team **Dolly**'s m6A prediction method from a clean machine. They are written
 for the peer evaluation (a fresh **AWS Ubuntu** instance), but work the same on any Linux or macOS machine; Windows
@@ -12,7 +12,8 @@ notes are at the end of each step where they differ.
 | [4. Predict on a full SG-NEx run](#4-optional-predict-on-a-full-sg-nex-run) | Download one SG-NEx run from AWS S3 and score it | 10-30 min | Optional |
 | [5. Train a model](#5-optional-train-a-model) | Run `scripts/train.py` | 10 s (test data) to 40 min | Optional (not evaluated) |
 | [6. Reproduce the evaluation results](#6-optional-reproduce-the-evaluation-results) | Re-run the experiments behind the report | hours | Optional |
-| [7. Troubleshooting](#7-troubleshooting) | Common errors and fixes | | |
+| [7. Open the interactive visualisation](#7-open-the-interactive-visualisation) | Serve `viz/site` and open it in a browser | 2 min | For the report / Task 2 |
+| [8. Troubleshooting](#8-troubleshooting) | Common errors and fixes | | |
 
 **The model.** The final model is **v2** (`models/m6a_model_v2.joblib`, 16 MB,
 included in the repo), and both scripts use it by default. It scores each candidate DRACH site in an m6Anet
@@ -52,8 +53,8 @@ git clone https://github.com/umarmadbi/dsa4262-teamproject-dolly.git
 cd dsa4262-teamproject-dolly
 ```
 
-You are now in the **repo root**. Run every command in this guide from here. The download includes
-the trained models and the test data.
+You are now in the **repo root**. Run every command in this guide from here. The download is ~100 MB (it includes
+the trained models, the test data and the visualisation data).
 
 ### 1.3 Create the Python environment
 
@@ -195,7 +196,8 @@ aws s3 cp --no-sign-request \
   s3://sg-nex-data/data/processed_data/m6Anet/$RUN/data.json data/sgnex/$RUN/data.json
 ```
 
-The SG-NEx tutorial's example run is `SGNex_A549_directRNA_replicate6_run1` (larger).
+The SG-NEx tutorial's example run is `SGNex_A549_directRNA_replicate6_run1` (larger). The 23 runs we analysed for
+Task 2 are listed in [sgnex_task2.md](sgnex_task2.md).
 
 ### 4.2 Score it
 
@@ -208,7 +210,7 @@ This takes a few minutes to ~30 minutes depending on the run's size and the numb
 machine with more RAM. Check the output with step 3 (change the file names; for a plain `.json` input replace
 `gzip.open(...)` with `open(...)`).
 
-To score several runs, loop over the folders:
+To score all runs (as we did for Task 2), loop over the folders:
 
 ```bash
 for d in data/sgnex/SGNex_*; do
@@ -274,7 +276,54 @@ Running m6Anet itself (the benchmark) needs Python 3.8 in a separate conda envir
 
 ---
 
-## 7. Troubleshooting
+## 7. Open the interactive visualisation
+
+The **Dolly RNA Explorer** (`viz/site/`) lets researchers explore our v2 predictions on the 23 SG-NEx runs from 7
+cell lines (A549, H9, HEYA8, Hct116, HepG2, K562, MCF7). It is a folder of static HTML/JavaScript files with all data
+included; it needs only Python (to serve the files) and a web browser, and works offline.
+
+### 7.1 Start it
+
+On your own laptop (macOS / Linux / Windows), from the repo root:
+
+```bash
+python3 -m http.server 8000 --directory viz/site      # Windows: py -m http.server 8000 --directory viz/site
+```
+
+Leave the terminal open, then open **http://localhost:8000** in your browser. Stop it with `Ctrl+C`.
+
+On an AWS machine (no browser), start the same command there, then forward the port from your laptop and open
+http://localhost:8000 on the laptop:
+
+```bash
+ssh -i <your-key.pem> -L 8000:localhost:8000 ubuntu@<aws-machine-address>
+```
+
+Do not open `viz/site/index.html` by double-clicking it: browsers block the data files when a page is opened from
+disk, so the page stays empty. Always go through `http://localhost:8000`.
+
+### 7.2 Use it
+
+The left menu has five pages:
+
+| Page | What it shows | Try this |
+|---|---|---|
+| **Overview** | Number of sites and read coverage per run, the distribution of prediction scores, and the share of sites scoring at or above a cutoff for every run, grouped by cell line (one dot per run, bar = cell-line mean) | Change *Exploration cutoff* (e.g. 0.5 to 0.8) and *Minimum coverage* and watch the cell-line panel |
+| **Site explorer** | A searchable table of sites: run or cell line, transcript, position, gene, 7-mer sequence, reads and score. Click a row's arrow for the site's details | Type a gene ID (e.g. `ENSG00000156508`) or a transcript ID; set *Minimum score* to 0.5 to list likely m6A sites; *Export filtered CSV* downloads the table |
+| **Compare samples** | Two runs or two cell lines side by side at the same transcript positions: shared and unique sites and a scatter plot of read coverage or prediction score | Choose a cell-line summary for *Sample A* and *Sample B*, switch *Measure* to *Prediction score* |
+| **Data & imports** | The catalogue of the 23 SG-NEx runs and the development datasets; import your own coverage or prediction CSV (kept in your browser only) | Import a CSV from step 2 or 4 as *Model prediction CSV* to attach it to a matching sample |
+| **Methods & guide** | What a candidate site, a score and a comparison mean, and the data's limits | Read before interpreting differences between cell lines |
+
+Points to keep in mind when reading it: scores are predictions from a model trained on Hct116, not experimentally
+confirmed modifications; a score of 0.8 does not mean 80% of reads are modified; a site missing from a run was not
+measured with enough reads, which does not mean it is unmodified; and deeper runs get more high-scoring sites, so
+compare cell lines at shared sites. Our analysis of these results is in [sgnex_task2.md](sgnex_task2.md).
+
+To rebuild the dashboard data from new predictions, see [viz/README.md](../viz/README.md).
+
+---
+
+## 8. Troubleshooting
 
 | Problem | Cause and fix |
 |---|---|
@@ -286,7 +335,9 @@ Running m6Anet itself (the benchmark) needs Python 3.8 in a separate conda envir
 | `InconsistentVersionWarning: Trying to unpickle estimator ... from version 1.9.1 when using version 1.7.2` | Harmless. The models were saved with scikit-learn 1.9, which needs Python 3.11+; on Python 3.10 (Ubuntu 22.04) pip installs 1.7. We checked that the predictions are identical (step 3's `diff` shows no difference). On Ubuntu 24.04 the warning does not appear |
 | The prediction process is `Killed` | Not enough memory for a large run: use `--jobs 1`, or a machine with more RAM |
 | `wget` returns `403 Forbidden` / `404 Not Found` for SG-NEx | Check the run name against the list in step 4; it must match the S3 folder name exactly |
+| Dashboard page is blank or says it failed to load | Open it through `http://localhost:8000` (step 7.1), not as a file; if port 8000 is busy use 8001 |
+| Dashboard shows old data after `git pull` | Hard-refresh the browser: `Ctrl+Shift+R` (`Cmd+Shift+R` on macOS) |
 
 Last checked on 17 Oct 2026 on a fresh clone with the latest package versions (pandas 3.0, scikit-learn 1.9,
 LightGBM 4.7): `setup/setup_env.sh`, prediction on the test data with v2 and v1, the format check, training on the test
-data. Before submission, run steps 1-3 once more on a new AWS Ubuntu instance.
+data, and the dashboard. Before submission, run steps 1-3 once more on a new AWS Ubuntu instance.

@@ -36,3 +36,6 @@ desktop.ini
 !data/sample/
 !data/sample/*
 
+# --- visualisation data (small, built by scripts/build_viz_data.py; must stay after *.json) ---
+!viz/site/data/
+!viz/site/data/*.json
