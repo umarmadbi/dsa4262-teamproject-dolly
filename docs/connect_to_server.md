@@ -70,7 +70,7 @@ You now edit files, run notebooks and use the terminal on the server as if it we
 
 We all log in as the same `ubuntu` user, so follow these rules to avoid stepping on each other:
 
-- **Your own folder:** clone the repo into `~/<yourname>/` (see the main README). Don't edit files in someone else's folder.
+- **Your own folder:** clone the repo into `~/<yourname>/` (see [team_guide.md](team_guide.md)). Don't edit files in someone else's folder.
 - **Shared data:** the datasets live once in `~/data/` and are read-only by convention. Link them into your clone with `ln -s`; don't copy or modify them.
 - **Git identity per clone:** run `git config user.name` / `user.email` inside your clone **without `--global`**.
 - **GitHub login on the server:** when you push over HTTPS, VS Code shows a GitHub sign-in prompt in your browser. In a plain terminal, use a GitHub *personal access token* as the password (GitHub → Settings → Developer settings → Fine-grained tokens, access to this repo only). Don't save someone else's token on the machine.

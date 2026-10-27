@@ -1,5 +1,5 @@
 # Separate environment for running the m6Anet benchmark (needs Python 3.8).
-# Create with:  conda env create -f environment_m6anet.yml
+# Create with:  conda env create -f setup/environment_m6anet.yml
 #               conda activate m6anet
 name: m6anet
 channels:

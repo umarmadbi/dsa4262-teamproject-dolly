@@ -1,9 +1,9 @@
 # DSA4262 Team Project - m6A prediction from direct RNA-Seq
 # Python 3.10 - 3.12 (Ubuntu 24.04 ships 3.12).
-# Install:  bash setup_env.sh   (Windows: setup_env.bat)
+# Install:  bash setup/setup_env.sh   (Windows: setup/setup_env.bat)
 #
 # NOTE: m6Anet (needed for benchmarking) requires Python 3.8 and must be
-# installed in a SEPARATE conda environment - see environment_m6anet.yml.
+# installed in a SEPARATE conda environment - see setup/environment_m6anet.yml.
 
 # --- core data handling ---
 numpy>=1.26,<3

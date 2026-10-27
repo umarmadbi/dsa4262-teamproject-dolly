@@ -23,6 +23,7 @@ results/*
 !results/README.md
 models/*
 !models/.gitkeep
+!models/README.md
 # to commit the final model, use:  git add -f models/final_model.joblib
 
 # --- OS / editor ---
@@ -35,6 +36,3 @@ desktop.ini
 !data/sample/
 !data/sample/*
 
-# --- visualisation data (small, built by scripts/build_viz_data.py; must stay after *.json) ---
-!viz/site/data/
-!viz/site/data/*.json

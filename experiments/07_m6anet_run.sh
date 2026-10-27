@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run pretrained m6Anet (HCT116_RNA002, the default) on dataset0/1/2.
-# Needs the Python 3.8 env from environment_m6anet.yml. Set M6ANET to its m6anet binary if it
+# Needs the Python 3.8 env from setup/environment_m6anet.yml. Set M6ANET to its m6anet binary if it
 # is not on PATH, e.g. M6ANET=~/hamzah/tools/micromamba/envs/m6anet/bin/m6anet
 # Outputs: cache/m6anet/d{0,1,2}_out/data.site_proba.csv
 set -euo pipefail

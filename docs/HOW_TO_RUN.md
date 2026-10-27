@@ -1,4 +1,4 @@
-# How to run: install, predict, train and visualise
+# How to run: install, predict and train
 
 Step-by-step instructions for running team **Dolly**'s m6A prediction method from a clean machine. They are written
 for the peer evaluation (a fresh **AWS Ubuntu** instance), but work the same on any Linux or macOS machine; Windows
@@ -12,13 +12,12 @@ notes are at the end of each step where they differ.
 | [4. Predict on a full SG-NEx run](#4-optional-predict-on-a-full-sg-nex-run) | Download one SG-NEx run from AWS S3 and score it | 10-30 min | Optional |
 | [5. Train a model](#5-optional-train-a-model) | Run `scripts/train.py` | 10 s (test data) to 40 min | Optional (not evaluated) |
 | [6. Reproduce the evaluation results](#6-optional-reproduce-the-evaluation-results) | Re-run the experiments behind the report | hours | Optional |
-| [7. Open the interactive visualisation](#7-open-the-interactive-visualisation) | Serve `viz/site` and open it in a browser | 2 min | For the report / Task 2 |
-| [8. Troubleshooting](#8-troubleshooting) | Common errors and fixes | | |
+| [7. Troubleshooting](#7-troubleshooting) | Common errors and fixes | | |
 
-**The model.** The method is called **Dolly**; the final model is **v2** (`models/m6a_model_v2.joblib`, 16 MB,
+**The model.** The final model is **v2** (`models/m6a_model_v2.joblib`, 16 MB,
 included in the repo), and both scripts use it by default. It scores each candidate DRACH site in an m6Anet
 `dataprep` `data.json` with the probability that it carries m6A. How it works and how it was evaluated:
-[README.md](README.md#5-task-1-train-and-predict) and [docs/model_development.md](docs/model_development.md).
+the [main README](../README.md#the-model) and [model_development.md](model_development.md).
 
 ---
 
@@ -53,16 +52,16 @@ git clone https://github.com/umarmadbi/dsa4262-teamproject-dolly.git
 cd dsa4262-teamproject-dolly
 ```
 
-You are now in the **repo root**. Run every command in this guide from here. The download is ~100 MB (it includes
-the trained models, the test data and the visualisation data).
+You are now in the **repo root**. Run every command in this guide from here. The download includes
+the trained models and the test data.
 
 ### 1.3 Create the Python environment
 
 ```bash
-bash setup_env.sh
+bash setup/setup_env.sh
 ```
 
-This creates a virtual environment in `.venv/` and installs the packages in `requirements.txt` (numpy, pandas,
+This creates a virtual environment in `.venv/` and installs the packages in `setup/requirements.txt` (numpy, pandas,
 scikit-learn, LightGBM, XGBoost, joblib, ... plus Jupyter for the notebooks). It takes about 3-5 minutes and ends
 with `Done. Activate later with: source .venv/bin/activate`.
 
@@ -79,7 +78,7 @@ python -c "import lightgbm, sklearn, pandas; print('environment OK')"
 ```
 
 > **Windows (for running on a laptop instead of AWS):** install Python 3.10-3.12 from python.org (tick "Add
-> python.exe to PATH"), then in the repo folder run `setup_env.bat` and activate with `.venv\Scripts\activate`.
+> python.exe to PATH"), then in the repo folder run `setup\setup_env.bat` and activate with `.venv\Scripts\activate`.
 > In the commands below use `python` and write paths with either `/` or `\`.
 
 ---
@@ -111,6 +110,9 @@ Expected console output (the time varies):
 Notes:
 
 - Give the script **one sequencing run per call**: neighbouring sites in the same transcript are used as context.
+- Transcript IDs are used exactly as given. Transcripts not found in the Ensembl 91 annotation (for example IDs
+  with a version suffix such as `ENST00000000233.10`, or synthetic transcripts) are scored by the built-in fallback
+  model, which does not use transcript-structure features. The output format is the same.
 - `python scripts/predict.py --help` prints the same information.
 
 ---
@@ -163,7 +165,7 @@ EOF
 Expected: `OK: 500 sites, scores 0.0001-0.9019, 25 with score >= 0.5` (approximately).
 
 The test sites come from the training data, so these scores show that the script runs and writes the right format;
-they are **not** a measure of accuracy. Accuracy on held-out data is in [README.md](README.md#2-results-at-a-glance).
+they are **not** a measure of accuracy. Accuracy on held-out data is in the [main README](../README.md#results).
 
 ---
 
@@ -193,8 +195,7 @@ aws s3 cp --no-sign-request \
   s3://sg-nex-data/data/processed_data/m6Anet/$RUN/data.json data/sgnex/$RUN/data.json
 ```
 
-The SG-NEx tutorial's example run is `SGNex_A549_directRNA_replicate6_run1` (larger). The 23 runs we analysed for
-Task 2 are listed in [docs/sgnex_task2.md](docs/sgnex_task2.md).
+The SG-NEx tutorial's example run is `SGNex_A549_directRNA_replicate6_run1` (larger).
 
 ### 4.2 Score it
 
@@ -207,7 +208,7 @@ This takes a few minutes to ~30 minutes depending on the run's size and the numb
 machine with more RAM. Check the output with step 3 (change the file names; for a plain `.json` input replace
 `gzip.open(...)` with `open(...)`).
 
-To score all runs (as we did for Task 2), loop over the folders:
+To score several runs, loop over the folders:
 
 ```bash
 for d in data/sgnex/SGNex_*; do
@@ -237,7 +238,7 @@ this is only a check that the code runs.)
 ### 5.2 Retrain the final model on the course training data
 
 The course training data (Hct116, `dataset0.json.gz` and `data.info.labelled`) is **not** in the repo because of
-its size. Put it in `data/data0/` (layout in [data/README.md](data/README.md)), then:
+its size. Put it in `data/data0/` (layout in [data/README.md](../data/README.md)), then:
 
 ```bash
 python scripts/train.py --data data/data0/dataset0.json.gz data/data0/data.info.labelled
@@ -263,77 +264,29 @@ Add `--out <path>` to save it elsewhere.
 The numbers in the report (ROC AUC and PR AUC against a random classifier, a simple baseline, LightGBM and m6Anet,
 with gene-level bootstrap confidence intervals) come from the numbered scripts in `experiments/`. They need the course
 datasets `data0`-`data2` in `data/` and take hours in total. Order, run times and outputs:
-[experiments/README.md](experiments/README.md); full commands: the "Reproduce" section of
-[docs/model_development.md](docs/model_development.md#reproduce). The resulting tables are already committed in
-`results/` ([results/README.md](results/README.md) says which script wrote each file), so you can read the results
+[experiments/README.md](../experiments/README.md); full commands: the "Reproduce" section of
+[model_development.md](model_development.md#reproduce). The resulting tables are already committed in
+`results/` ([results/README.md](../results/README.md) says which script wrote each file), so you can read the results
 without re-running anything.
 
 Running m6Anet itself (the benchmark) needs Python 3.8 in a separate conda environment:
-`conda env create -f environment_m6anet.yml && conda activate m6anet`.
+`conda env create -f setup/environment_m6anet.yml && conda activate m6anet`.
 
 ---
 
-## 7. Open the interactive visualisation
-
-The **Dolly RNA Explorer** (`viz/site/`) lets researchers explore our v2 predictions on the 23 SG-NEx runs from 7
-cell lines (A549, H9, HEYA8, Hct116, HepG2, K562, MCF7). It is a folder of static HTML/JavaScript files with all data
-included; it needs only Python (to serve the files) and a web browser, and works offline.
-
-### 7.1 Start it
-
-On your own laptop (macOS / Linux / Windows), from the repo root:
-
-```bash
-python3 -m http.server 8000 --directory viz/site      # Windows: py -m http.server 8000 --directory viz/site
-```
-
-Leave the terminal open, then open **http://localhost:8000** in your browser. Stop it with `Ctrl+C`.
-
-On an AWS machine (no browser), start the same command there, then forward the port from your laptop and open
-http://localhost:8000 on the laptop:
-
-```bash
-ssh -i <your-key.pem> -L 8000:localhost:8000 ubuntu@<aws-machine-address>
-```
-
-Do not open `viz/site/index.html` by double-clicking it: browsers block the data files when a page is opened from
-disk, so the page stays empty. Always go through `http://localhost:8000`.
-
-### 7.2 Use it
-
-The left menu has five pages:
-
-| Page | What it shows | Try this |
-|---|---|---|
-| **Overview** | Number of sites and read coverage per run, the distribution of prediction scores, and the share of sites scoring at or above a cutoff for every run, grouped by cell line (one dot per run, bar = cell-line mean) | Change *Exploration cutoff* (e.g. 0.5 to 0.8) and *Minimum coverage* and watch the cell-line panel |
-| **Site explorer** | A searchable table of sites: run or cell line, transcript, position, gene, 7-mer sequence, reads and score. Click a row's arrow for the site's details | Type a gene ID (e.g. `ENSG00000156508`) or a transcript ID; set *Minimum score* to 0.5 to list likely m6A sites; *Export filtered CSV* downloads the table |
-| **Compare samples** | Two runs or two cell lines side by side at the same transcript positions: shared and unique sites and a scatter plot of read coverage or prediction score | Choose a cell-line summary for *Sample A* and *Sample B*, switch *Measure* to *Prediction score* |
-| **Data & imports** | The catalogue of the 23 SG-NEx runs and the development datasets; import your own coverage or prediction CSV (kept in your browser only) | Import a CSV from step 2 or 4 as *Model prediction CSV* to attach it to a matching sample |
-| **Methods & guide** | What a candidate site, a score and a comparison mean, and the data's limits | Read before interpreting differences between cell lines |
-
-Points to keep in mind when reading it: scores are predictions from a model trained on Hct116, not experimentally
-confirmed modifications; a score of 0.8 does not mean 80% of reads are modified; a site missing from a run was not
-measured with enough reads, which does not mean it is unmodified; and deeper runs get more high-scoring sites, so
-compare cell lines at shared sites. Our analysis of these results is in [docs/sgnex_task2.md](docs/sgnex_task2.md).
-
-To rebuild the dashboard data from new predictions, see [viz/README.md](viz/README.md).
-
----
-
-## 8. Troubleshooting
+## 7. Troubleshooting
 
 | Problem | Cause and fix |
 |---|---|
-| `The virtual environment was not created successfully because ensurepip is not available` | `python3-venv` is missing: run step 1.1 (on Ubuntu 24.04 also try `sudo apt install -y python3.12-venv`), delete the half-made `.venv` with `rm -rf .venv` and run `bash setup_env.sh` again |
+| `The virtual environment was not created successfully because ensurepip is not available` | `python3-venv` is missing: run step 1.1 (on Ubuntu 24.04 also try `sudo apt install -y python3.12-venv`), delete the half-made `.venv` with `rm -rf .venv` and run `bash setup/setup_env.sh` again |
 | `python: command not found` or `ModuleNotFoundError: No module named 'lightgbm'` | The environment is not active: `source .venv/bin/activate` (step 1.4) |
 | `ModuleNotFoundError: No module named 'm6a'` or `can't open file 'scripts/predict.py'` | You are not in the repo root: `cd ~/dsa4262-teamproject-dolly` |
-| `Permission denied` running `setup_env.sh` | Run it with `bash setup_env.sh`, not `./setup_env.sh` |
+| `Permission denied` running `setup/setup_env.sh` | Run it with `bash setup/setup_env.sh`, not `./setup/setup_env.sh` |
 | `git clone` asks for a username/password | The repository must be public for the evaluation; if it is still private, ask the team for access |
+| `InconsistentVersionWarning: Trying to unpickle estimator ... from version 1.9.1 when using version 1.7.2` | Harmless. The models were saved with scikit-learn 1.9, which needs Python 3.11+; on Python 3.10 (Ubuntu 22.04) pip installs 1.7. We checked that the predictions are identical (step 3's `diff` shows no difference). On Ubuntu 24.04 the warning does not appear |
 | The prediction process is `Killed` | Not enough memory for a large run: use `--jobs 1`, or a machine with more RAM |
 | `wget` returns `403 Forbidden` / `404 Not Found` for SG-NEx | Check the run name against the list in step 4; it must match the S3 folder name exactly |
-| Dashboard page is blank or says it failed to load | Open it through `http://localhost:8000` (step 7.1), not as a file; if port 8000 is busy use 8001 |
-| Dashboard shows old data after `git pull` | Hard-refresh the browser: `Ctrl+Shift+R` (`Cmd+Shift+R` on macOS) |
 
 Last checked on 17 Oct 2026 on a fresh clone with the latest package versions (pandas 3.0, scikit-learn 1.9,
-LightGBM 4.7): `setup_env.sh`, prediction on the test data with v2 and v1, the format check, training on the test
-data, and the dashboard. Before submission, run steps 1-3 once more on a new AWS Ubuntu instance.
+LightGBM 4.7): `setup/setup_env.sh`, prediction on the test data with v2 and v1, the format check, training on the test
+data. Before submission, run steps 1-3 once more on a new AWS Ubuntu instance.

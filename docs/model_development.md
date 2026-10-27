@@ -1,4 +1,11 @@
-# Model development and evaluation (5 Oct 2026)
+# Model development and evaluation
+
+**Summary.** The final model is **v2** (`models/m6a_model_v2.joblib`, the default of `scripts/train.py` and
+`scripts/predict.py`): the v1 read-level/site-level LightGBM stack plus transcript-structure features from Ensembl 91,
+averaged over three seeds. On held-out data it reaches ROC 0.952 / PR 0.561 (dataset0 test genes) and 0.881 / 0.421
+(dataset1 unseen genes), ahead of v1, pretrained m6Anet and the baselines ([v2 section](#v2-transcript-structure-features-12-oct-2026-0911)).
+This document follows the development in order: evaluation design, features and model comparison (5 Oct), the v1
+model, the model used for the intermediate leaderboard (7 Oct), the m6Anet benchmark (12 Oct), then v2 (12-17 Oct).
 
 Everything here is reproducible with the scripts in `experiments/` (run in order, see the end).
 Numbers come from `results/*.csv`.
@@ -54,7 +61,7 @@ Take-aways: the tree model with the 7-mer as input handles the k-mer dependence 
 and per-run correction barely matter for it (they matter for the linear model); class weights do not
 change the ranking, so they were not used; the signal carries most of the information beyond the sequence prior.
 
-## Final model (`ReadStackModel` in `src/m6a/models.py`)
+## v1 model (`ReadStackModel` in `src/m6a/models.py`)
 
 1. **Read-level model** (multiple-instance idea from m6Anet): LightGBM scores single reads (11 read values
    centred per 5-mer + 7-mer); each read inherits its site's label. At most 20 random reads per site, in
@@ -67,7 +74,7 @@ change the ranking, so they were not used; the signal carries most of the inform
    Training sites get **out-of-fold** read and neighbour scores (3 inner gene-grouped folds), so the
    final model never learns from scores produced by a model that saw that site's label.
 
-## Final results (trained once on the training 80%, `05_final_eval.py`)
+## v1 test results (trained once on the training 80%, `05_final_eval.py`)
 
 | Model | dataset0 test ROC | dataset0 test PR | dataset1 unseen ROC | dataset1 unseen PR |
 |---|---|---|---|---|
@@ -76,19 +83,19 @@ change the ranking, so they were not used; the signal carries most of the inform
 | Logistic regression | 0.905 | 0.423 | 0.825 | 0.338 |
 | LightGBM, site features | 0.916 (0.892–0.936) | 0.482 (0.424–0.539) | 0.834 (0.818–0.848) | 0.360 (0.328–0.397) |
 | Read stack (no neighbours) | 0.919 | 0.483 | 0.841 | 0.375 |
-| **Final model** | **0.932 (0.906–0.952)** | **0.520 (0.456–0.581)** | **0.860 (0.844–0.874)** | **0.403 (0.370–0.440)** |
+| **v1** | **0.932 (0.906–0.952)** | **0.520 (0.456–0.581)** | **0.860 (0.844–0.874)** | **0.403 (0.370–0.440)** |
 
-Paired gene-bootstrap differences, final model minus:
+Paired gene-bootstrap differences, v1 minus:
 
 * 5-mer baseline: PR +0.379 (0.326–0.428) on dataset0, +0.246 (0.218–0.274) on dataset1.
 * LightGBM site model: PR +0.037 (0.020–0.054), ROC +0.016 (0.008–0.023) on dataset0;
   PR +0.042 (0.030–0.055), ROC +0.025 (0.019–0.032) on dataset1.
 * Read pooling alone vs LightGBM: +0.001 (−0.012–0.014) on dataset0 (not significant), +0.015 (0.006–0.025) on dataset1.
 
-dataset2 (Spearman between score and known modification fraction): final model 0.41 overall and
+dataset2 (Spearman between score and known modification fraction): v1 0.41 overall and
 0.64 within 5-mers (median), vs 0.35 / 0.45 for the LightGBM site model and 0.27 / 0.40 for logistic
 regression. The 5-mer prior scores 0 because every fraction uses the same sequences. Plain LightGBM
-barely moves its score with the fraction; the final model's median score climbs from 0.01 (0%) to
+barely moves its score with the fraction; v1's median score climbs from 0.01 (0%) to
 ~0.45 (75%), then levels off. See `docs/figures/model_evaluation.png`.
 
 **Training on two runs** (dataset0-train + matching dataset1 transcripts): dataset0 test PR 0.510 vs 0.520
@@ -98,13 +105,32 @@ The v1 model file (`models/m6a_model.joblib`) is retrained on **all** of dataset
 Run through `scripts/predict.py` on the raw dataset1 file it gives ROC 0.861 / PR 0.405 on the unseen
 transcripts (same as above), scoring 90,810 sites in 42 s.
 
+## Intermediate leaderboard model (7 Oct 2026, replaced)
+
+The intermediate leaderboard submission (due 7 Oct) used a separate, simpler pipeline written by Nitish
+(`compare_project_models.py` and `evaluate_project_datasets.py`, committed 9 Oct):
+
+* **Features:** for each site, the mean, median, SD and 25th/75th percentiles of the 9 read features (dwell time,
+  SD and mean current at positions -1, 0, +1), plus the one-hot 7-mer. Read count was left out to avoid coverage
+  confounding.
+* **Models:** logistic regression, random forest, histogram gradient boosting and XGBoost, compared by gene-grouped
+  cross-validation (`StratifiedGroupKFold`) on PR AUC, with about 20% of genes held out (`GroupShuffleSplit`). The
+  submitted predictions came from the XGBoost model we created.
+
+**Why it was replaced.** After the intermediate submission the team consolidated on the pipeline described in this
+document, which adds what the site summaries cannot capture: a read-level model (partial modification), centring
+per 5-mer (Simpson's paradox), neighbouring-site context and, in v2, transcript structure. It is also evaluated on the
+frozen gene split with bootstrap CIs and benchmarked against m6Anet.
+To keep one model and one set of scripts, the pipeline and its predictions were removed from the repository; they
+remain in the git history (commit `6f26fe4`).
+
 ## m6Anet benchmark (12 Oct 2026, `07_m6anet_*`, `08_m6anet_compare.py`)
 
-Pretrained m6Anet 2.1.0 (default model `HCT116_RNA002`, Python 3.8 env from `environment_m6anet.yml`) scored on
+Pretrained m6Anet 2.1.0 (default model `HCT116_RNA002`, Python 3.8 env from `setup/environment_m6anet.yml`) scored on
 the same sites. Our json files already are m6Anet `dataprep` output; `07_m6anet_prepare.py` only decompresses them and
 writes the byte-offset index (`data.info`) that `m6anet inference` needs. Every test site was scored.
 
-| Test set | m6Anet ROC / PR | Final model ROC / PR | Final − m6Anet PR (95% CI) |
+| Test set | m6Anet ROC / PR | v1 ROC / PR | v1 − m6Anet PR (95% CI) |
 |---|---|---|---|
 | dataset0 held-out genes | 0.932 / 0.485 | 0.932 / 0.520 | +0.034 (0.006 to 0.061) |
 | dataset1 unseen transcripts | 0.834 / 0.348 | 0.860 / 0.403 | +0.055 (0.039 to 0.070) |
@@ -137,7 +163,7 @@ every variant):
 
 | Variant | CV PR | Δ PR vs v1 (SD over folds) | folds better | CV ROC |
 |---|---|---|---|---|
-| v1 (final model above) | 0.535 | – | – | 0.944 |
+| v1 (model above) | 0.535 | – | – | 0.944 |
 | **+ annotation features** | **0.590** | **+0.055 (0.015)** | **5/5** | **0.956** |
 | + read re-labelling (one EM-style MIL round) | 0.536 | +0.000 (0.011) | 2/5 | 0.945 |
 | + richer neighbours (10/25/50/100 nt, neighbours' read scores, nearest-site distance) | 0.544 | +0.009 (0.010) | 3/5 | 0.945 |
@@ -162,7 +188,7 @@ vs v1). `d1 strict` drops the 2,339 "unseen" dataset1 sites (15%) whose transcri
 |---|---|---|---|
 | 5-mer prior | 0.798 / 0.142 | 0.717 / 0.158 | 0.715 / 0.147 |
 | m6Anet (pretrained) | 0.932 / 0.485 | 0.834 / 0.348 | 0.839 / 0.334 |
-| v1 (final model) | 0.932 / 0.520 | 0.860 / 0.403 | 0.865 / 0.392 |
+| v1 | 0.932 / 0.520 | 0.860 / 0.403 | 0.865 / 0.392 |
 | v2, single seed | 0.951 / 0.554 | 0.876 / 0.431 | 0.880 / 0.420 |
 | **v2** | **0.952 / 0.561** | **0.877 / 0.434** | **0.881 / 0.421** |
 | v2 trained on two runs | 0.948 / 0.552 | – | 0.882 / 0.435 |
@@ -200,7 +226,6 @@ from cross-validation.
 * v2 needs Ensembl 91 transcript ids (as in the course data and SG-NEx); other transcripts are scored by the
   v1-style fallback model, without the transcript-structure gain.
 * The v1 results above count 2,339 dataset1 "unseen" sites that are isoforms of training genes (see d1 strict).
-* Still to do: read-depth subsampling check.
 
 ## Reproduce
 
