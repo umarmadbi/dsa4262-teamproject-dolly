@@ -48,3 +48,9 @@ body:has(#page-home.active) .site-header,body:has(#page-home.active) .topbar{pos
 .strand-preview-tabs button[aria-pressed=true]{background:#fcfff5;color:#214f36;box-shadow:0 2px 8px #274d3112}
 .home-particle{box-shadow:0 0 9px #49996244}
 @media(max-width:760px){.strand-preview-bar{flex-wrap:wrap;font-size:8px}.strand-preview-tabs{width:100%}.strand-preview-tabs button{flex:1;padding:9px}.home-particle:nth-child(n+19){display:block}.home-particle:nth-child(n+35){display:none}}
+
+/* Anchor particles directly to the viewport, outside all scrolling page containers. */
+body>.home-particles{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;overflow:hidden;pointer-events:none;z-index:0;contain:strict}
+body>.home-particles[hidden]{display:none}
+body:has(#page-home.active)>.shell{position:relative;z-index:1}
+.home-particle{animation-timeline:auto}

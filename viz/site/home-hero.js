@@ -12,14 +12,16 @@ const NS='http://www.w3.org/2000/svg';
 function element(tag,attrs){const n=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;}
 // Small atmospheric particles belong only to Home and share its motion controls.
 const particleField=document.createElement('div');particleField.className='home-particles';particleField.setAttribute('aria-hidden','true');
-root.closest('#page-home').prepend(particleField);
+const homePage=root.closest('#page-home');
+document.body.prepend(particleField);
 for(let i=0;i<56;i++){
  const dot=document.createElement('span');dot.className='home-particle';
  const value=(n)=>{const v=Math.sin(n*127.1)*43758.5453;return v-Math.floor(v);};
  for(const [key,val] of Object.entries({'--px':value(i+1)*100+'%','--py':value(i+41)*100+'%','--size':(2.2+value(i+91)*3)+'px','--alpha':String(.35+value(i+111)*.3),'--duration':(14+value(i+131)*19)+'s','--delay':(-value(i+151)*25)+'s','--drift':(-28+value(i+171)*56)+'px','--particle-color':i%4===0?'#4b985a':'#24834c'}))dot.style.setProperty(key,val);
  particleField.append(dot);
 }
-function syncParticles(){particleField.dataset.paused=String(paused||!visible||document.hidden);}
+function syncParticles(){const active=homePage.classList.contains('active');particleField.hidden=!active;particleField.dataset.paused=String(paused||!active||document.hidden);}
+new MutationObserver(syncParticles).observe(homePage,{attributes:true,attributeFilter:['class']});
 document.addEventListener('visibilitychange',syncParticles);
 // Continuous tubular surfaces with procedural relief; illustrative, not structural data.
 const defs=document.querySelector('#rna-ribbon defs');
