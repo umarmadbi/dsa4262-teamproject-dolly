@@ -117,3 +117,7 @@ https://github.com/GoekeLab/sg-nex-data/blob/master/docs/SG-NEx_m6Anet_tutorial.
 
 The floating **Ask Dolly** guide explains reviewed methods, results and website use. It is configured to use the deployed Cloudflare Worker and Gemini. It does not inspect live chart data or run predictions. Local edits to `chatbot/knowledge.mjs` affect the live assistant only after a separate Worker deployment. Deployment, secrets, costs and privacy are documented in [chatbot/README.md](chatbot/README.md). Run its mock-only checks with `node --test viz/chatbot/worker.test.mjs`.
 
+
+## Homepage design previews
+
+Home & guide has a temporary two-option switch: **RNA strand** and **Research pass**. Both share the same introduction and guide below. The dependency-free `site/home-hero.js` and `site/home-hero.css` implement an illustrative canvas RNA strand (drag or arrow keys to rotate; select numbered points or topic buttons) and a perspective badge (drag to swing; click, Enter or Space to flip; left/right arrows to tilt). These are illustrations, not sample measurements. Pause motion stops idle movement and headline typing; reduced-motion preferences start with motion paused. The homepage pauses animation updates when it is offscreen or the browser tab is hidden. No chart selections, predictions or chatbot deployment are changed by these previews.
