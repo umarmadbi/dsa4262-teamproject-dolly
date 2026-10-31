@@ -14,15 +14,43 @@ function element(tag,attrs){const n=document.createElementNS(NS,tag);for(const [
 const particleField=document.createElement('div');particleField.className='home-particles';particleField.setAttribute('aria-hidden','true');
 const homePage=root.closest('#page-home');
 document.body.prepend(particleField);
-for(let i=0;i<56;i++){
- const dot=document.createElement('span');dot.className='home-particle';
- const value=(n)=>{const v=Math.sin(n*127.1)*43758.5453;return v-Math.floor(v);};
- for(const [key,val] of Object.entries({'--px':value(i+1)*100+'%','--py':value(i+41)*100+'%','--size':(2.2+value(i+91)*3)+'px','--alpha':String(.35+value(i+111)*.3),'--duration':(14+value(i+131)*19)+'s','--delay':(-value(i+151)*25)+'s','--drift':(-28+value(i+171)*56)+'px','--particle-color':i%4===0?'#4b985a':'#24834c'}))dot.style.setProperty(key,val);
- particleField.append(dot);
+// Particle coordinates use viewport pixels and elapsed time only, never scroll offsets.
+const particleCanvas=document.createElement('canvas');particleField.append(particleCanvas);
+const particleContext=particleCanvas.getContext('2d');
+let particleWidth=0,particleHeight=0,particleTime=0,particleLast=0;
+const particles=Array.from({length:56},(_,i)=>{
+ const random=n=>{const x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x);};
+ return{x:random(i+1),y:random(i+47),radius:1.3+random(i+83)*1.5,speed:10+random(i+131)*14,drift:7+random(i+181)*10,phase:random(i+241)*Math.PI*2,alpha:.38+random(i+291)*.3};
+});
+function resizeParticles(){
+ particleWidth=window.innerWidth;particleHeight=window.innerHeight;
+ const ratio=Math.min(window.devicePixelRatio||1,2);
+ particleCanvas.width=Math.round(particleWidth*ratio);particleCanvas.height=Math.round(particleHeight*ratio);
+ particleContext?.setTransform(ratio,0,0,ratio,0,0);
 }
+window.addEventListener('resize',resizeParticles);resizeParticles();
 function syncParticles(){const active=homePage.classList.contains('active');particleField.hidden=!active;particleField.dataset.paused=String(paused||!active||document.hidden);}
 new MutationObserver(syncParticles).observe(homePage,{attributes:true,attributeFilter:['class']});
 document.addEventListener('visibilitychange',syncParticles);
+function drawParticles(){
+ if(!particleContext)return;
+ particleContext.clearRect(0,0,particleWidth,particleHeight);
+ const count=particleWidth<760?34:particles.length;
+ for(let i=0;i<count;i++){
+  const p=particles[i],span=particleHeight+60;
+  const x=(p.x*particleWidth+Math.sin(particleTime*.32+p.phase)*p.drift+particleWidth)%particleWidth;
+  const y=((p.y*span-particleTime*p.speed)%span+span)%span-30;
+  particleContext.globalAlpha=p.alpha;particleContext.fillStyle=i%4===0?'#3b994d':'#238449';
+  particleContext.beginPath();particleContext.arc(x,y,p.radius,0,Math.PI*2);particleContext.fill();
+ }
+ particleContext.globalAlpha=1;
+}
+function particleFrame(now){
+ const dt=particleLast?Math.min((now-particleLast)/1000,.05):0;particleLast=now;
+ if(particleField.dataset.paused!=='true'&&!document.hidden){particleTime+=dt;drawParticles();}
+ requestAnimationFrame(particleFrame);
+}
+drawParticles();requestAnimationFrame(particleFrame);
 // Continuous tubular surfaces with procedural relief; illustrative, not structural data.
 const defs=document.querySelector('#rna-ribbon defs');
 const filter=element('filter',{id:'rna-surface-relief',x:'-10%',y:'-10%',width:'120%',height:'120%','color-interpolation-filters':'sRGB'});

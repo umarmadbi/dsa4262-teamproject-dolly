@@ -54,3 +54,7 @@ body>.home-particles{position:fixed;inset:0;width:100vw;height:100vh;height:100d
 body>.home-particles[hidden]{display:none}
 body:has(#page-home.active)>.shell{position:relative;z-index:1}
 .home-particle{animation-timeline:auto}
+
+/* Time-driven canvas: its coordinate system is independent of page scrolling. */
+body>.home-particles{width:100%;height:100%;contain:strict;transform:none!important;transition:none!important}
+.home-particles canvas{display:block;width:100%;height:100%;pointer-events:none}
