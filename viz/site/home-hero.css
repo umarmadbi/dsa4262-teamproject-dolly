@@ -3,3 +3,9 @@
 @media(max-width:1150px){.landing-hero{gap:12px}.hero-copy h1{font-size:38px}.hero-copy .eyebrow{font-size:8px;letter-spacing:1.4px}.hero-description{font-size:12px}.rna-nav-link{width:165px;padding:11px 10px;gap:8px}.rna-nav-link strong{font-size:11px}.rna-nav-link small{font-size:7px}.hero-facts{gap:14px}.hero-facts>span{padding-right:14px}.rna-nav-heading{font-size:7px;letter-spacing:1px}}
 @media(max-width:760px){.landing-hero{grid-template-columns:1fr;gap:25px;min-height:0}.hero-copy{padding:5px 0 0}.hero-copy h1{font-size:clamp(36px,7.5vw,54px)}.hero-copy .eyebrow{font-size:9px}.hero-description{font-size:13px}.hero-facts{margin-top:28px;gap:22px}.hero-facts>span{padding-right:22px}.rna-navigation{max-width:580px;width:100%;justify-self:center}.rna-nav-stage{min-height:440px;aspect-ratio:560/650}.rna-nav-link{width:160px;padding:12px 10px}.rna-nav-heading{font-size:8px}.rna-nav-link strong{font-size:11px}.rna-nav-link small{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.rna-nav-link{transition:none}}
+
+/* Restrained molecular lighting and glass-like navigation, without flat ribbon colours. */
+.rna-navigation{background:radial-gradient(ellipse at 50% 46%,#dce8e35e 0%,#edf3ee30 42%,transparent 72%)}
+.rna-nav-stage:before{content:'';position:absolute;left:30%;right:25%;bottom:6%;height:20px;background:radial-gradient(ellipse,#2c554527,transparent 70%);filter:blur(9px);pointer-events:none}
+.rna-nav-link{border-color:#d1dfd5a6;background:#fcfdf7d9;backdrop-filter:blur(9px);box-shadow:0 4px 16px #234d3c08;border-radius:9px}
+.rna-nav-link:is(:hover,:focus-visible){border-color:#91b6a5;box-shadow:0 14px 30px #1b4b3c21}
