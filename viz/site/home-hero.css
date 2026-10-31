@@ -19,3 +19,24 @@
 .rna-nav-link{background:#f7fbffd9;border-color:#dceaf599;box-shadow:0 5px 20px #081a3326;backdrop-filter:blur(12px);color:#263f54}
 .rna-nav-link small{color:#6a7e8b}.rna-link-number,.rna-link-arrow{color:#6f8d9e}
 .rna-nav-link:is(:hover,:focus-visible){background:#ffffffed;border-color:#caeef7;outline-color:#b3d8e5;box-shadow:0 15px 32px #06192f50}
+
+/* Home atmosphere: ivory and sage from the workspace, with a soft petrol-green glow. */
+body:has(#page-home.active){background:radial-gradient(ellipse at 82% 42%,#acc9bb88 0%,#d5e2d377 30%,transparent 64%),linear-gradient(115deg,#f7f5ed 0%,#edf1e6 49%,#dbe6d9 100%);background-attachment:fixed}
+body:has(#page-home.active) .topbar{background:transparent}
+body:has(#page-home.active) .site-header,body:has(#page-home.active) .topbar{position:relative;z-index:2}
+#page-home .landing-hero{position:relative;z-index:1}
+#page-home .rna-navigation{background:transparent;border-radius:0;box-shadow:none;overflow:visible;padding:15px 7px}
+#page-home .rna-navigation:before,#page-home .rna-nav-stage:before{display:none}
+#page-home .rna-nav-heading,#page-home .rna-nav-caption{color:#607b6d}
+#page-home .rna-nav-heading button{color:#365e4e}
+#page-home .rna-end-label{fill:#54766b}
+#page-home .rna-nav-link{background:#fcfcf1c9;border-color:#b8cec0a6;color:#234c3e;box-shadow:0 5px 20px #274f3a0b}
+#page-home .rna-nav-link small{color:#6d8577}
+#page-home .rna-link-number,#page-home .rna-link-arrow{color:#6b907e}
+#page-home .rna-nav-link:is(:hover,:focus-visible){background:#fffff6ed;border-color:#8fb59f;outline-color:#abc9b6;box-shadow:0 15px 30px #254e3b22}
+.home-particles{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.home-particle{position:absolute;left:var(--px);top:var(--py);width:var(--size);height:var(--size);border-radius:50%;background:var(--particle-color);opacity:var(--alpha);box-shadow:0 0 7px #81ac9626;animation:home-particle-drift var(--duration) ease-in-out var(--delay) infinite alternate;will-change:transform}
+.home-particles[data-paused=true] .home-particle{animation-play-state:paused}
+@keyframes home-particle-drift{0%{transform:translate3d(0,18px,0);opacity:calc(var(--alpha)*.55)}50%{opacity:var(--alpha)}100%{transform:translate3d(var(--drift),-65px,0);opacity:calc(var(--alpha)*.65)}}
+@media(max-width:760px){body:has(#page-home.active){background:radial-gradient(ellipse at 65% 76%,#acc9bb88,transparent 63%),linear-gradient(140deg,#f7f5ed,#e4ecde)}.home-particle:nth-child(n+19){display:none}}
+@media(prefers-reduced-motion:reduce){.home-particle{animation:none;will-change:auto}}
