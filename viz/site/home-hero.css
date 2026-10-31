@@ -9,3 +9,13 @@
 .rna-nav-stage:before{content:'';position:absolute;left:30%;right:25%;bottom:6%;height:20px;background:radial-gradient(ellipse,#2c554527,transparent 70%);filter:blur(9px);pointer-events:none}
 .rna-nav-link{border-color:#d1dfd5a6;background:#fcfdf7d9;backdrop-filter:blur(9px);box-shadow:0 4px 16px #234d3c08;border-radius:9px}
 .rna-nav-link:is(:hover,:focus-visible){border-color:#91b6a5;box-shadow:0 14px 30px #1b4b3c21}
+
+/* Cool, cinematic lighting inspired by the textured RNA reference. */
+.rna-navigation{border-radius:24px;overflow:hidden;padding:15px 7px;background:radial-gradient(ellipse at 10% 5%,#b8d7ec 0%,#678ba9 24%,#2e4a69 55%,#172d49 100%);box-shadow:inset 0 0 65px #142b4b28,0 20px 50px #233e4912}
+.rna-navigation:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;background:radial-gradient(circle at 14% 24%,#8de7ed 0 1px,transparent 3px),radial-gradient(circle at 83% 13%,#dbe8b6 0 1px,transparent 4px),radial-gradient(circle at 73% 34%,#7de9ed 0 2px,transparent 5px),radial-gradient(circle at 10% 72%,#99ddeb 0 1px,transparent 3px),radial-gradient(circle at 89% 76%,#6cc7e2 0 2px,transparent 7px),radial-gradient(circle at 43% 91%,#b0ece4 0 1px,transparent 4px)}
+.rna-nav-heading,.rna-nav-caption{position:relative;color:#e2edf6}
+.rna-nav-heading button{color:#eff6fb}.rna-end-label{fill:#e4f0f7}
+.rna-nav-stage:before{background:radial-gradient(ellipse,#061b3255,transparent 70%)}
+.rna-nav-link{background:#f7fbffd9;border-color:#dceaf599;box-shadow:0 5px 20px #081a3326;backdrop-filter:blur(12px);color:#263f54}
+.rna-nav-link small{color:#6a7e8b}.rna-link-number,.rna-link-arrow{color:#6f8d9e}
+.rna-nav-link:is(:hover,:focus-visible){background:#ffffffed;border-color:#caeef7;outline-color:#b3d8e5;box-shadow:0 15px 32px #06192f50}
