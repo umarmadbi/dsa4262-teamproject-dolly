@@ -13,8 +13,7 @@
   <header class="site-header">
     <a class="brand" href="#home" aria-label="Dolly explorer home"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 3c0 9 16 17 16 26M24 3C24 12 8 20 8 29M9 7h14M12 12h8M12 20h8M9 25h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><span class="brand-name">DOLLY <svg class="brand-sheep" viewBox="0 0 64 56" role="img" aria-label="Dolly the sheep"><g fill="currentColor"><path d="M17 36h6v15h-6zm13 1h5v14h-5zm14-2h6v16h-6z"/><path d="M13 33C4 33 3 24 8 20 3 12 11 6 17 9 20 1 30 1 34 7 41 3 49 7 49 14 57 15 59 23 54 28 58 36 50 42 44 39 39 45 31 43 28 39 20 43 13 41 13 33z"/><path d="M49 18c3-6 9-6 12-2l-4 5c4 9 1 17-5 17-7 0-9-8-6-15l-6-5c3-4 7-3 9 0z"/></g><path d="M48 23c-1 4 0 9 4 11" fill="none" stroke="#143b34" stroke-width="1.8" stroke-linecap="round"/><circle cx="55" cy="24" r="1.3" fill="#143b34"/></svg></span><span class="brand-sub">RNA EXPLORER</span></span></a>
     <nav aria-label="Main navigation">
-      <button data-nav="home" class="nav-item active" aria-current="page"><span class="nav-icon">⌂</span>Home</button>
-      <button data-nav="methods" class="nav-item"><span class="nav-icon">⌂</span>Home & guide</button>
+      <button data-nav="methods" class="nav-item active" aria-current="page"><span class="nav-icon">⌂</span>Home & guide</button>
       <button data-nav="overview" class="nav-item"><span class="nav-icon">◫</span>Overview</button>
       <button data-nav="landscape" class="nav-item"><span class="nav-icon">≋</span>Landscape</button>
       <button data-nav="explorer" class="nav-item"><span class="nav-icon">⌕</span>Site explorer</button>
@@ -24,7 +23,7 @@
     <span id="sidebar-status" class="sr-only">Prediction scores loaded</span>
   </header>
   <main>
-    <header class="topbar"><div class="breadcrumbs">Dolly research workspace <span>/</span> <span id="breadcrumb">Home</span></div><button class="button small" id="top-import"><span>＋</span> Import data</button></header>
+    <header class="topbar"><div class="breadcrumbs">Dolly research workspace <span>/</span> <span id="breadcrumb">Home & guide</span></div><button class="button small" id="top-import"><span>＋</span> Import data</button></header>
     <div class="main-content">
       <section class="page" id="page-overview" aria-labelledby="overview-title">
         <div class="page-heading"><div><div class="eyebrow">DIRECT RNA SEQUENCING</div><h1 id="overview-title">A closer look at RNA.</h1><p class="intro">Explore candidate sites, coverage and sample patterns.<br>Explore the loaded SG-NEx predictions and compare shared sites.</p></div><span class="mode-badge" id="model-state"><i></i> Coverage only · model pending</span></div>
@@ -124,7 +123,7 @@
         </details><div class="data-footer"><p>Imports are processed in this browser, not uploaded to a server. Imported data is temporary and is cleared when you reload; the supplied SG-NEx predictions remain available.</p><a class="button small" href="dolly-explorer-source.zip" download>↓ Download platform source</a></div>
       </section>
 
-      <section class="page active" id="page-home" aria-labelledby="home-title">
+      <section class="page" id="page-home" aria-labelledby="home-title">
         <div class="dolly-hero landing-hero">
           <div class="hero-copy"><div class="eyebrow">SMALL MODIFICATIONS. A WIDER PICTURE.</div><h1 id="home-title">A new perspective<br>on predicted m6A.<span class="hero-rotating-line" aria-hidden="true">Across <span id="hero-word">cell lines.</span></span></h1><span class="sr-only">Explore across cell lines, transcripts and sequencing runs.</span><p class="hero-description">Follow candidate RNA modifications from a single site to patterns across human cell lines. Meet Dolly, your workspace for exploring the evidence.</p><div class="home-actions"><a class="button primary" href="#overview">Explore the data <span aria-hidden="true">↗</span></a><a class="hero-guide-link" href="#methods">How Dolly works <span aria-hidden="true">↓</span></a></div><div class="hero-facts"><span><strong>23</strong> sequencing runs</span><span><strong>7</strong> human cell lines</span><span><strong>1</strong> shared workspace</span></div><p class="hero-caveat">Model predictions, not confirmed modifications. One run is flagged; see Known limitations in the guide.</p></div>
           <div class="rna-navigation" aria-label="Explore the workspace along an illustrative molecular-style RNA strand">
@@ -140,7 +139,7 @@
           </div>
         </div>
       </section>
-      <section class="page" id="page-methods" aria-labelledby="methods-title">
+      <section class="page active" id="page-methods" aria-labelledby="methods-title">
         <div class="page-heading home-heading"><div><div class="eyebrow">METHODS &amp; PRACTICAL GUIDE</div><h1 id="methods-title">A guide to exploring Dolly.</h1><p class="intro">Understand the scores, check the limitations and choose where to begin.</p></div></div>
         <div class="home-start-grid four" aria-label="Ways to explore"><a class="panel home-start-card" href="#overview"><span class="eyebrow">01 · DATA OVERVIEW</span><h2>Understand the samples</h2><p>Review site coverage, score distributions and variation between runs before comparing predictions.</p><span class="home-card-link">Open overview →</span></a><a class="panel home-start-card" href="#landscape"><span class="eyebrow">02 · LANDSCAPE</span><h2>See where m6A sits</h2><p>Metagene, stop-codon and exon-junction profiles, DRACH motifs and agreement with m6Anet.</p><span class="home-card-link">Open landscape →</span></a><a class="panel home-start-card" href="#explorer"><span class="eyebrow">03 · SITE EXPLORER</span><h2>Investigate a candidate</h2><p>Search a gene or transcript, inspect individual positions and compare scores across cell lines and runs.</p><span class="home-card-link">Inspect sites →</span></a><a class="panel home-start-card" href="#compare"><span class="eyebrow">04 · SAMPLE COMPARISONS</span><h2>Find shared patterns</h2><p>Compare prediction scores at shared sites, inspect differences and check which sites support a comparison.</p><span class="home-card-link">Compare samples →</span></a></div>
         <div class="guide-essentials" aria-label="Three essentials for interpreting predictions">
