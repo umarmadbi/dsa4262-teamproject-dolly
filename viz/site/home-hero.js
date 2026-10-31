@@ -1,4 +1,4 @@
-// Textured, depth-sorted RNA surface. Artistic geometry; no sample data.
+// Continuous textured RNA tubes. Artistic geometry; no sample data.
 const root=document.querySelector('.landing-hero');
 const art=document.getElementById('rna-ribbon-art');
 const links=[...root.querySelectorAll('[data-strand-link]')];
@@ -9,45 +9,45 @@ let paused=preference.matches,visible=true,held=false,phase=.5,last=0,wordClock=
 const words=['cell lines.','transcripts.','sequencing runs.'];
 const NS='http://www.w3.org/2000/svg';
 function element(tag,attrs){const n=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n;}
-// Procedural textured surface: a cinematic RNA illustration, not atomic coordinates.
+// Continuous tubular surfaces with procedural relief; illustrative, not structural data.
 const defs=document.querySelector('#rna-ribbon defs');
-for(const [name,stops] of Object.entries({surface:['#eff8ff','#8faac5','#354c6c','#14253e'],accent:['#c7f4fa','#6cb6ce','#30546d','#1a3048']})){
- const g=element('radialGradient',{id:'surface-'+name,cx:'25%',cy:'20%',r:'80%'});
- stops.forEach((c,i)=>g.append(element('stop',{offset:[0,.18,.62,1][i],'stop-color':c})));defs.append(g);
-}
-const mesh=[];
-const noise=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+const filter=element('filter',{id:'rna-surface-relief',x:'-10%',y:'-10%',width:'120%',height:'120%','color-interpolation-filters':'sRGB'});
+filter.append(element('feTurbulence',{type:'fractalNoise',baseFrequency:'.12 .18',numOctaves:'3',seed:'19',result:'grain'}));
+const lighting=element('feDiffuseLighting',{in:'grain',surfaceScale:'2.2',diffuseConstant:'.95','lighting-color':'#dbf0ff',result:'relief'});
+lighting.append(element('feDistantLight',{azimuth:'225',elevation:'48'}));filter.append(lighting);
+const soften=element('feComponentTransfer',{in:'relief',result:'soft-relief'});for(const channel of ['R','G','B'])soften.append(element('feFunc'+channel,{type:'linear',slope:'.55',intercept:'.45'}));filter.append(soften);
+filter.append(element('feComposite',{in:'soft-relief',in2:'SourceGraphic',operator:'in',result:'clipped-relief'}));
+filter.append(element('feBlend',{in:'SourceGraphic',in2:'clipped-relief',mode:'multiply',result:'lit'}));
+filter.append(element('feDisplacementMap',{in:'lit',in2:'grain',scale:'2.2',xChannelSelector:'R',yChannelSelector:'G'}));defs.append(filter);
+const gradient=element('linearGradient',{id:'rna-tube-light',x1:'0%',y1:'0%',x2:'100%',y2:'45%'});
+[['0%','#c4e8f3'],['24%','#7db7cd'],['53%','#376882'],['78%','#86b6c9'],['100%','#254e6b']].forEach(([offset,color])=>gradient.append(element('stop',{offset,'stop-color':color})));defs.append(gradient);
+const surface=element('g',{filter:'url(#rna-surface-relief)'});art.append(surface);
 function project(x,y,z){const depth=z*.95+(y-298)*.10,scale=760/(760+depth);return{x:280+x*scale,y:298+(y-298)*scale,z:depth,scale};}
 function raw(t){const a=t*Math.PI*3.5+phase;return{x:Math.sin(a)*91+(t-.5)*22,y:45+t*505,z:Math.cos(a)*85,a};}
 function point(t){const p=raw(t);return project(p.x,p.y,p.z);}
-function sphere(position,r,seed,accent=false){
- const n=element('circle',{fill:'url(#surface-'+(accent?'accent':'surface')+')'});art.append(n);
- mesh.push({n,position,r:r*(.84+noise(seed)*.3)});
+function tube(width){
+ const n=element('g',{fill:'none','stroke-linecap':'round','stroke-linejoin':'round'});
+ const outer=element('path',{stroke:'#1e405b','stroke-width':width});
+ const body=element('path',{stroke:'url(#rna-tube-light)','stroke-width':width*.87});
+ const rim=element('path',{stroke:'#bedfe9','stroke-width':width*.2,opacity:'.7'});
+ n.append(outer,body,rim);surface.append(n);return{n,outer,body,rim,width};
 }
-// Close-packed, irregular surface clusters replace the smooth ribbon and stick diagrams.
-for(let i=0;i<106;i++){
- const t=i/105;
- for(let j=0;j<5;j++){
-  const seed=i*17+j,theta=j*Math.PI*2/5+noise(i)*.7,rad=5.8+noise(seed)*2.3;
-  sphere(()=>{const p=raw(t);return{x:p.x+Math.cos(theta+phase)*rad,y:p.y+(noise(seed+5)-.5)*4,z:p.z+Math.sin(theta+phase)*rad};},4.6,seed);
- }
-}
-// Short, unpaired protrusions sweep towards the helix axis, as in the visual reference.
-for(let i=0;i<23;i++){
- const t=(i+.5)/23,length=40+noise(i+803)*21;
- for(let step=0;step<11;step++){
-  const u=step/10;
-  for(let j=0;j<3;j++){
-   const seed=3000+i*97+step*3+j,theta=j*Math.PI*2/3+noise(seed)*.8;
-   sphere(()=>{const p=raw(t),bend=Math.sin(u*Math.PI)*5;return{x:p.x-Math.sin(p.a)*length*u+Math.cos(p.a)*(Math.cos(theta+phase)*3.3+bend),y:p.y-u*8+Math.sin(theta)*3.4,z:p.z-Math.cos(p.a)*length*u-Math.sin(p.a)*(Math.cos(theta+phase)*3.3+bend)};},3.6,seed,i%7===0&&step>7);
-  }
- }
-}
+const backbone=tube(20);
+const bases=Array.from({length:23},(_,i)=>({...tube(10.5+(i%3)),t:(i+.5)/23,length:49+Math.sin(i*4.1)*12}));
 const connectors=links.map(()=>{const n=element('path',{fill:'none',stroke:'#c2d9ee','stroke-width':'.8',opacity:'.32'});art.append(n);return n;});
+function drawTube(tube,points,scale=1){
+ const path=points.map((p,i)=>`${i?'L':'M'}${p.x},${p.y}`).join('');
+ tube.outer.setAttribute('d',path);tube.body.setAttribute('d',path);
+ tube.rim.setAttribute('d',points.map((p,i)=>`${i?'L':'M'}${p.x-tube.width*.18*scale},${p.y-tube.width*.12*scale}`).join(''));
+ tube.outer.setAttribute('stroke-width',tube.width*scale);tube.body.setAttribute('stroke-width',tube.width*.87*scale);tube.rim.setAttribute('stroke-width',tube.width*.2*scale);
+}
 function render(){
- for(const m of mesh){const p=m.position(),q=project(p.x,p.y,p.z);m.z=q.z;m.n.setAttribute('cx',q.x);m.n.setAttribute('cy',q.y);m.n.setAttribute('r',m.r*q.scale);m.n.setAttribute('opacity',Math.max(.5,Math.min(1,.86-q.z*.0017)));}
- mesh.sort((a,b)=>b.z-a.z).forEach(m=>art.append(m.n));
- links.forEach((link,i)=>{const p=point(.12+i*.14),side=i%2===0?-1:1,x=280+side*120+(p.x-280)*.19;link.style.setProperty('--link-x',`${x/560*100}%`);link.style.setProperty('--link-y',`${p.y/600*100}%`);const near=x-side*76;connectors[i].setAttribute('d',`M${p.x},${p.y}Q${(p.x+near)/2},${p.y-12} ${near},${p.y}`);art.append(connectors[i]);});
+ drawTube(backbone,Array.from({length:151},(_,i)=>point(i/150)));
+ for(const b of bases){const p=raw(b.t);b.z=p.z;const points=Array.from({length:15},(_,j)=>{const u=j/14,bend=Math.sin(u*Math.PI)*5;return project(p.x-Math.sin(p.a)*b.length*u+Math.cos(p.a)*bend,p.y-u*8,p.z-Math.cos(p.a)*b.length*u-Math.sin(p.a)*bend);});drawTube(b,points,points[0].scale);b.n.setAttribute('opacity',.84-p.z*.001);}
+ // Back-facing protrusions sit behind the continuous backbone; near ones sit in front.
+ bases.filter(b=>b.z>=0).sort((a,b)=>b.z-a.z).forEach(b=>surface.append(b.n));surface.append(backbone.n);
+ bases.filter(b=>b.z<0).sort((a,b)=>b.z-a.z).forEach(b=>surface.append(b.n));
+ links.forEach((link,i)=>{const p=point(.12+i*.14),side=i%2===0?-1:1,x=280+side*120+(p.x-280)*.19;link.style.setProperty('--link-x',`${x/560*100}%`);link.style.setProperty('--link-y',`${p.y/600*100}%`);const near=x-side*76;connectors[i].setAttribute('d',`M${p.x},${p.y}Q${(p.x+near)/2},${p.y-12} ${near},${p.y}`);});
 }
 function sync(){motion.textContent=paused?'Resume rotation':'Pause rotation';motion.setAttribute('aria-pressed',String(paused));if(paused)word.textContent=words[index];}
 motion.addEventListener('click',()=>{paused=!paused;sync();});preference.addEventListener('change',()=>{paused=preference.matches;sync();});
