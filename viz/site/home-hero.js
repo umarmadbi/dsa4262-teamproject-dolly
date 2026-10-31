@@ -1,3 +1,4 @@
+import {createMolecularModel} from './home-molecule.js';
 // Continuous textured RNA tubes. Artistic geometry; no sample data.
 const root=document.querySelector('.landing-hero');
 const art=document.getElementById('rna-ribbon-art');
@@ -12,10 +13,10 @@ function element(tag,attrs){const n=document.createElementNS(NS,tag);for(const [
 // Small atmospheric particles belong only to Home and share its motion controls.
 const particleField=document.createElement('div');particleField.className='home-particles';particleField.setAttribute('aria-hidden','true');
 root.closest('#page-home').prepend(particleField);
-for(let i=0;i<30;i++){
+for(let i=0;i<56;i++){
  const dot=document.createElement('span');dot.className='home-particle';
  const value=(n)=>{const v=Math.sin(n*127.1)*43758.5453;return v-Math.floor(v);};
- for(const [key,val] of Object.entries({'--px':value(i+1)*100+'%','--py':value(i+41)*100+'%','--size':(1.4+value(i+91)*2.7)+'px','--alpha':String(.15+value(i+111)*.23),'--duration':(14+value(i+131)*19)+'s','--delay':(-value(i+151)*25)+'s','--drift':(-28+value(i+171)*56)+'px','--particle-color':i%5===0?'#b4ac73':'#648f7a'}))dot.style.setProperty(key,val);
+ for(const [key,val] of Object.entries({'--px':value(i+1)*100+'%','--py':value(i+41)*100+'%','--size':(2.2+value(i+91)*3)+'px','--alpha':String(.35+value(i+111)*.3),'--duration':(14+value(i+131)*19)+'s','--delay':(-value(i+151)*25)+'s','--drift':(-28+value(i+171)*56)+'px','--particle-color':i%4===0?'#4b985a':'#24834c'}))dot.style.setProperty(key,val);
  particleField.append(dot);
 }
 function syncParticles(){particleField.dataset.paused=String(paused||!visible||document.hidden);}
@@ -46,6 +47,7 @@ function tube(width){
 const backbone=tube(20);
 const bases=Array.from({length:23},(_,i)=>({...tube(10.5+(i%3)),t:(i+.5)/23,length:49+Math.sin(i*4.1)*12}));
 const connectors=links.map(()=>{const n=element('path',{fill:'none',stroke:'#718f80','stroke-width':'.8',opacity:'.32'});art.append(n);return n;});
+const molecule=createMolecularModel(art);let strandMode='textured';
 function drawTube(tube,points,scale=1){
  const path=points.map((p,i)=>`${i?'L':'M'}${p.x},${p.y}`).join('');
  tube.outer.setAttribute('d',path);tube.body.setAttribute('d',path);
@@ -53,13 +55,20 @@ function drawTube(tube,points,scale=1){
  tube.outer.setAttribute('stroke-width',tube.width*scale);tube.body.setAttribute('stroke-width',tube.width*.87*scale);tube.rim.setAttribute('stroke-width',tube.width*.2*scale);
 }
 function render(){
+ const molecular=strandMode==='molecular';surface.setAttribute('display',molecular?'none':'inline');molecule.group.setAttribute('display',molecular?'inline':'none');
+ if(molecular){molecule.render(phase);}else{
  drawTube(backbone,Array.from({length:151},(_,i)=>point(i/150)));
  for(const b of bases){const p=raw(b.t);b.z=p.z;const points=Array.from({length:15},(_,j)=>{const u=j/14,bend=Math.sin(u*Math.PI)*5;return project(p.x-Math.sin(p.a)*b.length*u+Math.cos(p.a)*bend,p.y-u*8,p.z-Math.cos(p.a)*b.length*u-Math.sin(p.a)*bend);});drawTube(b,points,points[0].scale);b.n.setAttribute('opacity',.84-p.z*.001);}
  // Back-facing protrusions sit behind the continuous backbone; near ones sit in front.
  bases.filter(b=>b.z>=0).sort((a,b)=>b.z-a.z).forEach(b=>surface.append(b.n));surface.append(backbone.n);
  bases.filter(b=>b.z<0).sort((a,b)=>b.z-a.z).forEach(b=>surface.append(b.n));
+ }
  links.forEach((link,i)=>{const p=point(.12+i*.14),side=i%2===0?-1:1,x=280+side*120+(p.x-280)*.19;link.style.setProperty('--link-x',`${x/560*100}%`);link.style.setProperty('--link-y',`${p.y/600*100}%`);const near=x-side*76;connectors[i].setAttribute('d',`M${p.x},${p.y}Q${(p.x+near)/2},${p.y-12} ${near},${p.y}`);});
 }
+const preview=document.createElement('div');preview.className='strand-preview-bar';
+preview.innerHTML='<span>COMPARE STRAND STYLES</span><div class="strand-preview-tabs" role="group" aria-label="RNA strand preview"><button type="button" data-strand-mode="textured" aria-pressed="true">01 · Textured strand</button><button type="button" data-strand-mode="molecular" aria-pressed="false">02 · Molecular model</button></div>';
+root.before(preview);
+preview.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{strandMode=button.dataset.strandMode;preview.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();}));
 function sync(){motion.textContent=paused?'Resume motion':'Pause motion';syncParticles();motion.setAttribute('aria-pressed',String(paused));if(paused)word.textContent=words[index];}
 motion.addEventListener('click',()=>{paused=!paused;sync();});preference.addEventListener('change',()=>{paused=preference.matches;sync();});
 links.forEach(link=>{link.addEventListener('pointerenter',()=>{held=true;});link.addEventListener('pointerleave',()=>{held=!!root.querySelector('.rna-nav-link:focus-visible');});link.addEventListener('focus',()=>{held=true;});link.addEventListener('blur',()=>{held=!!root.querySelector('.rna-nav-link:hover');});});

@@ -125,3 +125,7 @@ The logo-linked `#home` route is a separate landing screen with the introduction
 The Home illustration uses a procedurally textured sage/teal backbone and short unpaired protrusions, with continuous rounded tubes with procedural surface relief, soft lighting and a full-page ivory/sage/teal atmosphere. Small drifting particles span Home only and share its motion controls. It is artistic geometry, not a chemically validated or experimentally resolved RNA structure.
 
 Home uses the workspace’s ivory (#f7f5ed), sage (#dbe6d9) and muted teal palette, with no separate coloured panel around the RNA. Decorative particles are pointer-transparent, hidden from assistive technology, paused offscreen or in hidden tabs, and static under reduced-motion preferences. The motion button pauses/resumes both the strand and particles. Other workspace routes retain their existing backgrounds.
+
+## Comparing RNA styles
+
+Home has two preview tabs: Textured strand and Molecular model. The latter restores the earlier shaded spheres and chemical-ring motifs through `site/home-molecule.js`; both are illustrative, not measured structures. Both share the same introduction, atmosphere, six navigation links and pause controls. The full-page particle field now uses 56 brighter green dots (34 on narrow screens). Reduced motion and offscreen/hidden-tab suspension apply to either preview.

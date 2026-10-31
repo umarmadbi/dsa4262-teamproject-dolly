@@ -40,3 +40,11 @@ body:has(#page-home.active) .site-header,body:has(#page-home.active) .topbar{pos
 @keyframes home-particle-drift{0%{transform:translate3d(0,18px,0);opacity:calc(var(--alpha)*.55)}50%{opacity:var(--alpha)}100%{transform:translate3d(var(--drift),-65px,0);opacity:calc(var(--alpha)*.65)}}
 @media(max-width:760px){body:has(#page-home.active){background:radial-gradient(ellipse at 65% 76%,#acc9bb88,transparent 63%),linear-gradient(140deg,#f7f5ed,#e4ecde)}.home-particle:nth-child(n+19){display:none}}
 @media(prefers-reduced-motion:reduce){.home-particle{animation:none;will-change:auto}}
+
+/* The same Home page, with two directly comparable RNA treatments. */
+.strand-preview-bar{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:15px;padding:9px 0 15px;border-bottom:1px solid #b8ceba66;font-size:9px;color:#5c7d67;letter-spacing:1.4px}
+.strand-preview-tabs{display:flex;gap:4px;border-radius:24px;padding:4px;background:#dce7d7b3}
+.strand-preview-tabs button{background:transparent;border:0;border-radius:20px;padding:9px 16px;font-size:11px;color:#4b6c56}
+.strand-preview-tabs button[aria-pressed=true]{background:#fcfff5;color:#214f36;box-shadow:0 2px 8px #274d3112}
+.home-particle{box-shadow:0 0 9px #49996244}
+@media(max-width:760px){.strand-preview-bar{flex-wrap:wrap;font-size:8px}.strand-preview-tabs{width:100%}.strand-preview-tabs button{flex:1;padding:9px}.home-particle:nth-child(n+19){display:block}.home-particle:nth-child(n+35){display:none}}
