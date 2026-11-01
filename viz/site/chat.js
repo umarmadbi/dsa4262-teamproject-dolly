@@ -28,7 +28,7 @@ const el=s=>root.querySelector(s),launch=el('.chat-launch'),panel=el('.chat-pane
 let history=[],busy=false,token='',widget=null,scriptPromise;
 let configured=false;
 try{const u=new URL(chatConfig.endpoint);configured=u.protocol==='https:'&&u.pathname==='/chat'&&!!chatConfig.turnstileSiteKey;}catch{}
-function sync(){el('#chat-verification').hidden=!!token;send.disabled=!configured||busy||!token;input.disabled=!configured||busy;el('.chat-clear').disabled=busy;root.querySelectorAll('.chat-starters button').forEach(b=>b.disabled=!configured||busy);}
+function sync(){send.textContent=busy?'Thinking…':'Send';el('form').setAttribute('aria-busy',String(busy));el('#chat-verification').hidden=!!token;send.disabled=!configured||busy||!token;input.disabled=!configured||busy;el('.chat-clear').disabled=busy;root.querySelectorAll('.chat-starters button').forEach(b=>b.disabled=!configured||busy);}
 
 // Render a small Markdown subset using DOM nodes only; model HTML stays literal text.
 function appendInline(parent,text){
@@ -57,6 +57,19 @@ function formatAnswer(parent,text){
 }
 
 function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');if(role==='assistant')formatAnswer(body,text);else body.textContent=text;box.append(who,body);log.append(box);root.classList.add('has-conversation');reading.scrollTop=reading.scrollHeight;return box;}
+
+function loadingMessage(){
+ const box=document.createElement('article');box.className='chat-message assistant chat-loading';box.setAttribute('role','status');box.setAttribute('aria-atomic','true');
+ const name=document.createElement('strong');name.textContent='Dolly';
+ const row=document.createElement('div');row.className='chat-loading-row';
+ const dots=document.createElement('span');dots.className='chat-loading-dots';dots.setAttribute('aria-hidden','true');for(let i=0;i<3;i++)dots.append(document.createElement('i'));
+ const label=document.createElement('span');label.textContent='Dolly is thinking…';row.append(dots,label);
+ const note=document.createElement('p');note.className='chat-loading-note';note.textContent='Preparing your answer. You can keep reading the conversation.';
+ box.append(name,row,note);log.append(box);reading.scrollTop=reading.scrollHeight;
+ const timer=setTimeout(()=>{label.textContent='Still working on your answer…';note.textContent='This is taking a little longer. Please keep this chat open.';},10000);
+ return ()=>{clearTimeout(timer);box.remove();};
+}
+
 function show(open){if(open)dismissGreeting();panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(open){if(configured){input.focus();verification();}else{el('.chat-close').focus();status.textContent='Not connected yet. The team is setting up the AI service. Home & guide is available now.';}}else launch.focus();}
 
 // Show one short invitation per browser tab; never steal focus or repeat while chatting.
@@ -92,11 +105,12 @@ input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isCompo
 el('form').addEventListener('submit',async e=>{
  e.preventDefault();const question=input.value.trim();if(!question||busy||!configured||!token)return;
  const next=[...history.slice(-4),{role:'user',content:question}];
- message('user',question);input.value='';busy=true;sync();status.textContent='Reading the project notes…';
+ message('user',question);input.value='';busy=true;sync();status.textContent='Dolly is preparing your answer…';const stopLoading=loadingMessage();
  try{
   const response=await fetch(chatConfig.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:next,turnstileToken:token}),signal:AbortSignal.timeout(65000)});
   const data=await response.json();if(!response.ok)throw new Error(data.error||'The assistant is temporarily unavailable.');
   if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
+  stopLoading();
   const answer=data.answer.slice(0,6000),box=message('assistant',answer);
   if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!/^S[1-6]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
   reading.scrollTop=reading.scrollHeight;
@@ -104,6 +118,6 @@ el('form').addEventListener('submit',async e=>{
   history=[...next,{role:'assistant',content:answer.slice(0,3000)}].slice(-4);
   status.textContent=data.truncated?'Answer reached its length limit. Ask a narrower follow-up.':'Check the sources before using an answer in your report.';
  }catch(error){status.textContent=error.name==='TimeoutError'?'The request timed out. Try again.':error.message;input.value=question;}
- finally{busy=false;token='';sync();if(widget!==null)window.turnstile.reset(widget);input.focus();}
+ finally{stopLoading();busy=false;token='';sync();if(widget!==null)window.turnstile.reset(widget);input.focus();}
 });
 sync();

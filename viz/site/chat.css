@@ -63,3 +63,13 @@
 .chat-answer li{padding-left:2px;margin:6px 0}
 .chat-answer strong{font-weight:650;color:#204c3e}
 .chat-answer code{font-family:ui-monospace,monospace;font-size:.92em;padding:1px 4px;border-radius:4px;background:#e3ece4;overflow-wrap:anywhere}
+
+/* Visible request feedback inside the conversation, not just below the composer. */
+.chat-loading{border:1px solid #dce9de;background:#f3f8f0}
+.chat-loading>.chat-loading-row{display:flex;align-items:center;gap:10px;white-space:normal;font-size:12px;color:#365e47}
+.chat-loading-dots{display:inline-flex;align-items:center;gap:4px;height:18px;flex-shrink:0}
+.chat-loading-dots i{display:block;width:5px;height:5px;border-radius:50%;background:#6e9d75;animation:dolly-thinking 1.2s ease-in-out infinite}
+.chat-loading-dots i:nth-child(2){animation-delay:.16s}.chat-loading-dots i:nth-child(3){animation-delay:.32s}
+.chat-loading-note{font-size:10px;line-height:1.6;margin-top:7px;color:#748573}
+@keyframes dolly-thinking{0%,70%,100%{transform:translateY(0);opacity:.4}35%{transform:translateY(-3px);opacity:1}}
+@media(prefers-reduced-motion:reduce){.chat-loading-dots i{animation:none;opacity:.8}}
