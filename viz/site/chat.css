@@ -63,3 +63,9 @@
 .chat-answer li{padding-left:2px;margin:6px 0}
 .chat-answer strong{font-weight:650;color:#204c3e}
 .chat-answer code{font-family:ui-monospace,monospace;font-size:.92em;padding:1px 4px;border-radius:4px;background:#e3ece4;overflow-wrap:anywhere}
+
+/* The face turns out of view during the deep bow; the woolly crown faces the viewer. */
+.sheep-front-face{opacity:1;animation:dolly-face-turn 6.5s ease-in-out infinite}
+.sheep-bow-crown{opacity:0;animation:dolly-crown-turn 6.5s ease-in-out infinite}
+@keyframes dolly-face-turn{0%,15%,85%,100%{opacity:1}32%,68%{opacity:0}}
+@keyframes dolly-crown-turn{0%,15%,85%,100%{opacity:0}32%,68%{opacity:1}}
