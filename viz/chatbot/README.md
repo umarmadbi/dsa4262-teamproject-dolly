@@ -97,3 +97,11 @@ No key is included in the model prompt. Worker secrets are used only as API cred
 - https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
 
 To disable chat, blank the public endpoint and redeploy the static site, or remove the chat script/link tags from index.html. To stop API access entirely, revoke the Gemini key or remove the Worker secret. Clearing the browser configuration alone does not disable a previously deployed backend.
+
+## Launcher and reading space
+
+The launcher uses a code-native SVG sheep with gentle grazing, breathing, blinking and chewing animations; reduced-motion preferences keep it still. A dismissible greeting appears after 8 seconds and closes after 6.5 seconds, at most once per browser-tab session. Opening the guide cancels the invitation.
+
+The chat has a larger, independently scrolling reading area and a fixed composer. Welcome text and suggested prompts tuck away after the first message; Clear chat restores them. Privacy information remains available in a disclosure.
+
+The Turnstile container collapses only after its success callback supplies a token. It reappears after expiry, errors or a request consumes the token and the widget resets. Backend verification, throttling and secret handling are unchanged. Frontend changes do not require redeploying the Worker.
