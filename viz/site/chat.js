@@ -7,18 +7,13 @@ root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly 
 <g class="sheep-body"><path d="M24 55C11 51 15 36 24 34 17 24 29 15 38 21 42 10 56 10 61 21 73 13 85 24 78 34 91 40 86 55 76 56 73 68 59 68 52 61 42 71 28 66 24 55Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.7"/><path d="M27 30q4-5 10-1m28-2q5-2 8 3M22 43q-3 6 3 9m47 0q5-1 5-6" fill="none" stroke="#b4d0ae" stroke-width="2" stroke-linecap="round"/></g>
 <g class="sheep-head">
 <ellipse cx="29" cy="43" rx="11" ry="6" transform="rotate(23 29 43)" fill="#9ac6a0" stroke="#47795b" stroke-width="1.5"/><ellipse cx="71" cy="43" rx="11" ry="6" transform="rotate(-23 71 43)" fill="#9ac6a0" stroke="#47795b" stroke-width="1.5"/>
-<g class="sheep-front-face">
 <path d="M32 36q18-12 36 0l-2 19q-1 14-16 15-15-1-16-15Z" fill="#f7f8e8" stroke="#47795b" stroke-width="1.6"/>
 <path d="M32 37c-8-5-5-14 2-14 2-8 12-10 17-4 8-5 17 0 16 6 9 1 9 11 2 14-7 5-11-2-14-2-5 6-11 5-14 0-4 3-7 3-9 0Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.5"/>
 <g class="sheep-eye"><ellipse cx="42" cy="48" rx="2.5" ry="3.5" fill="#294e3d"/><circle cx="42.7" cy="47" r=".8" fill="#fff"/></g><g class="sheep-eye"><ellipse cx="58" cy="48" rx="2.5" ry="3.5" fill="#294e3d"/><circle cx="58.7" cy="47" r=".8" fill="#fff"/></g>
 <ellipse cx="38" cy="56" rx="4" ry="2.5" fill="#e8b6a5" opacity=".6"/><ellipse cx="62" cy="56" rx="4" ry="2.5" fill="#e8b6a5" opacity=".6"/>
 <path d="M46 56q4-2 8 0l-4 4Z" fill="#47795b"/><path class="sheep-chew" d="M50 60v2m-5 1q3 4 5 0 2 4 5 0" fill="none" stroke="#47795b" stroke-width="1.3" stroke-linecap="round"/>
 <path class="sheep-bite" d="m50 66-1 8m1-4-5-3m5 4 5-4" fill="none" stroke="#6b9c46" stroke-width="1.8" stroke-linecap="round"/>
-</g>
-<g class="sheep-bow-crown">
-<path d="M31 38c-7-7-1-16 7-14 3-9 14-10 19-3 9-4 17 3 15 10 9 5 7 16 1 18 5 10-3 18-11 16-7 9-19 6-22 0-11 4-19-5-15-13-7-4-7-11 6-14Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.6"/>
-<path d="M37 32q7-7 13 0m7-4q8-1 10 7M30 44q6-5 10 0m7-6q8-5 12 1m6 5q7 2 4 8M36 56q6 6 11 0m5 6q7 2 10-4" fill="none" stroke="#afcfa8" stroke-width="2" stroke-linecap="round"/>
-</g></g></svg></button>
+</g></svg></button>
 <div class="chat-nudge" role="status" hidden><button type="button" class="chat-nudge-open"><strong>Hi, I’m Dolly. How can I help?</strong><span>Ask me about the project or website.</span></button><button type="button" class="chat-nudge-dismiss" aria-label="Dismiss Dolly’s greeting">×</button></div>
 <section id="chat-panel" class="chat-panel" aria-label="Dolly research guide" hidden>
 <header class="chat-header"><div><strong>Dolly research guide</strong><span>Methods, findings & website help</span></div><button type="button" class="chat-close" aria-label="Close assistant">×</button></header>
