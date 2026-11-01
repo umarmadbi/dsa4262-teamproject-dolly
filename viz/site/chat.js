@@ -1,13 +1,19 @@
 import { chatConfig } from './chat-config.js';
 const root=document.createElement('div');root.id='dolly-assistant';
 root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly — open or close the research guide" title="Ask Dolly" aria-expanded="false" aria-controls="chat-panel"><svg class="chat-sheep" viewBox="0 0 100 84" aria-hidden="true" focusable="false">
-<ellipse cx="49" cy="75" rx="36" ry="4" fill="#87b49a" opacity=".18"/>
-<g class="sheep-grass" fill="none" stroke="#63975a" stroke-width="2" stroke-linecap="round"><path d="M15 74l-3-7m4 7 3-9m6 10-1-6m45 6 2-11m1 11 7-8m-1 9 5-5m-21 4-3-5"/></g>
-<g fill="#80ad91" stroke="#376c52" stroke-width="1.5"><path d="M30 55v15q2 4 7 0V55m16 0v15q2 4 7 0V54"/></g>
-<path class="sheep-tail" d="M24 43q-13-8-10 2 2 7 12 6" fill="#d7e8ce" stroke="#47795b" stroke-width="1.5"/>
-<g class="sheep-body"><path d="M23 53C10 48 16 35 23 34 18 23 32 18 38 24 44 13 56 18 58 25 73 18 79 30 72 36 83 42 76 56 68 55 65 67 51 65 46 60 35 69 24 63 23 53Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.7"/><path d="M29 31q5-5 10-1m8-5q5-3 9 1m-31 17q-3 5 2 8m11 5q4 4 9 0" fill="none" stroke="#b4d0ae" stroke-width="2" stroke-linecap="round"/></g>
-<g class="sheep-head"><path d="M63 39q9-7 16 2l2 15q-2 13-13 10-10-2-10-12Z" fill="#f7f8e8" stroke="#47795b" stroke-width="1.6"/><path d="M63 43q-15-3-11 5 5 7 12 1" fill="#9bc5a0" stroke="#47795b" stroke-width="1.4"/><path d="M62 39q-4-9 4-10 2-7 8-3 8-1 8 6 6 4 0 10-6 3-9-2-5 5-11-1Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.4"/><ellipse class="sheep-eye" cx="73" cy="49" rx="2" ry="2.7" fill="#294e3d"/><circle cx="73.6" cy="48.1" r=".65" fill="#fff"/><ellipse cx="77" cy="57" rx="3" ry="2" fill="#e8b6a5" opacity=".65"/><path class="sheep-chew" d="M69 62q4 3 8-1" fill="none" stroke="#47795b" stroke-width="1.3" stroke-linecap="round"/><path class="sheep-bite" d="m73 65 0 6m0-1-4-3m4 1 4-3" fill="none" stroke="#7aa64f" stroke-width="1.7" stroke-linecap="round"/></g>
-</svg></button>
+<ellipse cx="50" cy="76" rx="33" ry="4" fill="#87b49a" opacity=".18"/>
+<g class="sheep-grass" fill="none" stroke="#699955" stroke-width="2" stroke-linecap="round"><path d="m19 76-3-7m4 7 4-9m8 10 0-6m35 6 2-9m8 8 4-8m-2 9 6-3m-42 3-4-7m17 7 4-7"/></g>
+<g fill="#82b195" stroke="#3e7458" stroke-width="1.6"><path d="M33 58v13q2 5 8 0V58m18 0v13q2 5 8 0V58"/></g>
+<g class="sheep-body"><path d="M24 55C11 51 15 36 24 34 17 24 29 15 38 21 42 10 56 10 61 21 73 13 85 24 78 34 91 40 86 55 76 56 73 68 59 68 52 61 42 71 28 66 24 55Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.7"/><path d="M27 30q4-5 10-1m28-2q5-2 8 3M22 43q-3 6 3 9m47 0q5-1 5-6" fill="none" stroke="#b4d0ae" stroke-width="2" stroke-linecap="round"/></g>
+<g class="sheep-head">
+<ellipse cx="29" cy="43" rx="11" ry="6" transform="rotate(23 29 43)" fill="#9ac6a0" stroke="#47795b" stroke-width="1.5"/><ellipse cx="71" cy="43" rx="11" ry="6" transform="rotate(-23 71 43)" fill="#9ac6a0" stroke="#47795b" stroke-width="1.5"/>
+<path d="M32 36q18-12 36 0l-2 19q-1 14-16 15-15-1-16-15Z" fill="#f7f8e8" stroke="#47795b" stroke-width="1.6"/>
+<path d="M32 37c-8-5-5-14 2-14 2-8 12-10 17-4 8-5 17 0 16 6 9 1 9 11 2 14-7 5-11-2-14-2-5 6-11 5-14 0-4 3-7 3-9 0Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.5"/>
+<g class="sheep-eye"><ellipse cx="42" cy="48" rx="2.5" ry="3.5" fill="#294e3d"/><circle cx="42.7" cy="47" r=".8" fill="#fff"/></g><g class="sheep-eye"><ellipse cx="58" cy="48" rx="2.5" ry="3.5" fill="#294e3d"/><circle cx="58.7" cy="47" r=".8" fill="#fff"/></g>
+<ellipse cx="38" cy="56" rx="4" ry="2.5" fill="#e8b6a5" opacity=".6"/><ellipse cx="62" cy="56" rx="4" ry="2.5" fill="#e8b6a5" opacity=".6"/>
+<path d="M46 56q4-2 8 0l-4 4Z" fill="#47795b"/><path class="sheep-chew" d="M50 60v2m-5 1q3 4 5 0 2 4 5 0" fill="none" stroke="#47795b" stroke-width="1.3" stroke-linecap="round"/>
+<path class="sheep-bite" d="m50 66-1 8m1-4-5-3m5 4 5-4" fill="none" stroke="#6b9c46" stroke-width="1.8" stroke-linecap="round"/>
+</g></svg></button>
 <div class="chat-nudge" role="status" hidden><button type="button" class="chat-nudge-open"><strong>Hi, I’m Dolly. How can I help?</strong><span>Ask me about the project or website.</span></button><button type="button" class="chat-nudge-dismiss" aria-label="Dismiss Dolly’s greeting">×</button></div>
 <section id="chat-panel" class="chat-panel" aria-label="Dolly research guide" hidden>
 <header class="chat-header"><div><strong>Dolly research guide</strong><span>Methods, findings & website help</span></div><button type="button" class="chat-close" aria-label="Close assistant">×</button></header>
@@ -23,7 +29,34 @@ let history=[],busy=false,token='',widget=null,scriptPromise;
 let configured=false;
 try{const u=new URL(chatConfig.endpoint);configured=u.protocol==='https:'&&u.pathname==='/chat'&&!!chatConfig.turnstileSiteKey;}catch{}
 function sync(){el('#chat-verification').hidden=!!token;send.disabled=!configured||busy||!token;input.disabled=!configured||busy;el('.chat-clear').disabled=busy;root.querySelectorAll('.chat-starters button').forEach(b=>b.disabled=!configured||busy);}
-function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');body.textContent=text;box.append(who,body);log.append(box);root.classList.add('has-conversation');reading.scrollTop=reading.scrollHeight;return box;}
+
+// Render a small Markdown subset using DOM nodes only; model HTML stays literal text.
+function appendInline(parent,text){
+ const pattern=/\*\*([^*\n]+)\*\*|`([^`\n]+)`/g;let cursor=0,match;
+ while((match=pattern.exec(text))){
+  parent.append(document.createTextNode(text.slice(cursor,match.index)));
+  const node=document.createElement(match[1]!==undefined?'strong':'code');node.textContent=match[1]??match[2];parent.append(node);cursor=pattern.lastIndex;
+ }
+ parent.append(document.createTextNode(text.slice(cursor)));
+}
+function formatAnswer(parent,text){
+ parent.classList.add('chat-answer');let paragraph=null,list=null,listType=null;
+ for(const line of text.replace(/\r\n?/g,'\n').split('\n')){
+  if(!line.trim()){paragraph=null;list=null;listType=null;continue;}
+  const bullet=line.match(/^\s*[-*•]\s+(.+)$/),number=line.match(/^\s*(\d+)[.)]\s+(.+)$/),heading=line.match(/^#{1,4}\s+(.+)$/);
+  if(bullet||number){
+   const type=bullet?'ul':'ol';
+   if(!list||listType!==type){list=document.createElement(type);if(number)list.start=Number(number[1]);parent.append(list);listType=type;}
+   const item=document.createElement('li');appendInline(item,bullet?bullet[1]:number[2]);list.append(item);paragraph=null;
+  }else{
+   list=null;listType=null;
+   if(heading){const p=document.createElement('p'),strong=document.createElement('strong');appendInline(strong,heading[1]);p.append(strong);parent.append(p);paragraph=null;}
+   else{if(!paragraph){paragraph=document.createElement('p');parent.append(paragraph);}else paragraph.append(document.createElement('br'));appendInline(paragraph,line);}
+  }
+ }
+}
+
+function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');if(role==='assistant')formatAnswer(body,text);else body.textContent=text;box.append(who,body);log.append(box);root.classList.add('has-conversation');reading.scrollTop=reading.scrollHeight;return box;}
 function show(open){if(open)dismissGreeting();panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(open){if(configured){input.focus();verification();}else{el('.chat-close').focus();status.textContent='Not connected yet. The team is setting up the AI service. Home & guide is available now.';}}else launch.focus();}
 
 // Show one short invitation per browser tab; never steal focus or repeat while chatting.

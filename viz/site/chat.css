@@ -52,3 +52,14 @@
 .has-conversation .chat-intro,.has-conversation .chat-starters{display:none}
 @media(max-width:600px){.chat-launch{width:66px;height:66px}.chat-sheep{width:59px;height:55px}.chat-panel{width:calc(100vw - 32px);height:calc(100dvh - 115px);max-height:calc(100dvh - 115px)}.chat-messages{max-height:none}.chat-header strong{font-size:14px}.chat-message{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.chat-sheep *{animation:none!important}}
+
+/* Front-facing Dolly lowers its head to nibble grass directly in front. */
+.sheep-head{transform-origin:50px 35px}
+@keyframes dolly-graze{0%,15%,85%,100%{transform:translateY(-1px) scale(1)}35%,65%{transform:translateY(5px) scale(1.025)}}
+.chat-message>.chat-answer{white-space:normal;line-height:1.75}
+.chat-answer p{font-size:inherit;line-height:inherit;color:inherit;margin:0 0 10px}
+.chat-answer p:last-child{margin-bottom:0}
+.chat-answer ul,.chat-answer ol{margin:7px 0 12px;padding-left:20px}
+.chat-answer li{padding-left:2px;margin:6px 0}
+.chat-answer strong{font-weight:650;color:#204c3e}
+.chat-answer code{font-family:ui-monospace,monospace;font-size:.92em;padding:1px 4px;border-radius:4px;background:#e3ece4;overflow-wrap:anywhere}
