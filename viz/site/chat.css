@@ -55,7 +55,7 @@
 
 /* Front-facing Dolly lowers its head to nibble grass directly in front. */
 .sheep-head{transform-origin:50px 35px}
-@keyframes dolly-graze{0%,15%,85%,100%{transform:translateY(-1px) scale(1)}35%,65%{transform:translateY(5px) scale(1.025)}}
+@keyframes dolly-graze{0%,15%,85%,100%{transform:translateY(-1px) scale(1)}35%,65%{transform:translateY(11px) scale(1.04,.88)}}
 .chat-message>.chat-answer{white-space:normal;line-height:1.75}
 .chat-answer p{font-size:inherit;line-height:inherit;color:inherit;margin:0 0 10px}
 .chat-answer p:last-child{margin-bottom:0}
