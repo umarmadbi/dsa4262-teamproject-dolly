@@ -58,3 +58,7 @@ body:has(#page-home.active)>.shell{position:relative;z-index:1}
 /* Time-driven canvas: its coordinate system is independent of page scrolling. */
 body>.home-particles{width:100%;height:100%;contain:strict;transform:none!important;transition:none!important}
 .home-particles canvas{display:block;width:100%;height:100%;pointer-events:none}
+
+/* Document-anchored particles (option B): scroll away with the page, not with the viewport. */
+body:has(#page-home.active){position:relative;background-attachment:scroll}
+body>.home-particles{position:absolute;inset:0;width:100%;height:100%;contain:strict}

@@ -129,3 +129,7 @@ Home uses the workspace’s ivory (#f7f5ed), sage (#dbe6d9) and muted teal palet
 ## Comparing RNA styles
 
 Home has two preview tabs: Textured strand and Molecular model. The latter restores the earlier shaded spheres and chemical-ring motifs through `site/home-molecule.js`; both are illustrative, not measured structures. Both share the same introduction, atmosphere, six navigation links and pause controls. The full-page particle field now uses 56 brighter green dots (34 on narrow screens). Reduced motion and offscreen/hidden-tab suspension apply to either preview.
+
+## Particle scroll behavior
+
+Particles use option B: an absolutely positioned canvas spanning the Home document, rather than a viewport-fixed layer. They leave the screen with the page when scrolling and return when scrolling back, while their own time-driven drift continues. Canvas dimensions follow the page content through ResizeObserver. Pause and reduced motion remain supported.

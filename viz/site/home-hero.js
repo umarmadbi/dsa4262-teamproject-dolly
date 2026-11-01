@@ -14,7 +14,7 @@ function element(tag,attrs){const n=document.createElementNS(NS,tag);for(const [
 const particleField=document.createElement('div');particleField.className='home-particles';particleField.setAttribute('aria-hidden','true');
 const homePage=root.closest('#page-home');
 document.body.prepend(particleField);
-// Particle coordinates use viewport pixels and elapsed time only, never scroll offsets.
+// Particle coordinates belong to the document background, so they scroll away with Home.
 const particleCanvas=document.createElement('canvas');particleField.append(particleCanvas);
 const particleContext=particleCanvas.getContext('2d');
 let particleWidth=0,particleHeight=0,particleTime=0,particleLast=0;
@@ -23,13 +23,17 @@ const particles=Array.from({length:56},(_,i)=>{
  return{x:random(i+1),y:random(i+47),radius:1.3+random(i+83)*1.5,speed:10+random(i+131)*14,drift:7+random(i+181)*10,phase:random(i+241)*Math.PI*2,alpha:.38+random(i+291)*.3};
 });
 function resizeParticles(){
- particleWidth=window.innerWidth;particleHeight=window.innerHeight;
+ particleWidth=document.documentElement.clientWidth||window.innerWidth;
+ const shell=document.querySelector('.shell');
+ particleHeight=Math.max(window.innerHeight,shell?.getBoundingClientRect().height||0);
  const ratio=Math.min(window.devicePixelRatio||1,2);
  particleCanvas.width=Math.round(particleWidth*ratio);particleCanvas.height=Math.round(particleHeight*ratio);
  particleContext?.setTransform(ratio,0,0,ratio,0,0);
+ drawParticles();
 }
 window.addEventListener('resize',resizeParticles);resizeParticles();
-function syncParticles(){const active=homePage.classList.contains('active');particleField.hidden=!active;particleField.dataset.paused=String(paused||!active||document.hidden);}
+new ResizeObserver(resizeParticles).observe(document.querySelector('.shell'));
+function syncParticles(){const active=homePage.classList.contains('active');particleField.hidden=!active;particleField.dataset.paused=String(paused||!active||document.hidden);if(active)resizeParticles();}
 new MutationObserver(syncParticles).observe(homePage,{attributes:true,attributeFilter:['class']});
 document.addEventListener('visibilitychange',syncParticles);
 function drawParticles(){
