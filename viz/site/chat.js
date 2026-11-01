@@ -25,7 +25,7 @@ root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly 
 </section>`;
 document.body.append(root);
 const el=s=>root.querySelector(s),launch=el('.chat-launch'),panel=el('.chat-panel'),input=el('textarea'),send=el('.chat-send'),status=el('.chat-status'),log=el('.chat-messages'),reading=el('.chat-reading');
-let history=[],busy=false,token='',widget=null,scriptPromise;
+let history=[],busy=false,token='',widget=null,scriptPromise,retrying=false;
 let configured=false;
 try{const u=new URL(chatConfig.endpoint);configured=u.protocol==='https:'&&u.pathname==='/chat'&&!!chatConfig.turnstileSiteKey;}catch{}
 function sync(){send.textContent=busy?'Thinking…':'Send';el('form').setAttribute('aria-busy',String(busy));el('#chat-verification').hidden=!!token;send.disabled=!configured||busy||!token;input.disabled=!configured||busy;el('.chat-clear').disabled=busy;root.querySelectorAll('.chat-starters button').forEach(b=>b.disabled=!configured||busy);}
@@ -56,7 +56,21 @@ function formatAnswer(parent,text){
  }
 }
 
-function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');if(role==='assistant')formatAnswer(body,text);else body.textContent=text;box.append(who,body);log.append(box);root.classList.add('has-conversation');reading.scrollTop=reading.scrollHeight;return box;}
+function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');if(role==='assistant'){try{formatAnswer(body,text);}catch{body.classList.remove('chat-answer');body.replaceChildren(document.createTextNode(text));}}else body.textContent=text;box.append(who,body);log.append(box);root.classList.add('has-conversation');reading.scrollTop=reading.scrollHeight;return box;}
+
+
+function requestError(detail,question){
+ const box=document.createElement('article');box.className='chat-message chat-request-error';box.setAttribute('role','alert');
+ const title=document.createElement('strong');title.textContent='Dolly couldn’t answer this time.';
+ const text=document.createElement('div');text.textContent=detail;
+ const retry=document.createElement('button');retry.type='button';retry.className='chat-retry';retry.textContent='Try again';
+ retry.addEventListener('click',()=>{
+  if(busy)return;input.value=question;
+  if(token){retrying=true;el('form').requestSubmit();}
+  else{status.textContent='Please complete verification, then press Send to try again.';verification();input.focus();}
+ });
+ box.append(title,text,retry);log.append(box);reading.scrollTop=reading.scrollHeight;
+}
 
 function loadingMessage(){
  const box=document.createElement('article');box.className='chat-message assistant chat-loading';box.setAttribute('role','status');box.setAttribute('aria-atomic','true');
@@ -96,7 +110,7 @@ function verification(){
  if(!scriptPromise)scriptPromise=new Promise((resolve,reject)=>{if(window.turnstile)return resolve();const s=document.createElement('script');s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';s.async=true;s.onload=resolve;s.onerror=reject;document.head.append(s);});
  scriptPromise.then(()=>{
   if(widget!==null)return;
-  widget=window.turnstile.render(el('#chat-verification'),{sitekey:chatConfig.turnstileSiteKey,action:'dolly-chat',theme:'light',size:'flexible',callback:value=>{token=value;status.textContent='Ready to answer.';sync();},'expired-callback':()=>{token='';status.textContent='Please verify again to continue.';sync();},'error-callback':()=>{token='';status.textContent='Verification failed. Refresh the page to retry.';sync();}});
+  widget=window.turnstile.render(el('#chat-verification'),{sitekey:chatConfig.turnstileSiteKey,action:'dolly-chat',theme:'light',size:'flexible',callback:value=>{token=value;if(!busy&&!root.classList.contains('has-conversation'))status.textContent='Ready to answer.';sync();},'expired-callback':()=>{token='';if(!busy&&!log.querySelector('.chat-request-error'))status.textContent='Please verify again to continue.';sync();},'error-callback':()=>{token='';if(!busy&&!log.querySelector('.chat-request-error'))status.textContent='Verification failed. Refresh the page to retry.';sync();}});
  }).catch(()=>{status.textContent='Verification could not load. Check your connection and refresh.';});
 }
 el('.chat-clear').addEventListener('click',()=>{history=[];log.replaceChildren();root.classList.remove('has-conversation');input.value='';status.textContent='Conversation cleared.';input.focus();});
@@ -105,19 +119,21 @@ input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isCompo
 el('form').addEventListener('submit',async e=>{
  e.preventDefault();const question=input.value.trim();if(!question||busy||!configured||!token)return;
  const next=[...history.slice(-4),{role:'user',content:question}];
- message('user',question);input.value='';busy=true;sync();status.textContent='Dolly is preparing your answer…';const stopLoading=loadingMessage();
+ log.querySelectorAll('.chat-request-error').forEach(box=>box.remove());
+ if(!retrying)message('user',question);retrying=false;input.value='';busy=true;sync();status.textContent='Dolly is preparing your answer…';const stopLoading=loadingMessage();
  try{
   const response=await fetch(chatConfig.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:next,turnstileToken:token}),signal:AbortSignal.timeout(65000)});
-  const data=await response.json();if(!response.ok)throw new Error(data.error||'The assistant is temporarily unavailable.');
-  if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
+  let data;try{data=await response.json();}catch{throw new Error('The assistant returned an unreadable response. Please try again.');}
+  if(!response.ok)throw new Error(typeof data?.error==='string'?data.error:'The assistant is temporarily unavailable. Please try again.');
+  if(typeof data?.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
   stopLoading();
   const answer=data.answer.slice(0,6000),box=message('assistant',answer);
-  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!/^S[1-6]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
+  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!source||!/^S[1-6]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
   reading.scrollTop=reading.scrollHeight;
   // Limit retained context so a long session cannot grow request costs indefinitely.
   history=[...next,{role:'assistant',content:answer.slice(0,3000)}].slice(-4);
   status.textContent=data.truncated?'Answer reached its length limit. Ask a narrower follow-up.':'Check the sources before using an answer in your report.';
- }catch(error){status.textContent=error.name==='TimeoutError'?'The request timed out. Try again.':error.message;input.value=question;}
+ }catch(error){stopLoading();const detail=error.name==='TimeoutError'?'The request timed out. Please try again.':error instanceof TypeError?'Could not reach the assistant. Check your connection and try again.':error.message||'The assistant could not respond. Please try again.';status.textContent=detail;requestError(detail,question);input.value=question;}
  finally{stopLoading();busy=false;token='';sync();if(widget!==null)window.turnstile.reset(widget);input.focus();}
 });
 sync();

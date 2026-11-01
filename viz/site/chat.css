@@ -73,3 +73,7 @@
 .chat-loading-note{font-size:10px;line-height:1.6;margin-top:7px;color:#748573}
 @keyframes dolly-thinking{0%,70%,100%{transform:translateY(0);opacity:.4}35%{transform:translateY(-3px);opacity:1}}
 @media(prefers-reduced-motion:reduce){.chat-loading-dots i{animation:none;opacity:.8}}
+
+.chat-request-error{background:#fbf5ea;border:1px solid #e3d8bc}
+.chat-request-error>strong{color:#77602d}
+.chat-retry{margin-top:10px;border:1px solid #bdcdbb;border-radius:16px;background:#fffdf5;color:#355d43;padding:6px 13px;font-size:11px}
