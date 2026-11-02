@@ -1,3 +1,4 @@
+import './tour.js';
 import { parseCSV, validateCoverage, attachPredictions, decodeDataset, decodeCellLines, filterRows,
   compareSamples, toCSV, sampleStats, combineStats, aboveCutoff, readThresholds } from './core.js';
 import { cellColour, thresholdIndex, calibrationView, expressionView, metageneView, stopView, junctionView, motifView,
