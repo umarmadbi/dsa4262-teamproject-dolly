@@ -408,7 +408,7 @@
 .legend-square{display:inline-block;width:8px;height:8px;background:white;border:1.6px solid #6e8a7c}
 .legend-range{display:inline-block;width:4px;height:12px;background:#6e8a7c;opacity:.35;border-radius:2px}
 .map-key span{display:inline-flex;align-items:center;gap:5px;margin-left:10px}
-.landscape-controls{display:flex;flex-wrap:wrap;gap:20px;align-items:end;margin:20px 0 23px;padding:18px 22px}
+.landscape-controls{display:flex;flex-wrap:wrap;gap:20px;align-items:end;margin:20px 0 23px;padding:18px 22px;position:relative;z-index:2;overflow:visible}
 .landscape-controls .matrix-cell-controls{flex:1;min-width:280px}
 .landscape-controls .overview-single-control{display:grid;gap:5px}
 #landscape-metagene .insight-svg{max-height:380px}
