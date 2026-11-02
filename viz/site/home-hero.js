@@ -68,7 +68,8 @@ filter.append(element('feDisplacementMap',{in:'lit',in2:'grain',scale:'2.2',xCha
 const gradient=element('linearGradient',{id:'rna-tube-light',x1:'0%',y1:'0%',x2:'100%',y2:'45%'});
 [['0%','#c5e3d4'],['24%','#8cbaa7'],['53%','#416f64'],['78%','#a0c4af'],['100%','#2d584e']].forEach(([offset,color])=>gradient.append(element('stop',{offset,'stop-color':color})));defs.append(gradient);
 const surface=element('g',{filter:'url(#rna-surface-relief)'});art.append(surface);
-function project(x,y,z){const depth=z*.95+(y-298)*.10,scale=760/(760+depth);return{x:280+x*scale,y:298+(y-298)*scale,z:depth,scale};}
+let tilt=0;
+function project(x,y,z){if(strandMode==='interactive'){const cy=y-298,c=Math.cos(tilt),s=Math.sin(tilt);y=298+cy*c-z*s;z=cy*s+z*c;}const depth=z*.95+(y-298)*.10,scale=760/(760+depth);return{x:280+x*scale,y:298+(y-298)*scale,z:depth,scale};}
 function raw(t){const a=t*Math.PI*3.5+phase;return{x:Math.sin(a)*91+(t-.5)*22,y:45+t*505,z:Math.cos(a)*85,a};}
 function point(t){const p=raw(t);return project(p.x,p.y,p.z);}
 function tube(width){
@@ -89,6 +90,9 @@ function drawTube(tube,points,scale=1){
  tube.outer.setAttribute('stroke-width',tube.width*scale);tube.body.setAttribute('stroke-width',tube.width*.87*scale);tube.rim.setAttribute('stroke-width',tube.width*.2*scale);
 }
 function render(){
+ const interactive=strandMode==='interactive';
+ stage.classList.toggle('is-interactive',interactive);
+ links.forEach(link=>{link.hidden=interactive;});connectors.forEach(line=>line.setAttribute('display',interactive?'none':'inline'));
  const molecular=strandMode==='molecular';surface.setAttribute('display',molecular?'none':'inline');molecule.group.setAttribute('display',molecular?'inline':'none');
  if(molecular){molecule.render(phase);}else{
  drawTube(backbone,Array.from({length:151},(_,i)=>point(i/150)));
@@ -99,13 +103,24 @@ function render(){
  }
  links.forEach((link,i)=>{const p=point(.12+i*.14),side=i%2===0?-1:1,x=280+side*120+(p.x-280)*.19;link.style.setProperty('--link-x',`${x/560*100}%`);link.style.setProperty('--link-y',`${p.y/600*100}%`);const near=x-side*76;connectors[i].setAttribute('d',`M${p.x},${p.y}Q${(p.x+near)/2},${p.y-12} ${near},${p.y}`);});
 }
+const stage=root.querySelector('.rna-nav-stage');
+const caption=root.querySelector('.rna-nav-caption>span');
+const originalCaption=caption.textContent;
+let dragging=false,pointerId=null,previousX=0,previousY=0;
+function endDrag(){if(pointerId!==null&&stage.hasPointerCapture?.(pointerId))stage.releasePointerCapture(pointerId);dragging=false;pointerId=null;stage.classList.remove('is-dragging');}
+stage.addEventListener('pointerdown',event=>{if(strandMode!=='interactive'||!event.isPrimary||event.button!==0)return;event.preventDefault();dragging=true;pointerId=event.pointerId;previousX=event.clientX;previousY=event.clientY;stage.setPointerCapture(pointerId);stage.classList.add('is-dragging');stage.focus({preventScroll:true});});
+stage.addEventListener('pointermove',event=>{if(!dragging||event.pointerId!==pointerId)return;phase+=(event.clientX-previousX)*.012;tilt=Math.max(-.55,Math.min(.55,tilt+(event.clientY-previousY)*.004));previousX=event.clientX;previousY=event.clientY;render();});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])stage.addEventListener(name,endDrag);
+window.addEventListener('blur',endDrag);
+stage.addEventListener('keydown',event=>{if(strandMode!=='interactive')return;const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'];if(!keys.includes(event.key))return;event.preventDefault();if(event.key==='Home'){phase=.5;tilt=0;}else if(event.key==='ArrowLeft')phase-=.15;else if(event.key==='ArrowRight')phase+=.15;else tilt=Math.max(-.55,Math.min(.55,tilt+(event.key==='ArrowUp'?-.08:.08)));render();});
+function syncMode(){const interactive=strandMode==='interactive';stage.tabIndex=interactive?0:-1;if(interactive){stage.setAttribute('role','group');stage.setAttribute('aria-label','Rotating RNA strand. Drag to rotate, or use arrow keys. Home resets the view.');}else{stage.removeAttribute('role');stage.removeAttribute('aria-label');}caption.textContent=interactive?'Drag to rotate · Arrow keys to adjust':originalCaption;held=false;endDrag();}
 const preview=document.createElement('div');preview.className='strand-preview-bar';
-preview.innerHTML='<span>COMPARE STRAND STYLES</span><div class="strand-preview-tabs" role="group" aria-label="RNA strand preview"><button type="button" data-strand-mode="textured" aria-pressed="true">01 · Textured strand</button><button type="button" data-strand-mode="molecular" aria-pressed="false">02 · Molecular model</button></div>';
+preview.innerHTML='<span>COMPARE STRAND STYLES</span><div class="strand-preview-tabs" role="group" aria-label="RNA strand preview"><button type="button" data-strand-mode="textured" aria-pressed="true">01 · Textured strand</button><button type="button" data-strand-mode="molecular" aria-pressed="false">02 · Molecular model</button><button type="button" data-strand-mode="interactive" aria-pressed="false">03 · Interactive strand</button></div>';
 root.before(preview);
-preview.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{strandMode=button.dataset.strandMode;preview.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();}));
+preview.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{strandMode=button.dataset.strandMode;syncMode();preview.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();}));
 function sync(){motion.textContent=paused?'Resume motion':'Pause motion';syncParticles();motion.setAttribute('aria-pressed',String(paused));if(paused)word.textContent=words[index];}
 motion.addEventListener('click',()=>{paused=!paused;sync();});preference.addEventListener('change',()=>{paused=preference.matches;sync();});
 links.forEach(link=>{link.addEventListener('pointerenter',()=>{held=true;});link.addEventListener('pointerleave',()=>{held=!!root.querySelector('.rna-nav-link:focus-visible');});link.addEventListener('focus',()=>{held=true;});link.addEventListener('blur',()=>{held=!!root.querySelector('.rna-nav-link:hover');});});
 new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;syncParticles();}).observe(root);
-function frame(now){const dt=Math.min((now-last)/1000,.04)||.016;last=now;if(visible&&!document.hidden&&!paused){if(!held){phase+=dt*.24;renderClock+=dt;if(renderClock>=1/30){renderClock=0;render();}}wordClock+=dt;if(wordClock>=4.2){wordClock=0;index=(index+1)%words.length;}const next=words[(index+1)%words.length];word.textContent=wordClock<2.7?words[index]:wordClock<3.2?words[index].slice(0,Math.max(0,Math.ceil(words[index].length*(3.2-wordClock)/.5))):next.slice(0,Math.floor(next.length*Math.min(1,(wordClock-3.2)/.7)));}requestAnimationFrame(frame);}
-sync();render();requestAnimationFrame(frame);
+function frame(now){const dt=Math.min((now-last)/1000,.04)||.016;last=now;if(visible&&!document.hidden&&!paused){if(!held&&!dragging){phase+=dt*.24;renderClock+=dt;if(renderClock>=1/30){renderClock=0;render();}}wordClock+=dt;if(wordClock>=4.2){wordClock=0;index=(index+1)%words.length;}const next=words[(index+1)%words.length];word.textContent=wordClock<2.7?words[index]:wordClock<3.2?words[index].slice(0,Math.max(0,Math.ceil(words[index].length*(3.2-wordClock)/.5))):next.slice(0,Math.floor(next.length*Math.min(1,(wordClock-3.2)/.7)));}requestAnimationFrame(frame);}
+syncMode();sync();render();requestAnimationFrame(frame);

@@ -62,3 +62,11 @@ body>.home-particles{width:100%;height:100%;contain:strict;transform:none!import
 /* Document-anchored particles (option B): scroll away with the page, not with the viewport. */
 body:has(#page-home.active){position:relative;background-attachment:scroll}
 body>.home-particles{position:absolute;inset:0;width:100%;height:100%;contain:strict}
+
+/* Third preview: uncluttered textured RNA with direct rotation controls. */
+.rna-nav-link[hidden]{display:none!important}
+.rna-nav-stage.is-interactive{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.rna-nav-stage.is-dragging{cursor:grabbing}
+.rna-nav-stage.is-interactive:focus-visible{outline:2px solid #527e67;outline-offset:6px;border-radius:18px}
+.strand-preview-tabs{flex-wrap:wrap}
+@media(max-width:760px){.strand-preview-tabs button{flex:1 1 125px}}
