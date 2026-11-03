@@ -934,6 +934,17 @@ function renderAtlas(){
   }).join('')+(shown.length?'':'<tr><td colspan="8">No sites qualify in every selected cell line. Try fewer cell lines or lower coverage.</td></tr>')+'</tbody></table></div><div class="rank-footer"><span>Showing '+shown.length+' of '+fmt(ranked.length)+'</span><button class="button small" data-atlas-more '+(shown.length>=ranked.length?'hidden':'')+'>Show 25 more</button></div>';
 }
 function bindCrossViews(){
+  const metricPicker=$('matrix-metric-picker');
+  metricPicker.addEventListener('change',e=>{
+    if(e.target.name!=='matrix-metric-choice')return;
+    $('matrix-metric').value=e.target.value;
+    $('matrix-metric-picker-title').textContent=e.target.closest('label').querySelector('strong').textContent;
+    $('matrix-metric').dispatchEvent(new Event('change'));
+    metricPicker.open=false;metricPicker.querySelector('summary').focus();
+  });
+  metricPicker.addEventListener('keydown',e=>{if(e.key==='Escape'){metricPicker.open=false;metricPicker.querySelector('summary').focus();}});
+  document.addEventListener('click',e=>{if(!metricPicker.contains(e.target))metricPicker.open=false;});
+
   const siteSetPicker=$('matrix-picker');
   siteSetPicker.addEventListener('change',e=>{
     if(e.target.name!=='matrix-site-set')return;

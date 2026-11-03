@@ -502,3 +502,8 @@ button.corr-cell:is(:hover,:focus-visible){outline:2px solid #e7ad43;outline-off
 .map-dot{cursor:pointer}
 .transcript-map-svg rect[data-tip],.transcript-map-svg line[data-tip]{cursor:help}
 @media(hover:none){[data-tip]{cursor:pointer}}
+
+/* Match the metric selector to the shared-site card picker. */
+#matrix-metric-picker-title{font-size:14px;font-weight:650;color:#143b34}
+#matrix-metric-picker summary{background:#fff}
+#matrix-metric-picker[open],#matrix-picker[open]{z-index:40}
