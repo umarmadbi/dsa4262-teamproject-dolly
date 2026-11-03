@@ -18,7 +18,8 @@ dialog.innerHTML='<div class="tour-highlight" aria-hidden="true"></div><section 
 document.body.append(dialog);
 const card=dialog.querySelector('.tour-card'),highlight=dialog.querySelector('.tour-highlight'),next=dialog.querySelector('[data-tour=next]'),back=dialog.querySelector('[data-tour=back]');
 let index=0,target=null,originalPage='',originalScroll=0,previousFocus=null,generation=0,scheduled=0;
-const loading=document.getElementById('loading');function ready(){launcher.disabled=!!loading&&!loading.hidden;}
+const loading=document.getElementById('loading');let autoStarted=false;
+function ready(){launcher.disabled=!!loading&&!loading.hidden;if(!launcher.disabled&&!autoStarted){autoStarted=true;requestAnimationFrame(()=>launcher.click());}}
 if(loading)new MutationObserver(ready).observe(loading,{attributes:true,attributeFilter:['hidden']});ready();
 function navigate(page){document.querySelector(`[data-nav="${page}"]`)?.click();}
 function place(){

@@ -1,8 +1,6 @@
-import {createMolecularModel} from './home-molecule.js';
 // Continuous textured RNA tubes. Artistic geometry; no sample data.
 const root=document.querySelector('.landing-hero');
 const art=document.getElementById('rna-ribbon-art');
-const links=[...root.querySelectorAll('[data-strand-link]')];
 const motion=document.getElementById('hero-motion');
 const word=document.getElementById('hero-word');
 const preference=matchMedia('(prefers-reduced-motion: reduce)');
@@ -81,8 +79,7 @@ function tube(width){
 }
 const backbone=tube(20);
 const bases=Array.from({length:23},(_,i)=>({...tube(10.5+(i%3)),t:(i+.5)/23,length:49+Math.sin(i*4.1)*12}));
-const connectors=links.map(()=>{const n=element('path',{fill:'none',stroke:'#718f80','stroke-width':'.8',opacity:'.32'});art.append(n);return n;});
-const molecule=createMolecularModel(art);let strandMode='textured';
+const strandMode='interactive';
 function drawTube(tube,points,scale=1){
  const path=points.map((p,i)=>`${i?'L':'M'}${p.x},${p.y}`).join('');
  tube.outer.setAttribute('d',path);tube.body.setAttribute('d',path);
@@ -92,16 +89,11 @@ function drawTube(tube,points,scale=1){
 function render(){
  const interactive=strandMode==='interactive';
  stage.classList.toggle('is-interactive',interactive);
- links.forEach(link=>{link.hidden=interactive;});connectors.forEach(line=>line.setAttribute('display',interactive?'none':'inline'));
- const molecular=strandMode==='molecular';surface.setAttribute('display',molecular?'none':'inline');molecule.group.setAttribute('display',molecular?'inline':'none');
- if(molecular){molecule.render(phase);}else{
  drawTube(backbone,Array.from({length:151},(_,i)=>point(i/150)));
  for(const b of bases){const p=raw(b.t);b.z=p.z;const points=Array.from({length:15},(_,j)=>{const u=j/14,bend=Math.sin(u*Math.PI)*5;return project(p.x-Math.sin(p.a)*b.length*u+Math.cos(p.a)*bend,p.y-u*8,p.z-Math.cos(p.a)*b.length*u-Math.sin(p.a)*bend);});drawTube(b,points,points[0].scale);b.n.setAttribute('opacity',.84-p.z*.001);}
  // Back-facing protrusions sit behind the continuous backbone; near ones sit in front.
  bases.filter(b=>b.z>=0).sort((a,b)=>b.z-a.z).forEach(b=>surface.append(b.n));surface.append(backbone.n);
  bases.filter(b=>b.z<0).sort((a,b)=>b.z-a.z).forEach(b=>surface.append(b.n));
- }
- links.forEach((link,i)=>{const p=point(.12+i*.14),side=i%2===0?-1:1,x=280+side*120+(p.x-280)*.19;link.style.setProperty('--link-x',`${x/560*100}%`);link.style.setProperty('--link-y',`${p.y/600*100}%`);const near=x-side*76;connectors[i].setAttribute('d',`M${p.x},${p.y}Q${(p.x+near)/2},${p.y-12} ${near},${p.y}`);});
 }
 const stage=root.querySelector('.rna-nav-stage');
 const caption=root.querySelector('.rna-nav-caption>span');
@@ -114,13 +106,8 @@ for(const name of ['pointerup','pointercancel','lostpointercapture'])stage.addEv
 window.addEventListener('blur',endDrag);
 stage.addEventListener('keydown',event=>{if(strandMode!=='interactive')return;const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'];if(!keys.includes(event.key))return;event.preventDefault();if(event.key==='Home'){phase=.5;tilt=0;}else if(event.key==='ArrowLeft')phase-=.15;else if(event.key==='ArrowRight')phase+=.15;else tilt=Math.max(-.55,Math.min(.55,tilt+(event.key==='ArrowUp'?-.08:.08)));render();});
 function syncMode(){const interactive=strandMode==='interactive';stage.tabIndex=interactive?0:-1;if(interactive){stage.setAttribute('role','group');stage.setAttribute('aria-label','Rotating RNA strand. Drag to rotate, or use arrow keys. Home resets the view.');}else{stage.removeAttribute('role');stage.removeAttribute('aria-label');}caption.textContent=interactive?'Drag to rotate · Arrow keys to adjust':originalCaption;held=false;endDrag();}
-const preview=document.createElement('div');preview.className='strand-preview-bar';
-preview.innerHTML='<span>COMPARE STRAND STYLES</span><div class="strand-preview-tabs" role="group" aria-label="RNA strand preview"><button type="button" data-strand-mode="textured" aria-pressed="true">01 · Textured strand</button><button type="button" data-strand-mode="molecular" aria-pressed="false">02 · Molecular model</button><button type="button" data-strand-mode="interactive" aria-pressed="false">03 · Interactive strand</button></div>';
-root.before(preview);
-preview.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{strandMode=button.dataset.strandMode;syncMode();preview.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();}));
 function sync(){motion.textContent=paused?'Resume motion':'Pause motion';syncParticles();motion.setAttribute('aria-pressed',String(paused));if(paused)word.textContent=words[index];}
 motion.addEventListener('click',()=>{paused=!paused;sync();});preference.addEventListener('change',()=>{paused=preference.matches;sync();});
-links.forEach(link=>{link.addEventListener('pointerenter',()=>{held=true;});link.addEventListener('pointerleave',()=>{held=!!root.querySelector('.rna-nav-link:focus-visible');});link.addEventListener('focus',()=>{held=true;});link.addEventListener('blur',()=>{held=!!root.querySelector('.rna-nav-link:hover');});});
 new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;syncParticles();}).observe(root);
 function frame(now){const dt=Math.min((now-last)/1000,.04)||.016;last=now;if(visible&&!document.hidden&&!paused){if(!held&&!dragging){phase+=dt*.24;renderClock+=dt;if(renderClock>=1/30){renderClock=0;render();}}wordClock+=dt;if(wordClock>=4.2){wordClock=0;index=(index+1)%words.length;}const next=words[(index+1)%words.length];word.textContent=wordClock<2.7?words[index]:wordClock<3.2?words[index].slice(0,Math.max(0,Math.ceil(words[index].length*(3.2-wordClock)/.5))):next.slice(0,Math.floor(next.length*Math.min(1,(wordClock-3.2)/.7)));}requestAnimationFrame(frame);}
 syncMode();sync();render();requestAnimationFrame(frame);
