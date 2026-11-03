@@ -176,3 +176,15 @@ export function decodeCellLines(data, idFor = c => `cellline_${c}`) {
   }
   return out;
 }
+
+// Compare numeric gaps and rank agreement on exactly the same paired observations.
+export function scoreAgreement(a,b){
+ if(a.length!==b.length)throw new Error('Score arrays must have equal lengths.');
+ const pairs=a.map((x,i)=>[x,b[i]]).filter(([x,y])=>Number.isFinite(x)&&Number.isFinite(y));
+ const n=pairs.length;if(!n)return {n:0,difference:null,spearman:null};
+ const difference=pairs.reduce((sum,[x,y])=>sum+Math.abs(x-y),0)/n;
+ function ranks(values){const order=values.map((v,i)=>({v,i})).sort((x,y)=>x.v-y.v),out=Array(n);for(let i=0;i<n;){let j=i+1;while(j<n&&order[j].v===order[i].v)j++;const rank=(i+j-1)/2;for(let k=i;k<j;k++)out[order[k].i]=rank;i=j;}return out;}
+ const x=ranks(pairs.map(p=>p[0])),y=ranks(pairs.map(p=>p[1])),mean=(n-1)/2;
+ let xy=0,xx=0,yy=0;for(let i=0;i<n;i++){const dx=x[i]-mean,dy=y[i]-mean;xy+=dx*dy;xx+=dx*dx;yy+=dy*dy;}
+ return {n,difference,spearman:n<2||!xx||!yy?null:Math.max(-1,Math.min(1,xy/Math.sqrt(xx*yy)))};
+}

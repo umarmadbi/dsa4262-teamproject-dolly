@@ -1,6 +1,6 @@
 import './tour.js';
 import { parseCSV, validateCoverage, attachPredictions, decodeDataset, decodeCellLines, filterRows,
-  compareSamples, toCSV, sampleStats, combineStats, aboveCutoff, readThresholds } from './core.js';
+  compareSamples, scoreAgreement, toCSV, sampleStats, combineStats, aboveCutoff, readThresholds } from './core.js';
 import { cellColour, thresholdIndex, calibrationView, expressionView, metageneView, stopView, junctionView, motifView,
   m6anetView, reproView, fairView, diffView, diffKeys, transcriptMap, atlasRows, atlasTable, setGeneNames, geneName, geneCell, tip } from './views.js';
 
@@ -870,9 +870,10 @@ function sharedSiteMaps(groups,minReads){
   const keys=maps.length?[...maps[0].keys()].filter(k=>maps.every(m=>m.has(k))):[];
   return {maps,keys};
 }
-function pairDistance(a,b,keys){
-  const valid=keys||[...a.keys()].filter(k=>b.has(k));
-  return {n:valid.length,value:valid.length?valid.reduce((sum,k)=>sum+Math.abs(a.get(k).score-b.get(k).score),0)/valid.length:null};
+function pairDistance(a,b,keys,metric='difference'){
+ const valid=keys||[...a.keys()].filter(k=>b.has(k));
+ const p=scoreAgreement(valid.map(k=>a.get(k).score),valid.map(k=>b.get(k).score));
+ return {n:p.n,value:p[metric]};
 }
 function crossOptions(kind){
   const v=crossViews[kind],ids=cellLineIds();
@@ -896,36 +897,22 @@ async function renderCross(kind){
   if(kind==='matrix')renderMatrix();else renderAtlas();
 }
 function renderMatrix(){
-  const d=crossViews.matrix.data;if(!d)return;
-  const pairwise=$('matrix-mode').value==='pairwise',names=d.ids.map(id=>sample(id).cellLine);
-  $('matrix-status').textContent=pairwise
-    ? 'Pair-specific shared sites: closest and most-different pairs are ranked using different site sets. These descriptive rankings are not directly comparable on a common basis; check the site counts.'
-    : fmt(d.keys.length)+' identical shared sites across all '+d.ids.length+' selected cell lines, with mean coverage ≥'+d.minReads+' in every cell line.';
-  if(!pairwise&&!d.keys.length){$('matrix-output').innerHTML='<p class="empty-chart">No sites meet these criteria in every selected cell line. Lower coverage, select fewer cell lines, or choose pair-specific shared sites.</p>';return;}
-  const pairs=[];
-  const grid=d.ids.map((id,i)=>d.ids.map((other,j)=>{
-    const p=pairDistance(d.maps[i],d.maps[j],pairwise?null:d.keys);
-    if(j>i&&p.n)pairs.push({...p,i,j});
-    return p;
-  }));
-  pairs.sort((a,b)=>a.value-b.value||a.i-b.i||a.j-b.j);
-  let cards='';
-  if(pairs.length){
-    const card=(label,target,tone)=>{
-      const tied=pairs.filter(p=>Math.abs(p.value-target.value)<1e-12);
-      return '<div class="cross-stat '+tone+'"><small>'+label+(tied.length>1?' (tie)':'')+'</small><strong class="cross-stat-value">'+target.value.toFixed(3)+'</strong><span class="cross-stat-pair">'+tied.map(p=>esc(names[p.i])+' / '+esc(names[p.j])+(pairwise?' · '+fmt(p.n)+' shared sites':'')).join(', ')+'</span><span>Mean absolute score difference</span></div>';
-    };
-    cards='<div class="cross-stats">'+card('Closest predicted score patterns',pairs[0],'closest')+card('Most different predicted score patterns',pairs.at(-1),'furthest')+'</div>'+(pairwise?'<p class="fine-print">Pair-specific ranking: each pair uses its own shared sites. A lower value may partly reflect which sites were measured. Use the common-site mode for a fairer comparison across pairs.</p>':'');
-  }
-  const emphasise=Boolean(state.matrixEmphasis)&&pairs.length>0;
-  const scaleMin=emphasise?pairs[0].value:0,scaleMax=emphasise?pairs.at(-1).value:1;
-  const scaleLabel=emphasise?'Visible off-diagonal range; colours emphasise relative differences, including small ones.':'Full 0–1 scale; colours show absolute differences.';
-  $('matrix-output').innerHTML=cards+'<p class="fine-print"><strong>Each box shows the mean absolute score difference.</strong> Lower values mean more similar predictions at the compared sites.</p><div class="matrix-scale-toolbar"><label class="matrix-scale-control"><input id="matrix-scale" type="checkbox" '+(state.matrixEmphasis?'checked':'')+'> Emphasise visible differences <span>Colour scale adjusts to the displayed pairs.</span></label></div><div class="matrix-key"><span>'+scaleMin.toFixed(3)+' · closer agreement</span><i></i><span>'+scaleMax.toFixed(3)+' · larger difference</span></div><p class="matrix-scale-note">'+scaleLabel+'</p><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">Mean absolute prediction score differences between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th scope="col" style="color:'+cellColour(n)+'">'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
-    const intensity=p.value===null?0:scaleMax===scaleMin ? 0.5 :Math.max(0,Math.min(1,(p.value-scaleMin)/(scaleMax-scaleMin)));
-    const bg=i===j?'#f0f2f3':p.value===null?'#edf0eb':'hsl(160 40% '+(96-intensity*65)+'%)',fg=i!==j&&p.value!==null&&intensity>.6?'white':'#143b34';
-    const description=names[i]+' and '+names[j]+': '+(p.n?'mean absolute score difference '+p.value.toFixed(4)+' across '+fmt(p.n)+' shared sites':'no shared scores');
-    return '<td><button type="button" class="matrix-cell" '+(i===j||!p.n?'disabled':'')+' title="'+esc(description)+'" data-matrix-pair="'+i+','+j+'" style="background:'+bg+';color:'+fg+'" aria-label="'+esc(names[i]+' and '+names[j])+': '+(p.n?'mean absolute difference '+p.value.toFixed(4)+' across '+p.n+' sites':'no shared scores')+'"><strong>'+(p.n?p.value.toFixed(3):'—')+'</strong>'+(i===j?'<small>Same cell line</small>':pairwise?'<small>'+fmt(p.n)+' sites</small>':'')+'</button></td>';
-  }).join('')+'</tr>').join('')+'</tbody></table></div><p class="fine-print">Click a non-diagonal box to open that pair in Compare a pair. The pair view will use exactly the sites used by the selected box. Values are descriptive prediction differences, not biological distance or statistical significance.</p>';
+ const d=crossViews.matrix.data;if(!d)return;
+ const rank=$('matrix-metric').value==='spearman',metric=rank?'spearman':'difference',label=rank?'Spearman rank correlation':'Mean absolute score difference';
+ const pairwise=$('matrix-mode').value==='pairwise',names=d.ids.map(id=>sample(id).cellLine);
+ $('matrix-status').textContent=(pairwise?'Each pair uses its own shared sites; comparisons across pairs can reflect different site sets.':fmt(d.keys.length)+' identical shared sites across all '+d.ids.length+' selected cell lines.')+' Both metrics use the same sites at mean coverage ≥'+d.minReads+'. These summaries are a subset selected for score ≥0.5 in at least one cell line, not all measured candidates.';
+ if(!pairwise&&!d.keys.length){$('matrix-output').innerHTML='<p class="empty-chart">No sites meet these criteria in every selected cell line. Lower coverage or select fewer cell lines.</p>';return;}
+ const grid=d.ids.map((id,i)=>d.ids.map((other,j)=>pairDistance(d.maps[i],d.maps[j],pairwise?null:d.keys,metric)));
+ const pairs=[];grid.forEach((row,i)=>row.forEach((p,j)=>{if(j>i&&p.value!==null)pairs.push({...p,i,j});}));pairs.sort((a,b)=>a.value-b.value||a.i-b.i||a.j-b.j);
+ const card=(title,p)=>'<div class="cross-stat"><small>'+title+'</small><strong class="cross-stat-value">'+p.value.toFixed(3)+'</strong><span>'+esc(names[p.i])+' / '+esc(names[p.j])+'</span><span>'+label+' · '+fmt(p.n)+' shared sites</span></div>';
+ const cards=pairs.length?'<div class="cross-stats">'+card(rank?'Most similar rankings':'Closest scores',rank?pairs.at(-1):pairs[0])+card(rank?'Least similar rankings':'Largest score gap',rank?pairs[0]:pairs.at(-1))+'</div>':'';
+ const emphasise=Boolean(state.matrixEmphasis)&&pairs.length>0,lo=emphasise?pairs[0].value:rank?-1:0,hi=emphasise?pairs.at(-1).value:1;
+ const explain=rank?'Higher values mean more similar rankings. Correlation can be high even when numerical scores differ systematically.':'Lower values mean closer numerical scores. This measures score gaps, rather than agreement in rankings.';
+ $('matrix-output').innerHTML=cards+'<p class="fine-print"><strong>'+label+'.</strong> '+explain+'</p><div class="matrix-scale-toolbar"><label class="matrix-scale-control"><input id="matrix-scale" type="checkbox" '+(state.matrixEmphasis?'checked':'')+'> Emphasise visible differences <span>Colour scale adjusts to the displayed pairs.</span></label></div><div class="matrix-key"><span>'+lo.toFixed(3)+(rank?' · less similar rankings':' · closer scores')+'</span><i></i><span>'+hi.toFixed(3)+(rank?' · more similar rankings':' · larger score gap')+'</span></div><p class="matrix-scale-note">'+(emphasise?'Colours span the displayed off-diagonal values and may emphasise small differences.':rank?'Full −1 to 1 correlation scale.':'Full 0 to 1 score-difference scale.')+'</p><div class="table-scroll"><table class="similarity-table"><caption class="sr-only">'+label+' between cell lines</caption><thead><tr><th>Cell line</th>'+names.map(n=>'<th scope="col" style="color:'+cellColour(n)+'">'+esc(n)+'</th>').join('')+'</tr></thead><tbody>'+grid.map((row,i)=>'<tr><th style="color:'+cellColour(names[i])+'">'+esc(names[i])+'</th>'+row.map((p,j)=>{
+ const t=p.value===null?0:hi===lo?.5:Math.max(0,Math.min(1,(p.value-lo)/(hi-lo))),bg=i===j?'#f0f2f3':p.value===null?'#edf0eb':'hsl(160 40% '+(96-t*65)+'%)',fg=i!==j&&p.value!==null&&t>.6?'white':'#143b34';
+ const description=names[i]+' and '+names[j]+': '+(p.value===null?'Rank correlation unavailable: fewer than two sites or constant scores.':label+' '+p.value.toFixed(4))+' across '+fmt(p.n)+' shared sites';
+ return '<td><button type="button" class="matrix-cell" '+(i===j||!p.n?'disabled':'')+' title="'+esc(description)+'" aria-label="'+esc(description)+'" data-matrix-pair="'+i+','+j+'" style="background:'+bg+';color:'+fg+'"><strong>'+(i===j?rank?'1.000':'0.000':p.value===null?'—':p.value.toFixed(3))+'</strong>'+(i===j?'<small>Same cell line</small>':pairwise?'<small>'+fmt(p.n)+' sites</small>':'')+'</button></td>';
+ }).join('')+'</tr>').join('')+'</tbody></table></div><p class="fine-print">Click a non-diagonal box to inspect that pair on exactly these sites. Rank correlation is unavailable for constant scores or fewer than two paired sites. These are descriptive model predictions, not biological similarity or statistical significance.</p>';
 }
 function atlasRanking(d,mode){
   return d.keys.map(key=>{
@@ -974,6 +961,7 @@ function bindCrossViews(){
     $(kind+'-reads').addEventListener('change',()=>{crossViews[kind].limit=25;renderCross(kind);});
   }
   $('matrix-mode').addEventListener('change',renderMatrix);
+  $('matrix-metric').addEventListener('change',renderMatrix);
   $('matrix-output').addEventListener('change',e=>{
     if(e.target.id!=='matrix-scale')return;
     state.matrixEmphasis=e.target.checked;renderMatrix();$('matrix-scale')?.focus({preventScroll:true});
