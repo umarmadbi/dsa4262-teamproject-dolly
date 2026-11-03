@@ -507,3 +507,21 @@ button.corr-cell:is(:hover,:focus-visible){outline:2px solid #e7ad43;outline-off
 #matrix-metric-picker-title{font-size:14px;font-weight:650;color:#143b34}
 #matrix-metric-picker summary{background:#fff}
 #matrix-metric-picker[open],#matrix-picker[open]{z-index:40}
+
+/* Align comparison filter labels and white cards on a common baseline. */
+#matrix-panel .cross-controls>.coverage-picker,#matrix-panel .cross-controls>.matrix-picker{flex:0 1 300px;min-width:235px;max-width:440px}
+#matrix-panel .cross-controls>.coverage-picker>.rank-picker-label,#matrix-panel .cross-controls>.matrix-picker>.rank-picker-label{line-height:14px;margin:0 0 10px}
+#matrix-panel .coverage-card,#matrix-panel #matrix-metric-picker>summary,#matrix-panel #matrix-picker>summary{min-height:92px;margin:0;padding:16px 20px;background:#fff;box-sizing:border-box}
+#matrix-panel .coverage-card{display:flex;flex-direction:column;justify-content:center;gap:8px}
+#matrix-panel #matrix-metric-picker>summary,#matrix-panel #matrix-picker>summary{position:relative;padding-right:45px}
+#matrix-panel .matrix-picker summary>span:first-child{display:grid;gap:8px}
+#matrix-panel .matrix-picker summary small{margin:0;line-height:15px}
+#matrix-panel .matrix-picker summary strong{font-size:17px;line-height:28px}
+#matrix-panel .matrix-picker .rank-chevron{position:absolute;right:18px;top:50%;transform:translateY(-50%)}
+#matrix-panel .coverage-input-row{min-height:28px}
+.repro-details{margin-top:18px;border-top:1px solid #dce7df;padding-top:14px}
+.repro-details>summary{cursor:pointer;font-size:13px;font-weight:600;color:#245e48;padding:4px 0}
+.repro-details>summary:focus-visible{outline:2px solid #16735a;outline-offset:4px}
+.repro-details .repro-layout,.repro-variance{margin-top:16px}
+.repro-variance{max-width:760px}
+@media(max-width:600px){#matrix-panel .cross-controls>.coverage-picker,#matrix-panel .cross-controls>.matrix-picker{flex-basis:100%;min-width:0;max-width:none}}
