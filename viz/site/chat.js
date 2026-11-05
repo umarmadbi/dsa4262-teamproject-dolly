@@ -86,22 +86,27 @@ function loadingMessage(){
 
 function show(open){if(open)dismissGreeting();panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(open){if(configured){input.focus();verification();}else{el('.chat-close').focus();status.textContent='Not connected yet. The team is setting up the AI service. Home & guide is available now.';}}else launch.focus();}
 
-// Show one short invitation per browser tab; never steal focus or repeat while chatting.
-const greetingKey='dolly-guide-greeting-seen';
+// A fresh invitation on each page load, after loading and the tour have finished.
 let greetingTimer=null,greetingHideTimer=null,greetingSeen=false;
-try{greetingSeen=sessionStorage.getItem(greetingKey)==='1';}catch{}
 function dismissGreeting(){
- clearTimeout(greetingTimer);clearTimeout(greetingHideTimer);el('.chat-nudge').hidden=true;greetingSeen=true;
- try{sessionStorage.setItem(greetingKey,'1');}catch{}
+ clearTimeout(greetingTimer);greetingTimer=null;clearTimeout(greetingHideTimer);el('.chat-nudge').hidden=true;greetingSeen=true;
+}
+function greetingBlocked(){return !panel.hidden||document.hidden||!!document.querySelector('.dolly-tour[open]')||!!document.querySelector('#loading:not([hidden])');}
+function scheduleGreeting(){
+ if(greetingSeen)return;
+ if(greetingBlocked()){clearTimeout(greetingTimer);greetingTimer=null;return;}
+ if(greetingTimer!==null)return;
+ greetingTimer=setTimeout(()=>{
+  greetingTimer=null;if(greetingSeen||greetingBlocked())return;
+  greetingSeen=true;el('.chat-nudge').hidden=false;
+  greetingHideTimer=setTimeout(dismissGreeting,6500);
+ },2000);
 }
 el('.chat-nudge-dismiss').addEventListener('click',dismissGreeting);
 el('.chat-nudge-open').addEventListener('click',()=>show(true));
-if(!greetingSeen)greetingTimer=setTimeout(()=>{
- if(!panel.hidden||document.hidden)return;
- el('.chat-nudge').hidden=false;
- try{sessionStorage.setItem(greetingKey,'1');}catch{}
- greetingHideTimer=setTimeout(dismissGreeting,6500);
-},8000);
+new MutationObserver(scheduleGreeting).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open','hidden']});
+document.addEventListener('visibilitychange',scheduleGreeting);
+scheduleGreeting();
 
 launch.addEventListener('click',()=>show(panel.hidden));el('.chat-close').addEventListener('click',()=>show(false));
 root.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){show(false);e.stopPropagation();}});
