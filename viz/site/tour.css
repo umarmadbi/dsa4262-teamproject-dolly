@@ -1,0 +1,9 @@
+.tour-top-actions{display:flex;align-items:center;gap:10px}.tour-launch{white-space:nowrap}
+.dolly-tour[open]{display:block;position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden;box-shadow:none;color:#143b34}
+.dolly-tour::backdrop{background:transparent;backdrop-filter:none}
+.tour-highlight{position:fixed;border:2px solid #8cd3b3;border-radius:10px;box-shadow:0 0 0 9999px #0b2923aa;pointer-events:none;background:#a5dec20d}
+.tour-highlight[hidden]{display:none}.dolly-tour:has(.tour-highlight[hidden]){background:#0b2923aa}
+.tour-card{position:fixed;width:360px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;background:#fcfdf8;border:1px solid #c4dace;border-radius:14px;box-shadow:0 16px 55px #082c3540;padding:20px;z-index:1}
+.tour-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:11px;color:#597767}.tour-close{border:0;background:none;font-size:24px;line-height:1;padding:0 4px;color:#466959}
+.tour-card h2{font-size:19px;line-height:1.35;margin:0 0 12px}.tour-card p{font-size:13px;line-height:1.75;color:#456555;margin:0}.tour-controls{display:flex;gap:8px;align-items:center;margin-top:20px}.tour-controls button{font:inherit;font-size:12px;border:0;border-radius:7px;padding:9px 10px;background:transparent;color:#335b49}.tour-controls button:disabled{opacity:.4}.tour-controls [data-tour=next]{margin-left:auto;background:#126a52;color:white;padding-inline:17px}.tour-card button:focus-visible{outline:2px solid #0b8062;outline-offset:3px}
+@media(max-width:600px){.tour-top-actions{gap:5px}.tour-launch{font-size:10px;padding:7px}.tour-card{padding:17px}}

@@ -1,0 +1,72 @@
+/* Standalone landing screen; existing analysis and guide views remain separate. */
+.landing-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:22px;min-height:calc(100svh - 170px);align-items:center;padding:18px 0 28px;isolation:isolate}.hero-copy{padding:20px 0;min-width:0}.hero-copy .eyebrow{font-size:10px;letter-spacing:2px;margin-bottom:26px}.hero-copy h1{font-size:clamp(34px,3.8vw,62px);line-height:1.12;letter-spacing:-2.3px;font-weight:500}.hero-rotating-line{display:block;color:#879c68;font-size:.66em;letter-spacing:-1.2px;line-height:1.4;margin-top:19px;min-height:1.4em}.hero-description{max-width:460px;font-size:14px;line-height:1.9;margin-top:28px;color:#667c70}.hero-copy .home-actions{gap:23px;margin-top:30px}.hero-copy .button.primary{background:#204f3b;border-color:#204f3b;padding:14px 22px;border-radius:30px;gap:25px;display:inline-flex}.hero-guide-link{font-size:13px;color:#375641;text-decoration:none;border-bottom:1px solid #abb99e;padding:7px 0}.hero-guide-link span{margin-left:12px}.hero-facts{display:flex;flex-wrap:wrap;gap:22px;margin-top:43px}.hero-facts>span{font-size:10px;color:#74816e;border-right:1px solid #d9e1d1;padding-right:22px}.hero-facts>span:last-child{border-right:0}.hero-facts strong{display:block;font-size:26px;line-height:1.4;font-weight:500;letter-spacing:-1px;color:#35563e}.hero-caveat{font-size:10px;line-height:1.8;max-width:440px;margin-top:20px;color:#7b8774}.rna-navigation{position:relative;min-width:0;background:radial-gradient(ellipse at center,#edf2e65c,transparent 70%);align-self:center}.rna-nav-heading,.rna-nav-caption{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:9px;color:#7b8d7c;letter-spacing:1.4px;padding:0 12px}.rna-nav-heading button{border:0;background:none;color:#587462;font-size:10px;text-decoration:underline;text-underline-offset:4px;letter-spacing:0;padding:8px}.rna-nav-stage{position:relative;aspect-ratio:560/600;width:100%;max-width:680px;margin:auto;perspective:1100px}.rna-nav-stage svg{position:absolute;width:100%;height:100%;overflow:visible;pointer-events:none}.rna-end-label{font:13px ui-monospace,monospace;fill:#6d837b;text-anchor:middle}.rna-nav-link{--link-x:50%;position:absolute;left:var(--link-x);top:var(--link-y);display:flex;align-items:center;gap:11px;width:190px;padding:13px 14px;border:1px solid #dce6dbb3;border-radius:12px;background:#fbfcf5ee;color:#204b3c;box-shadow:0 6px 18px #204f3b09;text-decoration:none;transform:translate(-50%,-50%);transition:box-shadow .22s,border-color .22s,background .22s;z-index:2;will-change:left}.rna-link-number{font-size:10px;color:#7e9977;letter-spacing:1px}.rna-nav-link strong{display:block;font-size:12px;font-weight:600;white-space:nowrap}.rna-nav-link small{display:block;font-size:8px;color:#7b8d7a;margin-top:2px;white-space:nowrap}.rna-link-arrow{margin-left:auto;font-size:15px;color:#7e9977}.rna-nav-link:is(:hover,:focus-visible){background:#fff;border-color:#8faa8c;box-shadow:0 13px 28px #204f3b25;z-index:3;transform:translate(-50%,calc(-50% - 7px)) scale(1.045);outline:2px solid #b9cfab;outline-offset:4px}.rna-nav-link:is(:hover,:focus-visible) .rna-link-arrow{color:#167058}.rna-nav-caption{font-size:9px;letter-spacing:0;margin-top:6px}.rna-nav-caption>span:last-child{font-size:8px;letter-spacing:1.4px}.rna-nav-link:nth-of-type(1){--link-y:13%;--link-x:28%}.rna-nav-link:nth-of-type(2){--link-y:27%;--link-x:72%}.rna-nav-link:nth-of-type(3){--link-y:41%;--link-x:28%}.rna-nav-link:nth-of-type(4){--link-y:55%;--link-x:72%}.rna-nav-link:nth-of-type(5){--link-y:69%;--link-x:28%}.rna-nav-link:nth-of-type(6){--link-y:83%;--link-x:72%}
+@media(max-width:1150px){.landing-hero{gap:12px}.hero-copy h1{font-size:38px}.hero-copy .eyebrow{font-size:8px;letter-spacing:1.4px}.hero-description{font-size:12px}.rna-nav-link{width:165px;padding:11px 10px;gap:8px}.rna-nav-link strong{font-size:11px}.rna-nav-link small{font-size:7px}.hero-facts{gap:14px}.hero-facts>span{padding-right:14px}.rna-nav-heading{font-size:7px;letter-spacing:1px}}
+@media(max-width:760px){.landing-hero{grid-template-columns:1fr;gap:25px;min-height:0}.hero-copy{padding:5px 0 0}.hero-copy h1{font-size:clamp(36px,7.5vw,54px)}.hero-copy .eyebrow{font-size:9px}.hero-description{font-size:13px}.hero-facts{margin-top:28px;gap:22px}.hero-facts>span{padding-right:22px}.rna-navigation{max-width:580px;width:100%;justify-self:center}.rna-nav-stage{min-height:440px;aspect-ratio:560/650}.rna-nav-link{width:160px;padding:12px 10px}.rna-nav-heading{font-size:8px}.rna-nav-link strong{font-size:11px}.rna-nav-link small{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.rna-nav-link{transition:none}}
+
+/* Restrained molecular lighting and glass-like navigation, without flat ribbon colours. */
+.rna-navigation{background:radial-gradient(ellipse at 50% 46%,#dce8e35e 0%,#edf3ee30 42%,transparent 72%)}
+.rna-nav-stage:before{content:'';position:absolute;left:30%;right:25%;bottom:6%;height:20px;background:radial-gradient(ellipse,#2c554527,transparent 70%);filter:blur(9px);pointer-events:none}
+.rna-nav-link{border-color:#d1dfd5a6;background:#fcfdf7d9;backdrop-filter:blur(9px);box-shadow:0 4px 16px #234d3c08;border-radius:9px}
+.rna-nav-link:is(:hover,:focus-visible){border-color:#91b6a5;box-shadow:0 14px 30px #1b4b3c21}
+
+/* Cool, cinematic lighting inspired by the textured RNA reference. */
+.rna-navigation{border-radius:24px;overflow:hidden;padding:15px 7px;background:radial-gradient(ellipse at 10% 5%,#b8d7ec 0%,#678ba9 24%,#2e4a69 55%,#172d49 100%);box-shadow:inset 0 0 65px #142b4b28,0 20px 50px #233e4912}
+.rna-navigation:before{display:none}
+.rna-nav-heading,.rna-nav-caption{position:relative;color:#e2edf6}
+.rna-nav-heading button{color:#eff6fb}.rna-end-label{fill:#e4f0f7}
+.rna-nav-stage:before{background:radial-gradient(ellipse,#061b3255,transparent 70%)}
+.rna-nav-link{background:#f7fbffd9;border-color:#dceaf599;box-shadow:0 5px 20px #081a3326;backdrop-filter:blur(12px);color:#263f54}
+.rna-nav-link small{color:#6a7e8b}.rna-link-number,.rna-link-arrow{color:#6f8d9e}
+.rna-nav-link:is(:hover,:focus-visible){background:#ffffffed;border-color:#caeef7;outline-color:#b3d8e5;box-shadow:0 15px 32px #06192f50}
+
+/* Home atmosphere: ivory and sage from the workspace, with a soft petrol-green glow. */
+body:has(#page-home.active){background:radial-gradient(ellipse at 82% 42%,#acc9bb88 0%,#d5e2d377 30%,transparent 64%),linear-gradient(115deg,#f7f5ed 0%,#edf1e6 49%,#dbe6d9 100%);background-attachment:fixed}
+body:has(#page-home.active) .topbar{background:transparent}
+body:has(#page-home.active) .site-header,body:has(#page-home.active) .topbar{position:relative;z-index:2}
+#page-home .landing-hero{position:relative;z-index:1}
+#page-home .rna-navigation{background:transparent;border-radius:0;box-shadow:none;overflow:visible;padding:15px 7px}
+#page-home .rna-navigation:before,#page-home .rna-nav-stage:before{display:none}
+#page-home .rna-nav-heading,#page-home .rna-nav-caption{color:#607b6d}
+#page-home .rna-nav-heading button{color:#365e4e}
+#page-home .rna-end-label{fill:#54766b}
+#page-home .rna-nav-link{background:#fcfcf1c9;border-color:#b8cec0a6;color:#234c3e;box-shadow:0 5px 20px #274f3a0b}
+#page-home .rna-nav-link small{color:#6d8577}
+#page-home .rna-link-number,#page-home .rna-link-arrow{color:#6b907e}
+#page-home .rna-nav-link:is(:hover,:focus-visible){background:#fffff6ed;border-color:#8fb59f;outline-color:#abc9b6;box-shadow:0 15px 30px #254e3b22}
+.home-particles{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.home-particle{position:absolute;left:var(--px);top:var(--py);width:var(--size);height:var(--size);border-radius:50%;background:var(--particle-color);opacity:var(--alpha);box-shadow:0 0 7px #81ac9626;animation:home-particle-drift var(--duration) ease-in-out var(--delay) infinite alternate;will-change:transform}
+.home-particles[data-paused=true] .home-particle{animation-play-state:paused}
+@keyframes home-particle-drift{0%{transform:translate3d(0,18px,0);opacity:calc(var(--alpha)*.55)}50%{opacity:var(--alpha)}100%{transform:translate3d(var(--drift),-65px,0);opacity:calc(var(--alpha)*.65)}}
+@media(max-width:760px){body:has(#page-home.active){background:radial-gradient(ellipse at 65% 76%,#acc9bb88,transparent 63%),linear-gradient(140deg,#f7f5ed,#e4ecde)}.home-particle:nth-child(n+19){display:none}}
+@media(prefers-reduced-motion:reduce){.home-particle{animation:none;will-change:auto}}
+
+/* The same Home page, with two directly comparable RNA treatments. */
+.strand-preview-bar{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:15px;padding:9px 0 15px;border-bottom:1px solid #b8ceba66;font-size:9px;color:#5c7d67;letter-spacing:1.4px}
+.strand-preview-tabs{display:flex;gap:4px;border-radius:24px;padding:4px;background:#dce7d7b3}
+.strand-preview-tabs button{background:transparent;border:0;border-radius:20px;padding:9px 16px;font-size:11px;color:#4b6c56}
+.strand-preview-tabs button[aria-pressed=true]{background:#fcfff5;color:#214f36;box-shadow:0 2px 8px #274d3112}
+.home-particle{box-shadow:0 0 9px #49996244}
+@media(max-width:760px){.strand-preview-bar{flex-wrap:wrap;font-size:8px}.strand-preview-tabs{width:100%}.strand-preview-tabs button{flex:1;padding:9px}.home-particle:nth-child(n+19){display:block}.home-particle:nth-child(n+35){display:none}}
+
+/* Anchor particles directly to the viewport, outside all scrolling page containers. */
+body>.home-particles{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;overflow:hidden;pointer-events:none;z-index:0;contain:strict}
+body>.home-particles[hidden]{display:none}
+body:has(#page-home.active)>.shell{position:relative;z-index:1}
+.home-particle{animation-timeline:auto}
+
+/* Time-driven canvas: its coordinate system is independent of page scrolling. */
+body>.home-particles{width:100%;height:100%;contain:strict;transform:none!important;transition:none!important}
+.home-particles canvas{display:block;width:100%;height:100%;pointer-events:none}
+
+/* Document-anchored particles (option B): scroll away with the page, not with the viewport. */
+body:has(#page-home.active){position:relative;background-attachment:scroll}
+body>.home-particles{position:absolute;inset:0;width:100%;height:100%;contain:strict}
+
+/* Third preview: uncluttered textured RNA with direct rotation controls. */
+.rna-nav-link[hidden]{display:none!important}
+.rna-nav-stage.is-interactive{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.rna-nav-stage.is-dragging{cursor:grabbing}
+.rna-nav-stage.is-interactive:focus-visible{outline:2px solid #527e67;outline-offset:6px;border-radius:18px}
+.strand-preview-tabs{flex-wrap:wrap}
+@media(max-width:760px){.strand-preview-tabs button{flex:1 1 125px}}

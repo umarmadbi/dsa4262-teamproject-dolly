@@ -2463,7 +2463,10 @@
             ]
           }
         }
-      }
+      },
+      "limitations": [
+        "trainingOverlap"
+      ]
     },
     {
       "id": "SGNex_Hct116_directRNA_replicate3_run4",
@@ -3623,7 +3626,10 @@
             ]
           }
         }
-      }
+      },
+      "limitations": [
+        "v1Fallback"
+      ]
     },
     {
       "id": "SGNex_MCF7_directRNA_replicate4_run1",
@@ -4612,13 +4618,13 @@
     },
     {
       "id": "cellline_MCF7",
-      "name": "MCF7 \u00b7 mean of 2 runs",
+      "name": "MCF7 \u00b7 mean of 1 run",
       "cellLine": "MCF7",
       "replicate": null,
       "run": null,
       "group": "cellline",
-      "runs": 2,
-      "rows": 9300,
+      "runs": 1,
+      "rows": 6392,
       "dataFile": "data/cell_lines.json",
       "model": "Dolly v2 (m6a_model_v2.joblib, sha256 e0baf0822d49)",
       "stats": {
@@ -4630,108 +4636,108 @@
         ],
         "byMinReads": {
           "20": {
-            "sites": 9300,
-            "transcripts": 3668,
-            "genes": 2010,
-            "medianReads": 36.0,
-            "scored": 9300,
+            "sites": 6392,
+            "transcripts": 2265,
+            "genes": 1830,
+            "medianReads": 37.0,
+            "scored": 6392,
             "scoreHist": [
               64,
               182,
               321,
               530,
               713,
-              2251,
-              2160,
-              1826,
-              1137,
-              116
+              1302,
+              1199,
+              1134,
+              841,
+              106
             ],
             "coverageHist": [
               0,
-              5102,
-              2623,
-              957,
-              371,
-              135,
-              112,
+              3483,
+              1822,
+              662,
+              251,
+              93,
+              81,
               0
             ]
           },
           "40": {
-            "sites": 4198,
-            "transcripts": 1673,
-            "genes": 977,
-            "medianReads": 65.0,
-            "scored": 4198,
+            "sites": 2909,
+            "transcripts": 1058,
+            "genes": 893,
+            "medianReads": 65,
+            "scored": 2909,
             "scoreHist": [
               16,
               52,
               115,
               228,
               330,
-              954,
-              955,
-              851,
-              626,
-              71
+              567,
+              553,
+              515,
+              469,
+              64
             ],
             "coverageHist": [
               0,
               0,
-              2623,
-              957,
-              371,
-              135,
-              112,
+              1822,
+              662,
+              251,
+              93,
+              81,
               0
             ]
           },
           "80": {
-            "sites": 1575,
-            "transcripts": 666,
-            "genes": 386,
-            "medianReads": 134,
-            "scored": 1575,
+            "sites": 1087,
+            "transcripts": 418,
+            "genes": 347,
+            "medianReads": 135,
+            "scored": 1087,
             "scoreHist": [
               3,
               15,
               39,
               73,
               115,
-              359,
-              356,
-              308,
-              270,
-              37
+              224,
+              204,
+              181,
+              201,
+              32
             ],
             "coverageHist": [
               0,
               0,
               0,
-              957,
-              371,
-              135,
-              112,
+              662,
+              251,
+              93,
+              81,
               0
             ]
           },
           "160": {
-            "sites": 618,
-            "transcripts": 260,
-            "genes": 139,
-            "medianReads": 265.0,
-            "scored": 618,
+            "sites": 425,
+            "transcripts": 168,
+            "genes": 129,
+            "medianReads": 261,
+            "scored": 425,
             "scoreHist": [
               1,
               4,
               12,
               28,
               38,
-              139,
-              146,
-              116,
-              122,
+              88,
+              86,
+              69,
+              87,
               12
             ],
             "coverageHist": [
@@ -4739,16 +4745,19 @@
               0,
               0,
               0,
-              371,
-              135,
-              112,
+              251,
+              93,
+              81,
               0
             ]
           }
         }
       },
-      "description": "Mean Dolly v2 score and mean reads across the 2 MCF7 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line.",
-      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified."
+      "description": "Mean Dolly v2 score and mean reads across the 1 MCF7 run(s) that measured each site, for sites whose mean score reaches 0.5 in at least one cell line. Excludes MCF7 r3.1 (scored without transcript-structure features; see Known limitations).",
+      "annotationNote": "Cell-line summary: score is the mean over runs that measured the site with at least 20 reads; reads is the mean read count. Sites below the score threshold in every cell line are not included, so absence here does not mean unmodified.",
+      "excludedRuns": [
+        "SGNex_MCF7_directRNA_replicate3_run1"
+      ]
     }
   ],
   "catalog": [
@@ -4918,5 +4927,9 @@
   "catalogSource": "AWS folder listing supplied by the user",
   "dataMode": "coverage_with_predictions",
   "notes": "Development datasets are not SG-NEx runs. 23 SG-NEx run(s) carry Dolly v2 predictions.",
-  "cellLineMinScore": 0.5
+  "cellLineMinScore": 0.5,
+  "limitations": {
+    "v1Fallback": "Scored without transcript-structure features. This run's transcript IDs carry version suffixes, so no Ensembl 91 annotation was found and Dolly v2 used its fallback model (equivalent to v1). Its scores are not comparable with the other runs, so it is excluded from cell-line summaries and cross-run statistics. Kept for transparency.",
+    "trainingOverlap": "Possible overlap with the training data. On dataset0-labelled sites this run scores far higher than the other Hct116 runs (PR AUC 0.88 vs 0.71), consistent with the training reads coming from this run. Treat its scores on training genes as in-sample."
+  }
 }

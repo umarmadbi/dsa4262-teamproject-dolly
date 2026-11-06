@@ -11,3 +11,69 @@
 @media(max-width:600px){#dolly-assistant{right:16px;bottom:16px}.chat-panel{max-height:calc(100dvh - 100px);width:calc(100vw - 32px)}.chat-launch{width:60px;height:60px;padding:5px}.chat-sheep{width:48px;height:42px}.chat-messages{max-height:260px}}
 
 @media(prefers-reduced-motion:reduce){.chat-launch{transition:none}.chat-launch:hover{transform:none}}
+
+/* A grazing Dolly launcher and a brief, dismissible invitation. */
+.chat-launch{width:76px;height:76px;padding:4px;overflow:hidden}
+.chat-sheep{width:67px;height:62px}
+.sheep-head{transform-box:view-box;transform-origin:65px 39px;animation:dolly-graze 6.5s ease-in-out infinite}
+.sheep-body{transform-box:view-box;transform-origin:45px 46px;animation:dolly-breathe 3s ease-in-out infinite}
+.sheep-eye{transform-box:fill-box;transform-origin:center;animation:dolly-blink 5.5s infinite}
+.sheep-chew{transform-box:fill-box;transform-origin:center;animation:dolly-chew .8s ease-in-out infinite}
+.sheep-bite{animation:dolly-nibble 1.4s ease-in-out infinite}
+.sheep-tail{transform-box:view-box;transform-origin:24px 47px;animation:dolly-tail 4s ease-in-out infinite}
+@keyframes dolly-graze{0%,15%,85%,100%{transform:rotate(-7deg) translateY(-1px)}35%,65%{transform:rotate(12deg) translateY(3px)}}
+@keyframes dolly-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+@keyframes dolly-blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.1)}}
+@keyframes dolly-chew{0%,100%{transform:translateY(0)}50%{transform:translateY(1px) scaleX(.85)}}
+@keyframes dolly-nibble{0%,100%{opacity:.9}50%{opacity:.3}}
+@keyframes dolly-tail{0%,25%,70%,100%{transform:rotate(0)}35%,55%{transform:rotate(-13deg)}45%{transform:rotate(8deg)}}
+.chat-launch[aria-expanded=true] .chat-sheep *{animation-play-state:paused}
+.chat-nudge{position:absolute;right:0;bottom:calc(100% + 12px);display:flex;align-items:flex-start;width:260px;max-width:calc(100vw - 36px);padding:5px;border:1px solid #c4dccc;border-radius:14px;background:#fbfff7;box-shadow:0 8px 30px #143b3420}
+.chat-nudge[hidden]{display:none}
+.chat-nudge:after{content:'';position:absolute;right:25px;bottom:-6px;width:10px;height:10px;background:#fbfff7;border-right:1px solid #c4dccc;border-bottom:1px solid #c4dccc;transform:rotate(45deg)}
+.chat-nudge-open{border:0;background:none;text-align:left;padding:12px 9px;color:#234d39}
+.chat-nudge-open strong{display:block;font-size:12px;font-weight:600;line-height:1.6}
+.chat-nudge-open span{display:block;font-size:10px;line-height:1.6;margin-top:3px;color:#6b8070}
+.chat-nudge-dismiss{border:0;background:none;color:#78907b;padding:5px 7px;font-size:21px;line-height:1.3}
+/* A stable composer with a larger, independently scrolling reading area. */
+.chat-panel{width:460px;height:min(740px,calc(100dvh - 125px));max-height:calc(100dvh - 125px);overflow:hidden}
+.chat-header{padding:14px 18px;flex-shrink:0}
+.chat-reading{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.chat-messages{max-height:none;min-height:0;overflow:visible;padding:12px 16px}
+.chat-message{font-size:13px}
+.chat-intro{padding:10px 16px}
+.chat-form{flex-shrink:0;padding-top:10px}
+.chat-form textarea{min-height:50px;max-height:85px}
+#chat-verification[hidden]{display:none}
+.chat-status{flex-shrink:0;padding-top:5px;min-height:21px}
+.chat-privacy{flex-shrink:0;padding:5px 16px 11px;font-size:10px;line-height:1.6}
+.chat-privacy summary{cursor:pointer;color:#567563}
+.chat-privacy p{margin:6px 0 0;font-size:10px}
+.has-conversation .chat-intro,.has-conversation .chat-starters{display:none}
+@media(max-width:600px){.chat-launch{width:66px;height:66px}.chat-sheep{width:59px;height:55px}.chat-panel{width:calc(100vw - 32px);height:calc(100dvh - 115px);max-height:calc(100dvh - 115px)}.chat-messages{max-height:none}.chat-header strong{font-size:14px}.chat-message{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.chat-sheep *{animation:none!important}}
+
+/* Front-facing Dolly lowers its head to nibble grass directly in front. */
+.sheep-head{transform-origin:50px 35px}
+@keyframes dolly-graze{0%,15%,85%,100%{transform:translateY(-1px) scale(1)}35%,65%{transform:translateY(11px) scale(1.04,.88)}}
+.chat-message>.chat-answer{white-space:normal;line-height:1.75}
+.chat-answer p{font-size:inherit;line-height:inherit;color:inherit;margin:0 0 10px}
+.chat-answer p:last-child{margin-bottom:0}
+.chat-answer ul,.chat-answer ol{margin:7px 0 12px;padding-left:20px}
+.chat-answer li{padding-left:2px;margin:6px 0}
+.chat-answer strong{font-weight:650;color:#204c3e}
+.chat-answer code{font-family:ui-monospace,monospace;font-size:.92em;padding:1px 4px;border-radius:4px;background:#e3ece4;overflow-wrap:anywhere}
+
+/* Visible request feedback inside the conversation, not just below the composer. */
+.chat-loading{border:1px solid #dce9de;background:#f3f8f0}
+.chat-loading>.chat-loading-row{display:flex;align-items:center;gap:10px;white-space:normal;font-size:12px;color:#365e47}
+.chat-loading-dots{display:inline-flex;align-items:center;gap:4px;height:18px;flex-shrink:0}
+.chat-loading-dots i{display:block;width:5px;height:5px;border-radius:50%;background:#6e9d75;animation:dolly-thinking 1.2s ease-in-out infinite}
+.chat-loading-dots i:nth-child(2){animation-delay:.16s}.chat-loading-dots i:nth-child(3){animation-delay:.32s}
+.chat-loading-note{font-size:10px;line-height:1.6;margin-top:7px;color:#748573}
+@keyframes dolly-thinking{0%,70%,100%{transform:translateY(0);opacity:.4}35%{transform:translateY(-3px);opacity:1}}
+@media(prefers-reduced-motion:reduce){.chat-loading-dots i{animation:none;opacity:.8}}
+
+.chat-request-error{background:#fbf5ea;border:1px solid #e3d8bc}
+.chat-request-error>strong{color:#77602d}
+.chat-retry{margin-top:10px;border:1px solid #bdcdbb;border-radius:16px;background:#fffdf5;color:#355d43;padding:6px 13px;font-size:11px}

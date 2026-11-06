@@ -11,7 +11,7 @@ GitHub Pages serves the static site. The Worker runs separately. Provider quotas
 
 ## Included
 
-- `../site/chat.js`, `chat.css`: accessible floating guide, suggested questions, clear/close, plain-text answers and source IDs; no HTML from the model is executed.
+- `../site/chat.js`, `chat.css`: accessible floating guide, suggested questions, clear/close, safely formatted answers and source IDs; no HTML from the model is executed.
 - `../site/chat-config.js`: PUBLIC endpoint and Turnstile SITE key only. Empty defaults show an honest not-connected state.
 - `worker.mjs`: bounds/validates requests, checks allowed origin, validates Turnstile, throttles calls, calls Gemini using a secret, hides upstream errors.
 - `knowledge.mjs`: manually reviewed summaries of website guide, model development, EDA, SG-NEx comparison, and selected first-draft report findings (see `report-summary.md`). No repository-wide uploads, connection guides, raw data, personal account details or credentials.
@@ -97,3 +97,15 @@ No key is included in the model prompt. Worker secrets are used only as API cred
 - https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
 
 To disable chat, blank the public endpoint and redeploy the static site, or remove the chat script/link tags from index.html. To stop API access entirely, revoke the Gemini key or remove the Worker secret. Clearing the browser configuration alone does not disable a previously deployed backend.
+
+## Launcher and reading space
+
+The launcher uses a code-native SVG sheep with gentle grazing, breathing, blinking and chewing animations; reduced-motion preferences keep it still. A dismissible greeting appears after 8 seconds and closes after 6.5 seconds, at most once per browser-tab session. Opening the guide cancels the invitation.
+
+The chat has a larger, independently scrolling reading area and a fixed composer. Welcome text and suggested prompts tuck away after the first message; Clear chat restores them. Privacy information remains available in a disclosure.
+
+The Turnstile container collapses only after its success callback supplies a token. It reappears after expiry, errors or a request consumes the token and the widget resets. Backend verification, throttling and secret handling are unchanged. Frontend changes do not require redeploying the Worker.
+
+## Response formatting and front-facing launcher
+
+Assistant replies support a limited, safe formatting subset: bold spans, inline code, paragraphs, headings displayed as bold paragraphs, and ordered/unordered lists. Formatting is constructed with DOM text nodes and elements; raw model HTML is never executed. User messages remain literal text. Dolly’s launcher now faces forward and lowers its head to nibble the grass in front, retaining reduced-motion support.

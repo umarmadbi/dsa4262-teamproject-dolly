@@ -86,9 +86,28 @@ distance to the stop codon) and averages three seeds.
 
 ### Task 2: SG-NEx cell lines
 
-We scored 23 SG-NEx direct RNA-Seq runs from 7 human cell lines with v2 and with m6Anet. Explore the predictions in
-the **[Dolly RNA Explorer](https://umarmadbi.github.io/dsa4262-teamproject-dolly/)** dashboard; the analysis is in
+We scored 23 SG-NEx direct RNA-Seq runs from 7 human cell lines with v2 and with m6Anet. The analysis is in
 [docs/sgnex_task2.md](docs/sgnex_task2.md).
+
+---
+
+## Interactive visualisation: Dolly RNA Explorer
+
+Researchers can explore our predictions on the 23 SG-NEx runs by cell line, transcript and site.
+
+**Option 1 (default): open it online.** Go to **<https://umarmadbi.github.io/dsa4262-teamproject-dolly/>** in any
+browser. Nothing to install. It opens on the Home screen; use the menu or **Take a tour** to get started.
+
+**Option 2: run it locally** (e.g. offline or to test changes). From the repo root, start a small web server and open
+http://localhost:8000:
+
+```bash
+python3 -m http.server 8000 --directory viz/site      # Windows: py -m http.server 8000 --directory viz/site
+```
+
+Serve it this way rather than double-clicking `index.html`, which leaves the page empty. The **Ask Dolly** chat needs
+an internet connection in both cases. Details and troubleshooting: [viz/README.md](viz/README.md) and
+[docs/HOW_TO_RUN.md](docs/HOW_TO_RUN.md#7-open-the-interactive-visualisation).
 
 ---
 

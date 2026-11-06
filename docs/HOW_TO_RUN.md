@@ -304,15 +304,18 @@ disk, so the page stays empty. Always go through `http://localhost:8000`.
 
 ### 7.2 Use it
 
-The left menu has five pages:
+The site opens on the Home landing screen with the rotating RNA strand; click the **Dolly RNA Explorer** logo to
+return to it. The menu has six pages, and **Take a tour** (top right) opens a short guided walk through the
+workspace.
 
 | Page | What it shows | Try this |
 |---|---|---|
+| **Home & guide** | What a candidate site, a score and a comparison mean, and the data's limits | Read before interpreting differences between cell lines |
 | **Overview** | Number of sites and read coverage per run, the distribution of prediction scores, and the share of sites scoring at or above a cutoff for every run, grouped by cell line (one dot per run, bar = cell-line mean) | Change *Exploration cutoff* (e.g. 0.5 to 0.8) and *Minimum coverage* and watch the cell-line panel |
+| **Landscape** | Where predicted m6A sits: transcript regions (5' UTR, CDS, 3' UTR), distance to the stop codon and exon junctions, and DRACH motifs, per cell line | Compare the stop-codon peak across cell lines |
 | **Site explorer** | A searchable table of sites: run or cell line, transcript, position, gene, 7-mer sequence, reads and score. Click a row's arrow for the site's details | Type a gene ID (e.g. `ENSG00000156508`) or a transcript ID; set *Minimum score* to 0.5 to list likely m6A sites; *Export filtered CSV* downloads the table |
 | **Compare samples** | Two runs or two cell lines side by side at the same transcript positions: shared and unique sites and a scatter plot of read coverage or prediction score | Choose a cell-line summary for *Sample A* and *Sample B*, switch *Measure* to *Prediction score* |
 | **Data & imports** | The catalogue of the 23 SG-NEx runs and the development datasets; import your own coverage or prediction CSV (kept in your browser only) | Import a CSV from step 2 or 4 as *Model prediction CSV* to attach it to a matching sample |
-| **Methods & guide** | What a candidate site, a score and a comparison mean, and the data's limits | Read before interpreting differences between cell lines |
 
 Points to keep in mind when reading it: scores are predictions from a model trained on Hct116, not experimentally
 confirmed modifications; a score of 0.8 does not mean 80% of reads are modified; a site missing from a run was not

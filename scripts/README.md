@@ -10,6 +10,8 @@ Every script prints its options with `--help`.
 | `build_annotation.py` | Converts the Ensembl 91 GTF into `resources/ensembl91_transcripts.csv.gz` (already committed, so only needed to rebuild it) | Developers |
 | `build_features.py` | Parses a dataset once and caches its feature table in `cache/`, for the scripts in `experiments/` | Developers |
 | `build_viz_data.py` | Turns SG-NEx predictions into the dashboard's data files in `viz/site/data/` (Task 2) | Developers |
+| `build_viz_insights.py` | Builds the dashboard's insight data (`insights.json`, `atlas.json`, `transcripts.json`, rebuilt cell-line summaries) from the run files; run after `build_viz_data.py` | Developers |
+| `build_gene_names.py` | Builds `viz/site/data/gene_names.json` (gene symbols) from the Ensembl 91 GTF | Developers |
 | `parse_to_parquet.py` | Converts a `data.json(.gz)` into a simple one-row-per-site table, used for the EDA | Developers |
 
 ## Quick example

@@ -1,22 +1,113 @@
 import { chatConfig } from './chat-config.js';
 const root=document.createElement('div');root.id='dolly-assistant';
-root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly — open or close the research guide" title="Ask Dolly" aria-expanded="false" aria-controls="chat-panel"><svg class="chat-sheep" viewBox="0 0 64 56" aria-hidden="true" focusable="false"><ellipse cx="32" cy="51" rx="19" ry="3" fill="#143b34" opacity=".08"/><g stroke="#397a65" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 40v7q0 5 5 3v-9m12 0v6q0 5 5 3V39" fill="#78b99b"/><path d="M12 32C3 30 4 20 11 18 7 10 16 5 22 9 25 1 36 1 40 8 48 3 56 10 53 17 62 20 61 30 54 33 58 41 49 47 43 43 38 50 28 49 24 44 15 48 8 41 12 32Z" fill="#b5ddc5"/><ellipse cx="17" cy="27" rx="8" ry="4.5" transform="rotate(28 17 27)" fill="#dff2e5"/><ellipse cx="47" cy="27" rx="8" ry="4.5" transform="rotate(-28 47 27)" fill="#dff2e5"/><path d="M20 24Q32 17 44 24L43 35Q42 45 32 46Q22 45 21 35Z" fill="#f3fbf3"/><path d="M20 23C16 18 20 13 25 15 26 9 34 10 35 14 41 10 47 16 43 22 39 26 35 22 33 21 29 27 25 24 24 22" fill="#c8e7d0"/></g><ellipse cx="24" cy="36" rx="3.7" ry="2.3" fill="#e8aaa7" opacity=".75"/><ellipse cx="40" cy="36" rx="3.7" ry="2.3" fill="#e8aaa7" opacity=".75"/><g fill="#214d40"><ellipse cx="26" cy="31.5" rx="2" ry="2.8"/><ellipse cx="38" cy="31.5" rx="2" ry="2.8"/><path d="M29.5 36Q32 34.8 34.5 36L32 38Z"/></g><g fill="white"><circle cx="26.5" cy="30.6" r=".7"/><circle cx="38.5" cy="30.6" r=".7"/></g><path d="M32 38v1m-4 0q2 3 4 0 2 3 4 0" fill="none" stroke="#397a65" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly — open or close the research guide" title="Ask Dolly" aria-expanded="false" aria-controls="chat-panel"><svg class="chat-sheep" viewBox="0 0 100 84" aria-hidden="true" focusable="false">
+<ellipse cx="50" cy="76" rx="33" ry="4" fill="#87b49a" opacity=".18"/>
+<g class="sheep-grass" fill="none" stroke="#699955" stroke-width="2" stroke-linecap="round"><path d="m19 76-3-7m4 7 4-9m8 10 0-6m35 6 2-9m8 8 4-8m-2 9 6-3m-42 3-4-7m17 7 4-7"/></g>
+<g fill="#82b195" stroke="#3e7458" stroke-width="1.6"><path d="M33 58v13q2 5 8 0V58m18 0v13q2 5 8 0V58"/></g>
+<g class="sheep-body"><path d="M24 55C11 51 15 36 24 34 17 24 29 15 38 21 42 10 56 10 61 21 73 13 85 24 78 34 91 40 86 55 76 56 73 68 59 68 52 61 42 71 28 66 24 55Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.7"/><path d="M27 30q4-5 10-1m28-2q5-2 8 3M22 43q-3 6 3 9m47 0q5-1 5-6" fill="none" stroke="#b4d0ae" stroke-width="2" stroke-linecap="round"/></g>
+<g class="sheep-head">
+<ellipse cx="29" cy="43" rx="11" ry="6" transform="rotate(23 29 43)" fill="#9ac6a0" stroke="#47795b" stroke-width="1.5"/><ellipse cx="71" cy="43" rx="11" ry="6" transform="rotate(-23 71 43)" fill="#9ac6a0" stroke="#47795b" stroke-width="1.5"/>
+<path d="M32 36q18-12 36 0l-2 19q-1 14-16 15-15-1-16-15Z" fill="#f7f8e8" stroke="#47795b" stroke-width="1.6"/>
+<path d="M32 37c-8-5-5-14 2-14 2-8 12-10 17-4 8-5 17 0 16 6 9 1 9 11 2 14-7 5-11-2-14-2-5 6-11 5-14 0-4 3-7 3-9 0Z" fill="#d7e8ce" stroke="#47795b" stroke-width="1.5"/>
+<g class="sheep-eye"><ellipse cx="42" cy="48" rx="2.5" ry="3.5" fill="#294e3d"/><circle cx="42.7" cy="47" r=".8" fill="#fff"/></g><g class="sheep-eye"><ellipse cx="58" cy="48" rx="2.5" ry="3.5" fill="#294e3d"/><circle cx="58.7" cy="47" r=".8" fill="#fff"/></g>
+<ellipse cx="38" cy="56" rx="4" ry="2.5" fill="#e8b6a5" opacity=".6"/><ellipse cx="62" cy="56" rx="4" ry="2.5" fill="#e8b6a5" opacity=".6"/>
+<path d="M46 56q4-2 8 0l-4 4Z" fill="#47795b"/><path class="sheep-chew" d="M50 60v2m-5 1q3 4 5 0 2 4 5 0" fill="none" stroke="#47795b" stroke-width="1.3" stroke-linecap="round"/>
+<path class="sheep-bite" d="m50 66-1 8m1-4-5-3m5 4 5-4" fill="none" stroke="#6b9c46" stroke-width="1.8" stroke-linecap="round"/>
+</g></svg></button>
+<div class="chat-nudge" role="status" hidden><button type="button" class="chat-nudge-open"><strong>Hi, I’m Dolly. How can I help?</strong><span>Ask me about the project or website.</span></button><button type="button" class="chat-nudge-dismiss" aria-label="Dismiss Dolly’s greeting">×</button></div>
 <section id="chat-panel" class="chat-panel" aria-label="Dolly research guide" hidden>
 <header class="chat-header"><div><strong>Dolly research guide</strong><span>Methods, findings & website help</span></div><button type="button" class="chat-close" aria-label="Close assistant">×</button></header>
-<div class="chat-intro">Answers use reviewed project documentation, not live chart data. AI can make mistakes—check the cited sources.</div>
+<div class="chat-reading"><div class="chat-intro">Answers use reviewed project documentation, not live chart data. AI can make mistakes—check the cited sources.</div>
 <div class="chat-messages" role="log" aria-label="Conversation" aria-live="polite"></div>
 <div class="chat-starters"><button type="button">What does an m6A score mean?</button><button type="button">How does the v2 model work?</button><button type="button">How should I compare cell lines?</button></div>
-<form class="chat-form"><label for="chat-question">Your question</label><textarea id="chat-question" rows="2" maxlength="1500" placeholder="Ask about Dolly…"></textarea><div id="chat-verification"></div><div class="chat-actions"><button type="button" class="chat-clear">Clear chat</button><button type="submit" class="chat-send">Send</button></div></form>
-<p class="chat-status" role="status"></p><p class="chat-privacy">Sending shares your question and recent chat with our backend and Google Gemini. Do not enter secrets or private data. Chat history is kept in this tab only. <a href="#methods">Read the guide</a></p>
+</div><form class="chat-form"><label for="chat-question">Your question</label><textarea id="chat-question" rows="2" maxlength="1500" placeholder="Ask about Dolly…"></textarea><div id="chat-verification"></div><div class="chat-actions"><button type="button" class="chat-clear">Clear chat</button><button type="submit" class="chat-send">Send</button></div></form>
+<p class="chat-status" role="status"></p><details class="chat-privacy"><summary>Privacy &amp; project guide</summary><p>Sending shares your question and recent chat with our backend and Google Gemini. Do not enter secrets or private data. Chat history is kept in this tab only. <a href="#methods">Read the guide</a></p></details>
 </section>`;
 document.body.append(root);
-const el=s=>root.querySelector(s),launch=el('.chat-launch'),panel=el('.chat-panel'),input=el('textarea'),send=el('.chat-send'),status=el('.chat-status'),log=el('.chat-messages');
-let history=[],busy=false,token='',widget=null,scriptPromise;
+const el=s=>root.querySelector(s),launch=el('.chat-launch'),panel=el('.chat-panel'),input=el('textarea'),send=el('.chat-send'),status=el('.chat-status'),log=el('.chat-messages'),reading=el('.chat-reading');
+let history=[],busy=false,token='',widget=null,scriptPromise,retrying=false;
 let configured=false;
 try{const u=new URL(chatConfig.endpoint);configured=u.protocol==='https:'&&u.pathname==='/chat'&&!!chatConfig.turnstileSiteKey;}catch{}
-function sync(){send.disabled=!configured||busy||!token;input.disabled=!configured||busy;el('.chat-clear').disabled=busy;root.querySelectorAll('.chat-starters button').forEach(b=>b.disabled=!configured||busy);}
-function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');body.textContent=text;box.append(who,body);log.append(box);log.scrollTop=log.scrollHeight;return box;}
-function show(open){panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(open){if(configured){input.focus();verification();}else{el('.chat-close').focus();status.textContent='Not connected yet. The team is setting up the AI service. Home & guide is available now.';}}else launch.focus();}
+function sync(){send.textContent=busy?'Thinking…':'Send';el('form').setAttribute('aria-busy',String(busy));el('#chat-verification').hidden=!!token;send.disabled=!configured||busy||!token;input.disabled=!configured||busy;el('.chat-clear').disabled=busy;root.querySelectorAll('.chat-starters button').forEach(b=>b.disabled=!configured||busy);}
+
+// Render a small Markdown subset using DOM nodes only; model HTML stays literal text.
+function appendInline(parent,text){
+ const pattern=/\*\*([^*\n]+)\*\*|`([^`\n]+)`/g;let cursor=0,match;
+ while((match=pattern.exec(text))){
+  parent.append(document.createTextNode(text.slice(cursor,match.index)));
+  const node=document.createElement(match[1]!==undefined?'strong':'code');node.textContent=match[1]??match[2];parent.append(node);cursor=pattern.lastIndex;
+ }
+ parent.append(document.createTextNode(text.slice(cursor)));
+}
+function formatAnswer(parent,text){
+ parent.classList.add('chat-answer');let paragraph=null,list=null,listType=null;
+ for(const line of text.replace(/\r\n?/g,'\n').split('\n')){
+  if(!line.trim()){paragraph=null;list=null;listType=null;continue;}
+  const bullet=line.match(/^\s*[-*•]\s+(.+)$/),number=line.match(/^\s*(\d+)[.)]\s+(.+)$/),heading=line.match(/^#{1,4}\s+(.+)$/);
+  if(bullet||number){
+   const type=bullet?'ul':'ol';
+   if(!list||listType!==type){list=document.createElement(type);if(number)list.start=Number(number[1]);parent.append(list);listType=type;}
+   const item=document.createElement('li');appendInline(item,bullet?bullet[1]:number[2]);list.append(item);paragraph=null;
+  }else{
+   list=null;listType=null;
+   if(heading){const p=document.createElement('p'),strong=document.createElement('strong');appendInline(strong,heading[1]);p.append(strong);parent.append(p);paragraph=null;}
+   else{if(!paragraph){paragraph=document.createElement('p');parent.append(paragraph);}else paragraph.append(document.createElement('br'));appendInline(paragraph,line);}
+  }
+ }
+}
+
+function message(role,text){const box=document.createElement('article');box.className='chat-message '+role;const who=document.createElement('strong');who.textContent=role==='user'?'You':'Dolly';const body=document.createElement('div');if(role==='assistant'){try{formatAnswer(body,text);}catch{body.classList.remove('chat-answer');body.replaceChildren(document.createTextNode(text));}}else body.textContent=text;box.append(who,body);log.append(box);root.classList.add('has-conversation');reading.scrollTop=reading.scrollHeight;return box;}
+
+
+function requestError(detail,question){
+ const box=document.createElement('article');box.className='chat-message chat-request-error';box.setAttribute('role','alert');
+ const title=document.createElement('strong');title.textContent='Dolly couldn’t answer this time.';
+ const text=document.createElement('div');text.textContent=detail;
+ const retry=document.createElement('button');retry.type='button';retry.className='chat-retry';retry.textContent='Try again';
+ retry.addEventListener('click',()=>{
+  if(busy)return;input.value=question;
+  if(token){retrying=true;el('form').requestSubmit();}
+  else{status.textContent='Please complete verification, then press Send to try again.';verification();input.focus();}
+ });
+ box.append(title,text,retry);log.append(box);reading.scrollTop=reading.scrollHeight;
+}
+
+function loadingMessage(){
+ const box=document.createElement('article');box.className='chat-message assistant chat-loading';box.setAttribute('role','status');box.setAttribute('aria-atomic','true');
+ const name=document.createElement('strong');name.textContent='Dolly';
+ const row=document.createElement('div');row.className='chat-loading-row';
+ const dots=document.createElement('span');dots.className='chat-loading-dots';dots.setAttribute('aria-hidden','true');for(let i=0;i<3;i++)dots.append(document.createElement('i'));
+ const label=document.createElement('span');label.textContent='Dolly is thinking…';row.append(dots,label);
+ const note=document.createElement('p');note.className='chat-loading-note';note.textContent='Preparing your answer. You can keep reading the conversation.';
+ box.append(name,row,note);log.append(box);reading.scrollTop=reading.scrollHeight;
+ const timer=setTimeout(()=>{label.textContent='Still working on your answer…';note.textContent='This is taking a little longer. Please keep this chat open.';},10000);
+ return ()=>{clearTimeout(timer);box.remove();};
+}
+
+function show(open){if(open)dismissGreeting();panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(open){if(configured){input.focus();verification();}else{el('.chat-close').focus();status.textContent='Not connected yet. The team is setting up the AI service. Home & guide is available now.';}}else launch.focus();}
+
+// A fresh invitation on each page load, after loading and the tour have finished.
+let greetingTimer=null,greetingHideTimer=null,greetingSeen=false;
+function dismissGreeting(){
+ clearTimeout(greetingTimer);greetingTimer=null;clearTimeout(greetingHideTimer);el('.chat-nudge').hidden=true;greetingSeen=true;
+}
+function greetingBlocked(){return !panel.hidden||document.hidden||!!document.querySelector('.dolly-tour[open]')||!!document.querySelector('#loading:not([hidden])');}
+function scheduleGreeting(){
+ if(greetingSeen)return;
+ if(greetingBlocked()){clearTimeout(greetingTimer);greetingTimer=null;return;}
+ if(greetingTimer!==null)return;
+ greetingTimer=setTimeout(()=>{
+  greetingTimer=null;if(greetingSeen||greetingBlocked())return;
+  greetingSeen=true;el('.chat-nudge').hidden=false;
+  greetingHideTimer=setTimeout(dismissGreeting,6500);
+ },2000);
+}
+el('.chat-nudge-dismiss').addEventListener('click',dismissGreeting);
+el('.chat-nudge-open').addEventListener('click',()=>show(true));
+new MutationObserver(scheduleGreeting).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open','hidden']});
+document.addEventListener('visibilitychange',scheduleGreeting);
+scheduleGreeting();
+
 launch.addEventListener('click',()=>show(panel.hidden));el('.chat-close').addEventListener('click',()=>show(false));
 root.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){show(false);e.stopPropagation();}});
 function verification(){
@@ -24,26 +115,30 @@ function verification(){
  if(!scriptPromise)scriptPromise=new Promise((resolve,reject)=>{if(window.turnstile)return resolve();const s=document.createElement('script');s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';s.async=true;s.onload=resolve;s.onerror=reject;document.head.append(s);});
  scriptPromise.then(()=>{
   if(widget!==null)return;
-  widget=window.turnstile.render(el('#chat-verification'),{sitekey:chatConfig.turnstileSiteKey,action:'dolly-chat',theme:'light',size:'flexible',callback:value=>{token=value;status.textContent='Ready to answer.';sync();},'expired-callback':()=>{token='';sync();},'error-callback':()=>{token='';status.textContent='Verification failed. Refresh the page to retry.';sync();}});
+  widget=window.turnstile.render(el('#chat-verification'),{sitekey:chatConfig.turnstileSiteKey,action:'dolly-chat',theme:'light',size:'flexible',callback:value=>{token=value;if(!busy&&!root.classList.contains('has-conversation'))status.textContent='Ready to answer.';sync();},'expired-callback':()=>{token='';if(!busy&&!log.querySelector('.chat-request-error'))status.textContent='Please verify again to continue.';sync();},'error-callback':()=>{token='';if(!busy&&!log.querySelector('.chat-request-error'))status.textContent='Verification failed. Refresh the page to retry.';sync();}});
  }).catch(()=>{status.textContent='Verification could not load. Check your connection and refresh.';});
 }
-el('.chat-clear').addEventListener('click',()=>{history=[];log.replaceChildren();input.value='';status.textContent='Conversation cleared.';input.focus();});
+el('.chat-clear').addEventListener('click',()=>{history=[];log.replaceChildren();root.classList.remove('has-conversation');input.value='';status.textContent='Conversation cleared.';input.focus();});
 root.querySelectorAll('.chat-starters button').forEach(b=>b.addEventListener('click',()=>{input.value=b.textContent;input.focus();}));
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!send.disabled)el('form').requestSubmit();}});
 el('form').addEventListener('submit',async e=>{
  e.preventDefault();const question=input.value.trim();if(!question||busy||!configured||!token)return;
  const next=[...history.slice(-4),{role:'user',content:question}];
- message('user',question);input.value='';busy=true;sync();status.textContent='Reading the project notes…';
+ log.querySelectorAll('.chat-request-error').forEach(box=>box.remove());
+ if(!retrying)message('user',question);retrying=false;input.value='';busy=true;sync();status.textContent='Dolly is preparing your answer…';const stopLoading=loadingMessage();
  try{
   const response=await fetch(chatConfig.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:next,turnstileToken:token}),signal:AbortSignal.timeout(65000)});
-  const data=await response.json();if(!response.ok)throw new Error(data.error||'The assistant is temporarily unavailable.');
-  if(typeof data.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
+  let data;try{data=await response.json();}catch{throw new Error('The assistant returned an unreadable response. Please try again.');}
+  if(!response.ok)throw new Error(typeof data?.error==='string'?data.error:'The assistant is temporarily unavailable. Please try again.');
+  if(typeof data?.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
+  stopLoading();
   const answer=data.answer.slice(0,6000),box=message('assistant',answer);
-  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!/^S[1-6]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
+  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!source||!/^S[1-6]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
+  reading.scrollTop=reading.scrollHeight;
   // Limit retained context so a long session cannot grow request costs indefinitely.
   history=[...next,{role:'assistant',content:answer.slice(0,3000)}].slice(-4);
   status.textContent=data.truncated?'Answer reached its length limit. Ask a narrower follow-up.':'Check the sources before using an answer in your report.';
- }catch(error){status.textContent=error.name==='TimeoutError'?'The request timed out. Try again.':error.message;input.value=question;}
- finally{busy=false;token='';if(widget!==null)window.turnstile.reset(widget);sync();input.focus();}
+ }catch(error){stopLoading();const detail=error.name==='TimeoutError'?'The request timed out. Please try again.':error instanceof TypeError?'Could not reach the assistant. Check your connection and try again.':error.message||'The assistant could not respond. Please try again.';status.textContent=detail;requestError(detail,question);input.value=question;}
+ finally{stopLoading();busy=false;token='';sync();if(widget!==null)window.turnstile.reset(widget);input.focus();}
 });
 sync();
