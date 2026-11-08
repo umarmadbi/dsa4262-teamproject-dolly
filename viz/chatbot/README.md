@@ -23,10 +23,12 @@ The assistant explains documented findings; it has NO live chart access, data-qu
 
 The **Dolly Worker** GitHub Actions workflow runs when Worker code, bundled knowledge, its tests, or Wrangler configuration changes on `main`. It tests the Worker before deploying. You can also run it manually from Actions with `main` selected.
 
-Before merging or running the workflow, a repository administrator should create the `dolly-worker` GitHub environment, restrict its deployment branch to `main`, and add these environment settings:
+For setup or recovery, a repository administrator should configure the `dolly-worker` GitHub environment, restrict its deployment branch to `main`, and set:
 
 - `CLOUDFLARE_API_TOKEN` (secret): a Cloudflare API token with Workers Scripts Edit access scoped to the account that owns `dolly-guide`.
-- `CLOUDFLARE_ACCOUNT_ID` (variable or secret): the 32-character ID of that same Cloudflare account. A nonempty secret takes priority if both are set.
+- `CLOUDFLARE_ACCOUNT_ID` (repository variable): the 32-character ID of that same Cloudflare account. Set it under **Settings → Secrets and variables → Actions → Variables**. The workflow also accepts an environment variable or secret; a nonempty secret takes priority.
+
+The first successful automated run passed all nine Worker tests and deployed `dolly-guide`. If the job reports an empty Account ID, check the exact variable name and rerun the job after saving it. No new commit is needed for a settings-only correction.
 
 Keep Gemini and Turnstile credentials on the existing Worker. GitHub Actions does not need them. After the first successful workflow run, open Ask Dolly and check that it can answer a question with a project source. The mock tests do not contact Gemini or Cloudflare.
 
@@ -70,7 +72,7 @@ Open http://127.0.0.1:8000, click Ask Dolly, complete verification and send a qu
 
 1. Review changes to `knowledge.mjs` when project methods or findings change; source documents are not imported automatically.
 2. From the repository root, run `node --test viz/chatbot/worker.test.mjs`.
-3. From `viz/chatbot/`, run `npx wrangler@4 deploy` (Windows: `npx.cmd wrangler@4 deploy`). Use the Cloudflare account that owns the deployed Worker.
+3. Merge the backend update into `main`, then check **Actions → Dolly Worker** for a successful test and deploy. If automation is unavailable, deploy manually from `viz/chatbot/` with `npx wrangler@4 deploy` (Windows: `npx.cmd wrangler@4 deploy`) using the Cloudflare account that owns the Worker.
 4. For frontend changes, open a pull request and merge after review; the Pages workflow publishes eligible changes to `main`.
 5. Keep Turnstile hostname settings aligned with the website: `umarmadbi.github.io`, plus `localhost` and `127.0.0.1` for local testing. Origins in `wrangler.toml` include protocol and local port, but no repository path.
 
@@ -91,7 +93,7 @@ Each request includes reviewed knowledge, the current question and at most two p
 
 No application chat persistence or prompt logging is implemented. Browser history remains in memory until refresh/clear; the host/provider may still process metadata and content under their terms. Questions/recent chat are sent to Cloudflare and Google; Gemini free-tier data handling may include product improvement. The UI informs users. Imported site data and chart selections are NOT sent. Do not paste credentials or unpublished/private data into chat.
 
-No key is included in the model prompt. Worker secrets are used only as API credentials. Raw provider errors are never forwarded. Treat all knowledge as potentially discloseable through answers, even if stored on the backend. Current summaries are intentionally public-facing. Updating the original project docs does NOT update the chatbot: review `knowledge.mjs`, run tests and redeploy.
+No key is included in the model prompt. Worker secrets are used only as API credentials. Raw provider errors are never forwarded. Treat all knowledge as potentially discloseable through answers, even if stored on the backend. Current summaries are intentionally public-facing. Updating the original project docs does NOT update the chatbot: update the reviewed `knowledge.mjs` and merge it so the workflow can test and deploy it.
 
 ## Reviewed sources (branch snapshot when implemented)
 

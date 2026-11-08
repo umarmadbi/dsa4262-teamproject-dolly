@@ -113,7 +113,9 @@ an internet connection in both cases. Details and troubleshooting: [viz/README.m
 reviewed summaries, including the [final group report summary (S6)](viz/chatbot/report-summary.md) and the
 [SG-NEx analysis and limitations (S7)](docs/sgnex_task2.md). Expand **Project sources** to see the references
 used in an answer. Dolly cannot inspect live chart selections, read the GitHub repo on demand, or run analyses.
-Knowledge changes reach the live chatbot after a Cloudflare Worker redeploy. See the
+When chatbot knowledge or Worker code changes merge into `main`, the **Dolly Worker** GitHub Actions
+workflow runs the tests and deploys to Cloudflare if they pass. Editing the report or its Markdown summary
+alone does not update Dolly’s answers; update `knowledge.mjs` as well. See the
 [chatbot guide](viz/chatbot/README.md) for setup and the [AI use log](docs/ai_use_log.md) for development disclosures.
 
 ---
