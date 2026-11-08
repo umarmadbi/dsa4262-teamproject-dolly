@@ -23,10 +23,10 @@ The assistant explains documented findings; it has NO live chart access, data-qu
 
 The **Dolly Worker** GitHub Actions workflow runs when Worker code, bundled knowledge, its tests, or Wrangler configuration changes on `main`. It tests the Worker before deploying. You can also run it manually from Actions with `main` selected.
 
-Before merging or running the workflow, a repository administrator should create the `dolly-worker` GitHub environment, restrict its deployment branch to `main`, and add these environment secrets:
+Before merging or running the workflow, a repository administrator should create the `dolly-worker` GitHub environment, restrict its deployment branch to `main`, and add these environment settings:
 
-- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with Workers Scripts Edit access scoped to the account that owns `dolly-guide`.
-- `CLOUDFLARE_ACCOUNT_ID`: the ID of that same Cloudflare account.
+- `CLOUDFLARE_API_TOKEN` (secret): a Cloudflare API token with Workers Scripts Edit access scoped to the account that owns `dolly-guide`.
+- `CLOUDFLARE_ACCOUNT_ID` (variable or secret): the 32-character ID of that same Cloudflare account. A nonempty secret takes priority if both are set.
 
 Keep Gemini and Turnstile credentials on the existing Worker. GitHub Actions does not need them. After the first successful workflow run, open Ask Dolly and check that it can answer a question with a project source. The mock tests do not contact Gemini or Cloudflare.
 
