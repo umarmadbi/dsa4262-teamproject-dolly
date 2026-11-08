@@ -1,0 +1,46 @@
+name: Dolly Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - viz/chatbot/worker.mjs
+      - viz/chatbot/knowledge.mjs
+      - viz/chatbot/worker.test.mjs
+      - viz/chatbot/wrangler.toml
+      - .github/workflows/dolly-worker.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dolly-worker-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: dolly-worker
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test the Worker
+        run: node --test viz/chatbot/worker.test.mjs
+      - name: Deploy to Cloudflare
+        working-directory: viz/chatbot
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [[ -z "$CLOUDFLARE_API_TOKEN" || -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "::error::Configure both Cloudflare secrets in the dolly-worker GitHub environment before deploying."
+            exit 1
+          fi
+          npx --yes wrangler@4.158.0 deploy
