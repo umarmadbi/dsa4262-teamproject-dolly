@@ -133,7 +133,7 @@ el('form').addEventListener('submit',async e=>{
   if(typeof data?.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
   stopLoading();
   const answer=data.answer.slice(0,6000),box=message('assistant',answer);
-  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!source||!/^S[1-6]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
+  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!source||!/^S[1-7]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
   reading.scrollTop=reading.scrollHeight;
   // Limit retained context so a long session cannot grow request costs indefinitely.
   history=[...next,{role:'assistant',content:answer.slice(0,3000)}].slice(-4);
