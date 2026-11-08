@@ -19,6 +19,19 @@ GitHub Pages serves the static site. The Worker runs separately. Provider quotas
 
 The assistant explains documented findings; it has NO live chart access, data-query tools, arbitrary URL fetch, file access, code execution, model training or new predictions. It must direct live numerical questions to charts/tables. This is separate from the m6A prediction model.
 
+## Automatic Worker deployment
+
+The **Dolly Worker** GitHub Actions workflow runs when Worker code, bundled knowledge, its tests, or Wrangler configuration changes on `main`. It tests the Worker before deploying. You can also run it manually from Actions with `main` selected.
+
+Before merging or running the workflow, a repository administrator should create the `dolly-worker` GitHub environment, restrict its deployment branch to `main`, and add these environment secrets:
+
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token with Workers Scripts Edit access scoped to the account that owns `dolly-guide`.
+- `CLOUDFLARE_ACCOUNT_ID`: the ID of that same Cloudflare account.
+
+Keep Gemini and Turnstile credentials on the existing Worker. GitHub Actions does not need them. After the first successful workflow run, open Ask Dolly and check that it can answer a question with a project source. The mock tests do not contact Gemini or Cloudflare.
+
+The workflow deploys `knowledge.mjs` as committed. Editing the original report or a Markdown summary alone does not change what Dolly receives; update the reviewed bundle too. GitHub Pages continues to handle website publishing separately.
+
 ## Reproduce or reconfigure the deployment
 
 Use Node 22+ and a current Wrangler 4 CLI (>=4.36 for rate-limit bindings). From the repository root:
