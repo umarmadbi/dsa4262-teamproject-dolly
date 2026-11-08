@@ -1,4 +1,14 @@
 import { chatConfig } from './chat-config.js';
+const projectSourceBase = 'https://github.com/umarmadbi/dsa4262-teamproject-dolly/blob/main/';
+const projectSourcePaths = Object.freeze({
+ S1: 'viz/site/index.html',
+ S2: 'viz/README.md',
+ S3: 'docs/model_development.md',
+ S4: 'docs/eda_findings.md',
+ S5: 'docs/sgnex_task2.md',
+ S6: 'viz/chatbot/report-summary.md',
+ S7: 'docs/sgnex_task2.md'
+});
 const root=document.createElement('div');root.id='dolly-assistant';
 root.innerHTML=`<button type="button" class="chat-launch" aria-label="Ask Dolly — open or close the research guide" title="Ask Dolly" aria-expanded="false" aria-controls="chat-panel"><svg class="chat-sheep" viewBox="0 0 100 84" aria-hidden="true" focusable="false">
 <ellipse cx="50" cy="76" rx="33" ry="4" fill="#87b49a" opacity=".18"/>
@@ -133,7 +143,24 @@ el('form').addEventListener('submit',async e=>{
   if(typeof data?.answer!=='string'||!data.answer.trim())throw new Error('No answer was returned.');
   stopLoading();
   const answer=data.answer.slice(0,6000),box=message('assistant',answer);
-  if(Array.isArray(data.sources)&&data.sources.length){const refs=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Project sources';refs.append(summary);for(const source of data.sources){if(!source||!/^S[1-7]$/.test(source.id)||typeof source.title!=='string'||typeof source.path!=='string')continue;const p=document.createElement('p');p.textContent=`[${source.id}] ${source.title} — ${source.path}`;refs.append(p);}box.append(refs);}
+  if (Array.isArray(data.sources) && data.sources.length) {
+   const refs = document.createElement('details');
+   const summary = document.createElement('summary');
+   summary.textContent = 'Project sources';
+   refs.append(summary);
+   for (const source of data.sources) {
+    if (!source || !Object.hasOwn(projectSourcePaths, source.id) || typeof source.title !== 'string') continue;
+    const p = document.createElement('p');
+    const link = document.createElement('a');
+    link.href = projectSourceBase + projectSourcePaths[source.id];
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = `[${source.id}] ${source.title}`;
+    p.append(link);
+    refs.append(p);
+   }
+   if (refs.children.length > 1) box.append(refs);
+  }
   reading.scrollTop=reading.scrollHeight;
   // Limit retained context so a long session cannot grow request costs indefinitely.
   history=[...next,{role:'assistant',content:answer.slice(0,3000)}].slice(-4);
