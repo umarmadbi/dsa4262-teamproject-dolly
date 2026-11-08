@@ -14,7 +14,7 @@ GitHub Pages serves the static site. The Worker runs separately. Provider quotas
 - `../site/chat.js`, `chat.css`: accessible floating guide, suggested questions, clear/close, safely formatted answers and source IDs; no HTML from the model is executed.
 - `../site/chat-config.js`: PUBLIC endpoint and Turnstile SITE key only. Empty defaults show an honest not-connected state.
 - `worker.mjs`: bounds/validates requests, checks allowed origin, validates Turnstile, throttles calls, calls Gemini using a secret, hides upstream errors.
-- `knowledge.mjs`: manually reviewed summaries of website guide, model development, EDA, SG-NEx comparison, and selected first-draft report findings (see `report-summary.md`). No repository-wide uploads, connection guides, raw data, personal account details or credentials.
+- `knowledge.mjs`: manually reviewed summaries of website guide, model development, EDA, SG-NEx comparison, and selected final report findings (see `report-summary.md`). No repository-wide uploads, connection guides, raw data, personal account details or credentials.
 - `worker.test.mjs`: mock-only tests; no API key/network/payment required.
 
 The assistant explains documented findings; it has NO live chart access, data-query tools, arbitrary URL fetch, file access, code execution, model training or new predictions. It must direct live numerical questions to charts/tables. This is separate from the m6A prediction model.
@@ -85,7 +85,7 @@ No key is included in the model prompt. Worker secrets are used only as API cred
 - Website `viz/site/index.html`: blob `23aabf5454f2bcd1d7dd053ce660428d3dce6f36`.
 - `viz/README.md`, `docs/model_development.md`, `docs/eda_findings.md`, `docs/sgnex_task2.md`, read from `joshua-workinprogress` during implementation.
 - The UI excludes development datasets. Knowledge retains training datasets only as methods context.
-- User-supplied first-draft group report: selected sections 3–6 summarised in `report-summary.md`. The original PDF is not uploaded.
+- User-supplied final group report: selected sections 3–6 summarised in `report-summary.md`. The original PDF is not uploaded.
 - EDA recommendations such as class weighting are distinct from final implementation choices. Knowledge follows model development for final model details.
 - Project results are attributed to the team's documentation; this implementation did not rerun model experiments or validate their scientific conclusions.
 
