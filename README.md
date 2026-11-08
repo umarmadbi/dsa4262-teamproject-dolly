@@ -109,6 +109,13 @@ Serve it this way rather than double-clicking `index.html`, which leaves the pag
 an internet connection in both cases. Details and troubleshooting: [viz/README.md](viz/README.md) and
 [docs/HOW_TO_RUN.md](docs/HOW_TO_RUN.md#7-open-the-interactive-visualisation).
 
+**Ask Dolly** explains how to use the dashboard and interpret project findings. Its answers are based on
+reviewed summaries, including the [final group report summary (S6)](viz/chatbot/report-summary.md) and the
+[SG-NEx analysis and limitations (S7)](docs/sgnex_task2.md). Expand **Project sources** to see the references
+used in an answer. Dolly cannot inspect live chart selections, read the GitHub repo on demand, or run analyses.
+Knowledge changes reach the live chatbot after a Cloudflare Worker redeploy. See the
+[chatbot guide](viz/chatbot/README.md) for setup and the [AI use log](docs/ai_use_log.md) for development disclosures.
+
 ---
 
 ## Repository layout
